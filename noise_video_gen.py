@@ -47,8 +47,8 @@ def speckle_noise(image):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Apply noise to an image and write to an mp4 file")
-    parser.add_argument("-i", "--img", default="0", type=str, metavar='', help="image source")
-    parser.add_argument("-s", "--save", default="out.mp4", type=str, metavar='', help="save video")
+    parser.add_argument("-i", "--img", required=True, type=str, metavar='', help="an image path")
+    parser.add_argument("-s", "--save", default="out.mp4", type=str, metavar='', help="save video path")
     args = parser.parse_args()
 
     # Create a VideoCapture object
@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
     # Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.
     # out = cv2.VideoWriter('out.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 15, (frame_width, frame_height))
-    out = cv2.VideoWriter('out.mp4',cv2.VideoWriter_fourcc(*'MP4V'), 15, (frame_width, frame_height))
+    out = cv2.VideoWriter('out.mp4',cv2.VideoWriter_fourcc(*'MP4V'), 30, (frame_width, frame_height))
 
     org_img = img.copy()
     amount = 0.05
@@ -79,6 +79,9 @@ if __name__ == '__main__':
         #ret, frame = cap.read()
         frame = saltAndPapper_noise(org_img, s_vs_p=0.5, amount=amount)
         amount+=0.01
+
+        frame = cv2.putText(frame, "salt & papper", (int(frame_width*0.80),50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
+        frame = cv2.putText(frame, "amount = {:.5f}".format(amount), (int(frame_width*0.80),100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
 
         #if ret == True:
 
