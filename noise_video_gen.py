@@ -71,10 +71,10 @@ if __name__ == '__main__':
 
     # Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.
     # out = cv2.VideoWriter('out.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 15, (frame_width, frame_height))
-    out = cv2.VideoWriter('out.mp4',cv2.VideoWriter_fourcc(*'MP4V'), 30, (frame_width, frame_height))
+    out = cv2.VideoWriter('out.mp4',cv2.VideoWriter_fourcc(*'MP4V'), 15, (frame_width, frame_height))
 
     org_img = img.copy()
-    amount = 0.05
+    amount = 0.01
     while(True):
         #ret, frame = cap.read()
         frame = saltAndPapper_noise(org_img, s_vs_p=0.5, amount=amount)
