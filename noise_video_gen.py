@@ -1,5 +1,6 @@
 import os
 import cv2
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -34,25 +35,31 @@ def poisson_noise(image):
     vals = 2 ** np.ceil(np.log2(vals))
     noisy = np.random.poisson(image * vals) / float(vals)
     return noisy
-    
+
 def speckle_noise(image):
     row,col,ch = image.shape
     gauss = np.random.randn(row,col,ch)
-    gauss = gauss.reshape(row,col,ch)        
+    gauss = gauss.reshape(row,col,ch)
     noisy = image + image * gauss
     return noisy
 
 
 if __name__ == '__main__':
 
+    parser = argparse.ArgumentParser(description="Apply noise to an image and write to an mp4 file")
+    parser.add_argument("-i", "--img", default="0", type=str, metavar='', help="image source")
+    parser.add_argument("-s", "--save", default="out.mp4", type=str, metavar='', help="save video")
+    args = parser.parse_args()
+
     # Create a VideoCapture object
     # cap = cv2.VideoCapture(0)
 
     # Check if camera opened successfully
-    #if (cap.isOpened() == False): 
+    #if (cap.isOpened() == False):
     #    print("Unable to read camera feed")
 
-    img = cv2.imread('car_detection_sample1.png')
+    # img = cv2.imread('car_detection_sample1.png')
+    img = cv2.imread(args.img)
     # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     # Default resolutions of the frame are obtained.The default resolutions are system dependent.
@@ -62,7 +69,7 @@ if __name__ == '__main__':
     frame_width = img.shape[1]
     frame_height = img.shape[0]
 
-    # Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file. 
+    # Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.
     # out = cv2.VideoWriter('out.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 15, (frame_width, frame_height))
     out = cv2.VideoWriter('out.mp4',cv2.VideoWriter_fourcc(*'MP4V'), 15, (frame_width, frame_height))
 
@@ -73,12 +80,12 @@ if __name__ == '__main__':
         frame = saltAndPapper_noise(org_img, s_vs_p=0.5, amount=amount)
         amount+=0.01
 
-        #if ret == True: 
+        #if ret == True:
 
         # Write the frame into the file 'output.avi'
         out.write(frame)
 
-        # Display the resulting frame    
+        # Display the resulting frame
         cv2.imshow('frame',frame)
 
         # Press Q on keyboard to stop recording
@@ -87,7 +94,7 @@ if __name__ == '__main__':
 
         # Break the loop
         #else:
-        #    break  
+        #    break
 
     # When everything done, release the video capture and video write objects
     # cap.release()
