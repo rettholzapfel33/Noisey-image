@@ -1,3 +1,3 @@
 # Noisey-image
 
-Run UI.py to open the app
+Run mainwindow.py to open the app
