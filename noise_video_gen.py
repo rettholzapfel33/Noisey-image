@@ -44,6 +44,44 @@ def speckle_noise(image):
     return noisy
 
 
+def start(img_path):
+    img = cv2.imread(img_path)
+    frame_width = img.shape[1]
+    frame_height = img.shape[0]
+    out = cv2.VideoWriter('out.mp4',cv2.VideoWriter_fourcc(*'MP4V'), 15, (frame_width, frame_height))
+    org_img = img.copy()
+    amount = 0.01
+    while(True):
+        #ret, frame = cap.read()
+        frame = saltAndPapper_noise(org_img, s_vs_p=0.5, amount=amount)
+        amount+=0.01
+
+        frame = cv2.putText(frame, "salt & papper", (int(frame_width*0.80),50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
+        frame = cv2.putText(frame, "amount = {:.5f}".format(amount), (int(frame_width*0.80),100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
+
+        #if ret == True:
+
+        # Write the frame into the file 'output.avi'
+        out.write(frame)
+
+        # Display the resulting frame
+        cv2.imshow('frame',frame)
+
+        # Press Q on keyboard to stop recording
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+        # Break the loop
+        #else:
+        #    break
+
+    # When everything done, release the video capture and video write objects
+    # cap.release()
+    out.release()
+
+    # Closes all the frames
+    cv2.destroyAllWindows()
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Apply noise to an image and write to an mp4 file")
