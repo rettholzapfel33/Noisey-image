@@ -1,9 +1,28 @@
 import os
 import cv2
+import random
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+# updated sp noise
+def saltAndPapper_noise(image, prob=0.01):
+    output = np.zeros(image.shape,np.uint8)
+    thres = 1 - prob 
+    for i in range(image.shape[0]):
+        for j in range(image.shape[1]):
+            rdn = random.random()
+            if rdn < prob:
+                output[i][j] = 0
+            elif rdn > thres:
+                output[i][j] = 255
+            else:
+                output[i][j] = image[i][j]
+    return output
+
+'''
+# old sp noise (red channel)
 def saltAndPapper_noise(image, s_vs_p=0.5, amount=0.05):
     row,col,ch = image.shape
     # s_vs_p = 0.5
@@ -19,6 +38,7 @@ def saltAndPapper_noise(image, s_vs_p=0.5, amount=0.05):
     coords = [np.random.randint(0, i - 1, int(num_pepper)) for i in image.shape]
     out[coords] = 0
     return out
+'''
 
 def gauss_noise(image, mean=0, var=0.1):
     row,col,ch= image.shape
@@ -115,7 +135,8 @@ if __name__ == '__main__':
     amount = 0.01
     while(True):
         #ret, frame = cap.read()
-        frame = saltAndPapper_noise(org_img, s_vs_p=0.5, amount=amount)
+        # frame = saltAndPapper_noise(org_img, s_vs_p=0.5, amount=amount)
+        frame = saltAndPapper_noise(org_img, amount)
         amount+=0.01
 
         frame = cv2.putText(frame, "salt & papper", (int(frame_width*0.80),50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
