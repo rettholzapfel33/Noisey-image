@@ -73,7 +73,7 @@ def start(img_path):
     amount = 0.01
     while(True):
         #ret, frame = cap.read()
-        frame = saltAndPapper_noise(org_img, s_vs_p=0.5, amount=amount)
+        frame = saltAndPapper_noise(org_img, amount)
         amount+=0.01
 
         frame = cv2.putText(frame, "salt & papper", (int(frame_width*0.80),50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)

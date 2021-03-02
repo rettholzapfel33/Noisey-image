@@ -1,9 +1,13 @@
 import sys
-sys.path.append('..')
-from mainwindow_ui import Ui_MainWindow
+
+sys.path.append('/home/rus/Desktop/UTK/cs493/Noisey-image')
+sys.path.append('/home/rus/Desktop/UTK/cs493/semantic-segmentation-pytorch')
 from noise_video_gen import *
-from PyQt5 import QtWidgets
-from PyQt5 import QtCore
+from predict_img import *
+from PyQt5 import QtCore, QtWidgets
+
+from mainwindow_ui import Ui_MainWindow
+
 
 class mainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -14,6 +18,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.ui.pushButton_browse_file.clicked.connect(self.file_browse)
         self.ui.pushButton.clicked.connect(self.noise_gen)
+        self.ui.pushButton_2.clicked.connect(self.start_model)
 
     def file_browse(self):
         fileName = QtWidgets.QFileDialog.getOpenFileName(self, "Select image", filter="Image files (*.jpg *.png)")
@@ -22,6 +27,10 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def noise_gen(self):
         start(self.ui.lineEdit_filename.text())
+
+    def start_model(self):
+        if(self.ui.checkBox.isChecked()):
+            start_from_gui(self.ui.lineEdit_filename.text())
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])

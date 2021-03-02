@@ -112,7 +112,7 @@
      <string>Run model</string>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>180</x>
@@ -133,6 +133,32 @@
       <widget class="QSpinBox" name="spinBox"/>
      </item>
     </layout>
+   </widget>
+   <widget class="QCheckBox" name="checkBox">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>380</y>
+      <width>251</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Use image from noise generator</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBox_2">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>350</y>
+      <width>241</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Display result</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
