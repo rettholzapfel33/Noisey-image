@@ -5,7 +5,9 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
+from noises import *
 
+'''
 # updated sp noise
 def saltAndPapper_noise(image, prob=0.01):
     output = np.zeros(image.shape,np.uint8)
@@ -21,7 +23,6 @@ def saltAndPapper_noise(image, prob=0.01):
                 output[i][j] = image[i][j]
     return output
 
-'''
 # old sp noise (red channel)
 def saltAndPapper_noise(image, s_vs_p=0.5, amount=0.05):
     row,col,ch = image.shape
@@ -38,7 +39,6 @@ def saltAndPapper_noise(image, s_vs_p=0.5, amount=0.05):
     coords = [np.random.randint(0, i - 1, int(num_pepper)) for i in image.shape]
     out[coords] = 0
     return out
-'''
 
 def gauss_noise(image, mean=0, var=0.1):
     row,col,ch= image.shape
@@ -62,13 +62,13 @@ def speckle_noise(image):
     gauss = gauss.reshape(row,col,ch)
     noisy = image + image * gauss
     return noisy
-
+'''
 
 def start(img_path):
     img = cv2.imread(img_path)
     frame_width = img.shape[1]
     frame_height = img.shape[0]
-    out = cv2.VideoWriter('out.mp4',cv2.VideoWriter_fourcc(*'MP4V'), 15, (frame_width, frame_height))
+    out = cv2.VideoWriter('out.mp4',cv2.VideoWriter_fourcc(*'MP4V'), 10, (frame_width, frame_height))
     org_img = img.copy()
     amount = 0.01
     while(True):
@@ -132,12 +132,12 @@ if __name__ == '__main__':
     out = cv2.VideoWriter('out.mp4',cv2.VideoWriter_fourcc(*'MP4V'), 15, (frame_width, frame_height))
 
     org_img = img.copy()
-    amount = 0.01
+    amount = 0.001
     while(True):
         #ret, frame = cap.read()
         # frame = saltAndPapper_noise(org_img, s_vs_p=0.5, amount=amount)
         frame = saltAndPapper_noise(org_img, amount)
-        amount+=0.01
+        amount+=0.001
 
         frame = cv2.putText(frame, "salt & papper", (int(frame_width*0.80),50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
         frame = cv2.putText(frame, "amount = {:.5f}".format(amount), (int(frame_width*0.80),100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
