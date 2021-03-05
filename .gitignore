@@ -5,3 +5,4 @@
 *.JPG
 
 data/
+__pycache__/
