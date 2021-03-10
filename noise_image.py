@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     
     img = cv2.imread(args.img)
-   # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     frame_width = img.shape[1]
     frame_height = img.shape[0]
@@ -51,35 +51,5 @@ if __name__ == '__main__':
         
     cv2.imshow('frame', frame)
     cv2.imwrite(args.save, frame)
-    
-    '''
-    while(True):
-        #ret, frame = cap.read()
-        # frame = saltAndPapper_noise(org_img, s_vs_p=0.5, amount=amount)
-        frame = saltAndPapper_noise(org_img, amount)
-        amount+=0.001
-
-        
-
-        #if ret == True:
-
-        # Write the frame into the file 'output.avi'
-        out.write(frame)
-
-        # Display the resulting frame
-        
-
-        # Press Q on keyboard to stop recording
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-        # Break the loop
-        #else:
-        #    break
-
-    # When everything done, release the video capture and video write objects
-    # cap.release()
-    '''
-
-    # Closes all the frames
-    # cv2.destroyAllWindows()
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
