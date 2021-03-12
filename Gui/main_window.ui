@@ -272,7 +272,7 @@
        <bool>true</bool>
       </property>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>510</x>
@@ -291,8 +291,11 @@
        </item>
        <item>
         <widget class="QLineEdit" name="lineEdit">
-         <property name="placeholderText">
+         <property name="text">
           <string>out_img</string>
+         </property>
+         <property name="placeholderText">
+          <string/>
          </property>
         </widget>
        </item>
@@ -305,7 +308,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>290</x>
