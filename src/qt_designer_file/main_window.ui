@@ -27,27 +27,27 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="page">
      <widget class="QCheckBox" name="checkBox_2">
       <property name="geometry">
        <rect>
-        <x>190</x>
-        <y>230</y>
-        <width>241</width>
+        <x>300</x>
+        <y>670</y>
+        <width>261</width>
         <height>23</height>
        </rect>
       </property>
       <property name="text">
-       <string>Display result</string>
+       <string>Display result on separate window</string>
       </property>
      </widget>
      <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
-        <x>110</x>
-        <y>390</y>
+        <x>90</x>
+        <y>700</y>
         <width>171</width>
         <height>51</height>
        </rect>
@@ -68,8 +68,8 @@
      <widget class="QCheckBox" name="checkBox">
       <property name="geometry">
        <rect>
-        <x>190</x>
-        <y>270</y>
+        <x>300</x>
+        <y>690</y>
         <width>251</width>
         <height>23</height>
        </rect>
@@ -81,8 +81,8 @@
      <widget class="QPushButton" name="pushButton_2">
       <property name="geometry">
        <rect>
-        <x>490</x>
-        <y>390</y>
+        <x>780</x>
+        <y>670</y>
         <width>241</width>
         <height>81</height>
        </rect>
@@ -107,8 +107,8 @@
      <widget class="QSplitter" name="splitter_2">
       <property name="geometry">
        <rect>
-        <x>190</x>
-        <y>310</y>
+        <x>290</x>
+        <y>720</y>
         <width>481</width>
         <height>31</height>
        </rect>
@@ -130,6 +130,51 @@
         <string>Browse</string>
        </property>
       </widget>
+     </widget>
+     <widget class="QLabel" name="original2">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>60</y>
+        <width>361</width>
+        <height>351</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="segmented">
+      <property name="geometry">
+       <rect>
+        <x>420</x>
+        <y>60</y>
+        <width>591</width>
+        <height>581</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="color_palette">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>410</y>
+        <width>351</width>
+        <height>221</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
      </widget>
     </widget>
     <widget class="QWidget" name="page_3">

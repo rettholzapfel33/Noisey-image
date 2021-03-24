@@ -22,10 +22,14 @@ def parse_model_config(path):
     with open(path) as file:
         data = yaml.load(file, Loader=yaml.FullLoader)
     
+    #print(str(Path(__file__).parent.absolute()))
+    data['DIR'] = str(Path(__file__).parent.absolute()) + '/' + data['DIR']
+    #print(data['DIR'])
+
     encoder_path = None
     decoder_path = None
 
-    for p in os.listdir(str(Path(__file__).parent.absolute()) + '/' + data['DIR']):
+    for p in os.listdir(data['DIR']):
         if "encoder" in p.lower():
             encoder_path = "{}/{}".format(data['DIR'], p)
             continue
@@ -95,9 +99,18 @@ def get_color_palette(pred, bar_height, names, colors):
     bottom_right_y = 30
     uniques, counts = np.unique(pred, return_counts=True)
 
+    # height = 0
+    # for idx in np.argsort(counts)[::-1]:
+    #     color_index = uniques[idx]
+    #     name = names[color_index + 1]
+    #     ratio = counts[idx] / pixs * 100
+    #     if ratio > 0.1:
+    #         height += 1 
+
     # Create a black image
     # bar_height = im_vis.shape[0]
-    img = np.zeros((bar_height,250,3), np.uint8)
+    #img = np.zeros((height * 30,250,3), np.uint8)
+    img = np.zeros((bar_height, 250, 3), np.uint8)
 
     for idx in np.argsort(counts)[::-1]:
         color_index = uniques[idx]
@@ -142,6 +155,7 @@ def transparent_overlays(image, annotation, alpha=0.5):
 
 def load_model_from_cfg(cfg):
     model_config, encoder_path, decoder_path = parse_model_config(cfg)
+    print("encoder path: ", encoder_path)
     net_encoder = ModelBuilder.build_encoder(
         arch = model_config["MODEL"]['arch_encoder'],
         fc_dim = model_config['MODEL']['fc_dim'],
@@ -207,6 +221,7 @@ def start_from_gui(img, save, display = 1, alpha = 0.6):
     cv2.imwrite("{}/pred_color_palette.png".format(save), cv2.cvtColor(pred_color_palette, cv2.COLOR_RGB2BGR))
     cv2.imwrite("{}/pred_color_palette_dst.png".format(save), cv2.cvtColor(pred_color_palette_dst, cv2.COLOR_RGB2BGR))
     cv2.imwrite("{}/pred_color_palette_all.png".format(save), cv2.cvtColor(pred_color_palette_all, cv2.COLOR_RGB2BGR))
+    cv2.imwrite("{}/color_palette.png".format(save), cv2.cvtColor(color_palette, cv2.COLOR_RGB2BGR))
     
     if (display)==1:
         PIL.Image.fromarray(pred_color_palette_dst).show()
