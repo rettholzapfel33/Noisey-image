@@ -90,7 +90,7 @@ def predict_img(segmentation_module, singleton_batch, output_size):
     return pred
 
 
-def get_color_palette(pred, bar_height, names, colors):
+def get_color_palette(pred, bar_height, names, colors, detectedNames):
 
     pred = np.int32(pred)
     pixs = pred.size
@@ -123,6 +123,7 @@ def get_color_palette(pred, bar_height, names, colors):
             img = cv2.putText(img, "{}: {:.3f}%".format(name, ratio), (0,top_left_y+20), 5, 1, (255,255,255), 2, cv2.LINE_AA)
             top_left_y+=30
             bottom_right_y+=30
+            detectedNames.append(name)
             
     return img
 
@@ -172,7 +173,7 @@ def load_model_from_cfg(cfg):
     return segmentation_module
     
 
-def start_from_gui(img, save, display = 1, alpha = 0.6):
+def start_from_gui(img, save, progress, detectedNames, display = 1, alpha = 0.6):
 
     cfg = str(Path(__file__).parent.absolute()) + "/config/ade20k-resnet50dilated-ppm_deepsup.yaml"
 
@@ -185,7 +186,8 @@ def start_from_gui(img, save, display = 1, alpha = 0.6):
         for row in reader:
             names[int(row[0])] = row[5].split(";")[0]
     
-    
+    progress.emit(1)
+
     # Network Builders
     print("parsing {}".format(cfg))
     segmentation_module = load_model_from_cfg(cfg)
@@ -193,15 +195,18 @@ def start_from_gui(img, save, display = 1, alpha = 0.6):
     segmentation_module.eval()
     segmentation_module.cuda()
     
-    
+    progress.emit(2)
+
     # predict
     img_original, singleton_batch, output_size = process_img(img)
     pred = predict_img(segmentation_module, singleton_batch, output_size)
+
+    progress.emit(3)
     # print(type(img_original))
     pred_color, org_pred_split = visualize_result(img_original, pred, colors)
     
     # color_palette
-    color_palette = get_color_palette(pred, org_pred_split.shape[0], names, colors)
+    color_palette = get_color_palette(pred, org_pred_split.shape[0], names, colors, detectedNames)
     
     # transparent pred on org
     dst = transparent_overlays(img_original, pred_color, alpha=alpha)
@@ -214,6 +219,8 @@ def start_from_gui(img, save, display = 1, alpha = 0.6):
     
     # org + colored_pred + color_palette
     pred_color_palette_all = numpy.concatenate((org_pred_split, color_palette), axis=1)
+
+    progress.emit(4)
     
     cv2.imwrite("{}/pred_color.png".format(save), cv2.cvtColor(pred_color, cv2.COLOR_RGB2BGR))
     cv2.imwrite("{}/org_pred_split.png".format(save), cv2.cvtColor(org_pred_split, cv2.COLOR_RGB2BGR))
@@ -227,6 +234,9 @@ def start_from_gui(img, save, display = 1, alpha = 0.6):
         PIL.Image.fromarray(pred_color_palette_dst).show()
     else:
         print("results saved")
+
+    progress.emit(5)
+
 
 if __name__ == '__main__':
 

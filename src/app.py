@@ -1,4 +1,3 @@
-import os, sys
 from pathlib import Path
 
 from predict_img import start_from_gui
@@ -11,6 +10,22 @@ from window import Ui_MainWindow
 currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'tmp_results/'
 
+class Worker(QtCore.QObject):
+    finished = QtCore.pyqtSignal()
+    progress = QtCore.pyqtSignal(int)
+
+    def setup(self, filename, tmpPath, display, detectedNames):
+        self.filename = filename
+        self.tmpPath = tmpPath
+        self.display = display
+        self.detectedNames = detectedNames
+
+    def run(self):
+         start_from_gui(self.filename, self.tmpPath, self.progress, self.detectedNames, self.display)
+         self.finished.emit()
+
+
+
 class mainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -19,12 +34,15 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
 
         self.ui.stackedWidget.setCurrentWidget(self.ui.page_3)
+        self.ui.progressBar.hide()
 
+        # Buttons
         self.ui.pushButton_browse_file.clicked.connect(lambda : self.file_browse(self.ui.lineEdit_filename))
         self.ui.pushButton_browse_file_2.clicked.connect(lambda: self.file_browse(self.ui.lineEdit_filename_2))
         self.ui.pushButton.clicked.connect(self.noise_gen)
         self.ui.pushButton_2.clicked.connect(self.start_model)
         
+        # Changing pages
         self.ui.pb_noise_gen.clicked.connect(lambda: self.ui.stackedWidget.setCurrentWidget(self.ui.page_2))
         self.ui.pb_sementic_seg.clicked.connect(lambda: self.ui.stackedWidget.setCurrentWidget(self.ui.page))
         self.ui.pb_back.clicked.connect(lambda: self.ui.stackedWidget.setCurrentWidget(self.ui.page_3))
@@ -34,6 +52,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.ui.horizontalSlider.valueChanged.connect(lambda: self.ui.label_7.setText(str(self.ui.horizontalSlider.value() / 100)))
         self.ui.horizontalSlider.valueChanged.connect(self.noise_gen)
+
 
     def file_browse(self, lineEdit):
         fileName = QtWidgets.QFileDialog.getOpenFileName(self, "Select image", filter="Image files (*.jpg *.png)")
@@ -60,16 +79,44 @@ class mainWindow(QtWidgets.QMainWindow):
         add_noise_img(img, noise_level, out)
         self.ui.preview.setPixmap(QtGui.QPixmap(out))
 
+    def reportProgress(self, n):
+        self.ui.progressBar.setValue(n)
+
     def start_model(self):
+        self.ui.progressBar.show()
+        self.ui.listWidget.clear()
+        self.ui.segmented.clear()
+
         self.ui.original2.setPixmap(QtGui.QPixmap(self.ui.lineEdit_filename_2.text()))
+
+        self.thread = QtCore.QThread()
+        self.worker = Worker()
+
+        detectedNames = []
         display_sep = self.ui.checkBox_2.isChecked()
-        start_from_gui(self.ui.lineEdit_filename_2.text(), tmpPath, display=display_sep)
-        self.ui.segmented.setPixmap(QtGui.QPixmap(tmpPath + 'dst.png'))
+        self.worker.setup(self.ui.lineEdit_filename_2.text(), tmpPath, display_sep, detectedNames)
+
+        self.worker.moveToThread(self.thread)
+
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.finished.connect(self.ui.progressBar.hide)
+        self.worker.finished.connect(lambda: self.ui.segmented.setPixmap(QtGui.QPixmap(tmpPath + 'dst.png')))
+        self.worker.finished.connect(lambda: self.ui.listWidget.addItems(detectedNames))
+        self.worker.progress.connect(self.reportProgress)
+        self.thread.finished.connect(self.thread.deleteLater)
+        
+        self.thread.start()
+
+        #start_from_gui(self.ui.lineEdit_filename_2.text(), tmpPath, display=display_sep)
+
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
 
     window = mainWindow()
     window.show()
-
+    
     app.exec_()
