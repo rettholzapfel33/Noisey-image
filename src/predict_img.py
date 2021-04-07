@@ -15,6 +15,26 @@ import os, csv, torch, numpy, scipy.io, PIL.Image, torchvision.transforms
 from mit_semseg.models import ModelBuilder, SegmentationModule
 from mit_semseg.utils import colorEncode
 
+# class_list from names
+def new_visualize_result(pred, class_list, name=None, index=None):
+    switch_names = {y:x for x,y in class_list.items()}
+    if name is not None:
+        try:
+            index = switch_names[name] - 1
+        except:
+            print("class not exist!")
+            pass
+    
+    if index is not None:
+        pred = pred.copy()
+        pred[pred!=index] = -1
+        # print(f'{names[i+1]}:')
+        
+    # colorize prediction
+    pred_color = colorEncode(pred, colors).astype(numpy.uint8)
+    return pred_color
+
+
 # pass in mode config(yaml file)
 # return a dict for the file 
 # return decoder and encoder weights path
