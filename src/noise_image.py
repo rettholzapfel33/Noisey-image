@@ -23,7 +23,10 @@ def add_noise_img(img, level, save):
     frame = cv2.putText(frame, "amount = {:.5f}".format(amount), (int(frame_width*0.80),100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
         
     #cv2.imshow('frame', frame)
-    cv2.imwrite(save, frame)
+    #cv2.imwrite(save, frame)
+
+    img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    return img_rgb
 
 if __name__ == '__main__':
 

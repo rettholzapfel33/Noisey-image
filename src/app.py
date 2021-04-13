@@ -7,8 +7,16 @@ from noise_image import add_noise_img
 from PyQt5 import QtCore, QtWidgets, QtGui
 from window import Ui_MainWindow
 
+
 currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'tmp_results/'
+
+
+def convert_cvimg_to_qimg(cv_img):
+    height, width, channel = cv_img.shape
+    bytesPerLine = 3 * width
+    qt_img = QtGui.QImage(cv_img.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
+    return qt_img
 
 class Worker(QtCore.QObject):
     finished = QtCore.pyqtSignal()
@@ -23,7 +31,6 @@ class Worker(QtCore.QObject):
     def run(self):
          start_from_gui(self.filename, self.tmpPath, self.progress, self.detectedNames, self.display)
          self.finished.emit()
-
 
 
 class mainWindow(QtWidgets.QMainWindow):
@@ -76,8 +83,10 @@ class mainWindow(QtWidgets.QMainWindow):
         out = self.ui.lineEdit.text() + ".jpg"
         out = tmpPath + out
         print(out)
-        add_noise_img(img, noise_level, out)
-        self.ui.preview.setPixmap(QtGui.QPixmap(out))
+        cv_img = add_noise_img(img, noise_level, out)
+        qt_img = convert_cvimg_to_qimg(cv_img)
+
+        self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
 
     def reportProgress(self, n):
         self.ui.progressBar.setValue(n)
