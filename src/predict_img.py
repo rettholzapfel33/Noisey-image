@@ -16,7 +16,14 @@ from mit_semseg.models import ModelBuilder, SegmentationModule
 from mit_semseg.utils import colorEncode
 
 # class_list from names
-def new_visualize_result(pred, class_list, name=None, index=None):
+def new_visualize_result(pred, img, name=None, index=None):
+    class_list = {}
+    with open(str(Path(__file__).parent.absolute()) + '/data/object150_info.csv') as f:
+        reader = csv.reader(f)
+        next(reader)
+        for row in reader:
+            class_list[int(row[0])] = row[5].split(";")[0]
+
     switch_names = {y:x for x,y in class_list.items()}
     if name is not None:
         try:
@@ -30,9 +37,15 @@ def new_visualize_result(pred, class_list, name=None, index=None):
         pred[pred!=index] = -1
         # print(f'{names[i+1]}:')
         
+    colors = scipy.io.loadmat(str(Path(__file__).parent.absolute()) + '/data/color150.mat')['colors']
     # colorize prediction
     pred_color = colorEncode(pred, colors).astype(numpy.uint8)
-    return pred_color
+
+    img2 = cv2.imread(img)
+    img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
+    trans = transparent_overlays(img2, pred_color, alpha=0.6)
+
+    return trans
 
 
 # pass in mode config(yaml file)
@@ -256,6 +269,7 @@ def start_from_gui(img, save, progress, detectedNames, display = 1, alpha = 0.6)
         print("results saved")
 
     progress.emit(5)
+    return dst, pred
 
 
 if __name__ == '__main__':

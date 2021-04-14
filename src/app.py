@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from predict_img import start_from_gui
+from predict_img import start_from_gui, new_visualize_result
 #from noise_video_gen import *
 from noise_image import add_noise_img
 
@@ -15,11 +15,13 @@ tmpPath = currPath + 'tmp_results/'
 def convert_cvimg_to_qimg(cv_img):
     height, width, channel = cv_img.shape
     bytesPerLine = 3 * width
+
     qt_img = QtGui.QImage(cv_img.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
     return qt_img
 
+
 class Worker(QtCore.QObject):
-    finished = QtCore.pyqtSignal()
+    finished = QtCore.pyqtSignal(tuple)
     progress = QtCore.pyqtSignal(int)
 
     def setup(self, filename, tmpPath, display, detectedNames):
@@ -29,8 +31,8 @@ class Worker(QtCore.QObject):
         self.detectedNames = detectedNames
 
     def run(self):
-         start_from_gui(self.filename, self.tmpPath, self.progress, self.detectedNames, self.display)
-         self.finished.emit()
+         result = start_from_gui(self.filename, self.tmpPath, self.progress, self.detectedNames, self.display)
+         self.finished.emit(result)
 
 
 class mainWindow(QtWidgets.QMainWindow):
@@ -60,6 +62,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.horizontalSlider.valueChanged.connect(lambda: self.ui.label_7.setText(str(self.ui.horizontalSlider.value() / 100)))
         self.ui.horizontalSlider.valueChanged.connect(self.noise_gen)
 
+        self.ui.listWidget.currentItemChanged.connect(self.change_selection)
+
 
     def file_browse(self, lineEdit):
         fileName = QtWidgets.QFileDialog.getOpenFileName(self, "Select image", filter="Image files (*.jpg *.png)")
@@ -80,23 +84,41 @@ class mainWindow(QtWidgets.QMainWindow):
             return
 
         noise_level = self.ui.horizontalSlider.value() / 100
-        out = self.ui.lineEdit.text() + ".jpg"
-        out = tmpPath + out
-        print(out)
-        cv_img = add_noise_img(img, noise_level, out)
-        qt_img = convert_cvimg_to_qimg(cv_img)
+        # out = self.ui.lineEdit.text() + ".jpg"
+        # out = tmpPath + out
+        # print(out)
+        cv_img = add_noise_img(img, noise_level)
+        qt_img = convert_cvimg_to_qimg(cv_img[0])
 
         self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
 
     def reportProgress(self, n):
         self.ui.progressBar.setValue(n)
 
+    def change_selection(self, current):
+        if(current == None):
+            return
+
+        print(current.text())
+
+        if(current.text() == "all"):
+            self.ui.segmented.setPixmap(QtGui.QPixmap.fromImage(self.img))
+        else:
+            img = new_visualize_result(self.pred, self.ui.lineEdit_filename_2.text(), current.text())
+            qImg = convert_cvimg_to_qimg(img)
+            self.ui.segmented.setPixmap(QtGui.QPixmap.fromImage(qImg))
+
+    def display_result(self, result):
+        self.pred = result[1]
+        self.img = convert_cvimg_to_qimg(result[0])
+        self.ui.segmented.setPixmap(QtGui.QPixmap.fromImage(self.img))
+
     def start_model(self):
         self.ui.progressBar.show()
         self.ui.listWidget.clear()
         self.ui.segmented.clear()
 
-        self.ui.original2.setPixmap(QtGui.QPixmap(self.ui.lineEdit_filename_2.text()))
+        #self.ui.original2.setPixmap(QtGui.QPixmap(self.ui.lineEdit_filename_2.text()))
 
         self.thread = QtCore.QThread()
         self.worker = Worker()
@@ -104,14 +126,15 @@ class mainWindow(QtWidgets.QMainWindow):
         detectedNames = []
         display_sep = self.ui.checkBox_2.isChecked()
         self.worker.setup(self.ui.lineEdit_filename_2.text(), tmpPath, display_sep, detectedNames)
-
+        detectedNames.append("all")
         self.worker.moveToThread(self.thread)
 
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
         self.worker.finished.connect(self.ui.progressBar.hide)
-        self.worker.finished.connect(lambda: self.ui.segmented.setPixmap(QtGui.QPixmap(tmpPath + 'dst.png')))
+        #self.worker.finished.connect(lambda: self.ui.segmented.setPixmap(QtGui.QPixmap(tmpPath + 'dst.png')))
+        self.worker.finished.connect(self.display_result)
         self.worker.finished.connect(lambda: self.ui.listWidget.addItems(detectedNames))
         self.worker.progress.connect(self.reportProgress)
         self.thread.finished.connect(self.thread.deleteLater)

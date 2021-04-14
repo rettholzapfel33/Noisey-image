@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 from noises import *
 
-def add_noise_img(img, level, save):
+def add_noise_img(img, level):
     img = cv2.imread(img)
    # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
@@ -19,14 +19,17 @@ def add_noise_img(img, level, save):
     
     frame = saltAndPapper_noise(org_img, amount)
 
-    frame = cv2.putText(frame, "salt & papper", (int(frame_width*0.80),50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
-    frame = cv2.putText(frame, "amount = {:.5f}".format(amount), (int(frame_width*0.80),100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
+    frame_notext = frame
+
+    frame = cv2.putText(frame, "salt & papper", (int(frame_width*0.73),50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
+    frame = cv2.putText(frame, "amount = {:.5f}".format(amount), (int(frame_width*0.73),100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
         
     #cv2.imshow('frame', frame)
     #cv2.imwrite(save, frame)
 
     img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    return img_rgb
+    img_rgb_notext = cv2.cvtColor(frame_notext, cv2.COLOR_BGR2RGB)
+    return img_rgb, img_rgb_notext
 
 if __name__ == '__main__':
 
