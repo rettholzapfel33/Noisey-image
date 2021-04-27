@@ -19,10 +19,10 @@ def add_noise_img(img, level):
     
     frame = saltAndPapper_noise(org_img, amount)
 
-    frame_notext = frame
+    frame_notext = frame.copy()
 
-    frame = cv2.putText(frame, "salt & papper", (int(frame_width*0.73),50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
-    frame = cv2.putText(frame, "amount = {:.5f}".format(amount), (int(frame_width*0.73),100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
+    frame = cv2.putText(frame, "salt & papper", (int(frame_width*0.6),50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
+    frame = cv2.putText(frame, "amount = {:.5f}".format(amount), (int(frame_width*0.6),100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
         
     #cv2.imshow('frame', frame)
     #cv2.imwrite(save, frame)
