@@ -41,8 +41,8 @@ def new_visualize_result(pred, img, name=None, index=None):
     # colorize prediction
     pred_color = colorEncode(pred, colors).astype(numpy.uint8)
 
-    img2 = cv2.imread(img)
-    img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
+    
+    img2 = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     trans = transparent_overlays(img2, pred_color, alpha=0.6)
 
     return trans
@@ -231,7 +231,7 @@ def start_from_gui(img, save, progress, detectedNames, display = 1, alpha = 0.6)
     progress.emit(2)
 
     # predict
-    img_original, singleton_batch, output_size = process_img(img)
+    img_original, singleton_batch, output_size = process_img(frame = img)
     pred = predict_img(segmentation_module, singleton_batch, output_size)
 
     progress.emit(3)

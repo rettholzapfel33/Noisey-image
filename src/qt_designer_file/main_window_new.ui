@@ -57,8 +57,22 @@
        </layout>
       </item>
       <item row="2" column="2">
-       <layout class="QGridLayout" name="gridLayout_2" columnstretch="4,0,0">
+       <layout class="QGridLayout" name="gridLayout_2" columnstretch="0">
         <item row="2" column="0">
+         <widget class="QCheckBox" name="checkBox_3">
+          <property name="text">
+           <string>Run model on image with noise</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QCheckBox" name="checkBox_2">
+          <property name="text">
+           <string>Display result on separate window</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
          <widget class="QProgressBar" name="progressBar">
           <property name="enabled">
            <bool>true</bool>
@@ -71,7 +85,7 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="0">
+        <item row="5" column="0">
          <widget class="QPushButton" name="pushButton_2">
           <property name="styleSheet">
            <string notr="true"/>
@@ -82,25 +96,25 @@
          </widget>
         </item>
         <item row="0" column="0">
-         <widget class="QCheckBox" name="checkBox_2">
-          <property name="text">
-           <string>Display result on separate window</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QCheckBox" name="checkBox_3">
-          <property name="text">
-           <string>Run model on image with noise</string>
-          </property>
-         </widget>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Model:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="comboBox"/>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>
       <item row="1" column="2">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Sementic Segmentation</string>
+         <string>Models</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>

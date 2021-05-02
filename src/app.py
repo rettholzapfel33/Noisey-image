@@ -7,6 +7,7 @@ from noise_image import add_noise_img
 from PyQt5 import QtCore, QtWidgets, QtGui
 from window import Ui_MainWindow
 
+from cv2 import imread
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'tmp_results/'
@@ -45,9 +46,15 @@ class mainWindow(QtWidgets.QMainWindow):
         #self.ui.stackedWidget.setCurrentWidget(self.ui.page_3)
         self.ui.progressBar.hide()
 
+        self.ui.comboBox.addItems(["Sementic Segmentation"])
+
         # Class variables
-        self.originalImgPath = ""
-        self.noiseImg = ""
+        self.originalImg = None
+        self.originalImgPath = None
+        self.noiseImg = None
+        self.predictedImg = None
+        self.predictedQtImg = None
+        self.pred = None
 
         # Buttons
         self.ui.actionOpen.triggered.connect(self.file_browse)
@@ -74,7 +81,10 @@ class mainWindow(QtWidgets.QMainWindow):
        
         #lineEdit.setText(fileName[0])
         #print(fileName[0])
+        img = imread(fileName[0])
+
         self.originalImgPath = fileName[0]
+        self.originalImg = img
         self.ui.original.setPixmap(QtGui.QPixmap(self.originalImgPath))
         
     def realTimePreview(self):
@@ -85,7 +95,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def noise_gen(self):
 
-        if(self.originalImgPath == ""):
+        if(self.originalImg is None):
             self.ui.statusbar.showMessage("Import an image first.", 3000)
             return
 
@@ -93,12 +103,12 @@ class mainWindow(QtWidgets.QMainWindow):
         # out = self.ui.lineEdit.text() + ".jpg"
         # out = tmpPath + out
         # print(out)
-        cv_img = add_noise_img(self.originalImgPath, noise_level)
+        cv_img = add_noise_img(self.originalImg, noise_level)
 
-        self.noiseImg = cv_img[1]
+        self.noiseImg = cv_img
 
         # cv_img[0] is the one with text
-        qt_img = convert_cvimg_to_qimg(cv_img[1])
+        qt_img = convert_cvimg_to_qimg(cv_img)
 
         self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
 
@@ -112,16 +122,17 @@ class mainWindow(QtWidgets.QMainWindow):
         print(current.text())
 
         if(current.text() == "all"):
-            self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(self.img))
+            self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtImg))
         else:
-            img = new_visualize_result(self.pred, self.ui.lineEdit_filename_2.text(), current.text())
+            img = new_visualize_result(self.pred, self.originalImg, current.text())
             qImg = convert_cvimg_to_qimg(img)
             self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qImg))
 
     def display_result(self, result):
         self.pred = result[1]
-        self.img = convert_cvimg_to_qimg(result[0])
-        self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(self.img))
+        self.predictedImg = result[0]
+        self.predictedQtImg = convert_cvimg_to_qimg(result[0])
+        self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtImg))
 
     def start_model(self):
         self.ui.progressBar.show()
@@ -129,15 +140,19 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.preview.clear()
 
         #if(self.ui.checkBox_3.isChecked == True):
-            
 
         self.thread = QtCore.QThread()
         self.worker = Worker()
 
-        detectedNames = []
+        detectedNames = ["all"]
         display_sep = self.ui.checkBox_2.isChecked()
-        self.worker.setup(self.ui.lineEdit_filename_2.text(), tmpPath, display_sep, detectedNames)
-        detectedNames.append("all")
+
+        if(self.ui.checkBox_3.isChecked() == True):
+            self.worker.setup(self.noiseImg, tmpPath, display_sep, detectedNames)
+        else:
+            self.worker.setup(self.originalImg, tmpPath, display_sep, detectedNames)
+
+
         self.worker.moveToThread(self.thread)
 
         self.thread.started.connect(self.worker.run)

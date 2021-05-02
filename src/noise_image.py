@@ -8,28 +8,25 @@ import matplotlib.pyplot as plt
 from noises import *
 
 def add_noise_img(img, level):
-    img = cv2.imread(img)
+    #img = cv2.imread(img)
    # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     frame_width = img.shape[1]
     frame_height = img.shape[0]
 
     org_img = img.copy()
-    amount = level
     
-    frame = saltAndPapper_noise(org_img, amount)
+    frame = saltAndPapper_noise(org_img, level)
 
-    frame_notext = frame.copy()
-
-    frame = cv2.putText(frame, "salt & papper", (int(frame_width*0.6),50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
-    frame = cv2.putText(frame, "amount = {:.5f}".format(amount), (int(frame_width*0.6),100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
+    # frame = cv2.putText(frame, "salt & papper", (int(frame_width*0.6),50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
+    # frame = cv2.putText(frame, "amount = {:.5f}".format(amount), (int(frame_width*0.6),100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2, cv2.LINE_AA)
         
     #cv2.imshow('frame', frame)
     #cv2.imwrite(save, frame)
 
     img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    img_rgb_notext = cv2.cvtColor(frame_notext, cv2.COLOR_BGR2RGB)
-    return img_rgb, img_rgb_notext
+    #img_rgb_notext = cv2.cvtColor(frame_notext, cv2.COLOR_BGR2RGB)
+    return img_rgb
 
 if __name__ == '__main__':
 
