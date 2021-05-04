@@ -3,6 +3,10 @@
 *.png
 *.jpg
 *.JPG
-
+*.pt
+*.pth
+*.weights
 data/
+dist/
+build/
 __pycache__/

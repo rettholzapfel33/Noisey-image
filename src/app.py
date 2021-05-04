@@ -1,8 +1,17 @@
+import sys
+import os
 from pathlib import Path
 
 from predict_img import start_from_gui, new_visualize_result
 #from noise_video_gen import *
 from noise_image import add_noise_img
+
+# import yolov3 stuff:
+sys.path.append('./src/obj_detector') 
+import detect
+from models import load_model
+from utils.utils import load_classes, rescale_boxes, non_max_suppression, to_cpu, print_environment_info
+import cv2
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 from window import Ui_MainWindow
@@ -11,6 +20,7 @@ from cv2 import imread
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'tmp_results/'
+print(currPath)
 
 
 def convert_cvimg_to_qimg(cv_img):
@@ -25,15 +35,30 @@ class Worker(QtCore.QObject):
     finished = QtCore.pyqtSignal(tuple)
     progress = QtCore.pyqtSignal(int)
 
-    def setup(self, filename, tmpPath, display, detectedNames):
+    def setup(self, filename, tmpPath, display, detectedNames, model_type):
         self.filename = filename
         self.tmpPath = tmpPath
         self.display = display
         self.detectedNames = detectedNames
+        assert model_type == 'segmentation' or model_type == 'yolov3', "Model Type %s is not a defined term!"%(model_type)
+        self.model_type = model_type
 
     def run(self):
-         result = start_from_gui(self.filename, self.tmpPath, self.progress, self.detectedNames, self.display)
-         self.finished.emit(result)
+        if self.model_type == 'segmentation':
+            result = start_from_gui(self.filename, self.tmpPath, self.progress, self.detectedNames, self.display)
+            print(result)
+        else:
+            CLASSES = os.path.join(currPath, 'obj_detector/cfg', 'coco.names')
+            CFG = os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg')
+            WEIGHTS = os.path.join(currPath,'obj_detector/weights','yolov3.weights')
+            yolo = load_model(CFG, WEIGHTS)
+            classes = load_classes(CLASSES)  # List of class names
+            dets = detect.detect_image(yolo, self.filename)
+            np_img = detect._draw_and_return_output_image(self.filename, dets, 416, classes)
+            image_dst = os.path.join(tmpPath, 'yolo_output.png')
+            cv2.imwrite(image_dst, np_img)
+            result = (np_img, dets)# output an image:         
+        self.finished.emit(result)
 
 
 class mainWindow(QtWidgets.QMainWindow):
@@ -46,7 +71,7 @@ class mainWindow(QtWidgets.QMainWindow):
         #self.ui.stackedWidget.setCurrentWidget(self.ui.page_3)
         self.ui.progressBar.hide()
 
-        self.ui.comboBox.addItems(["Sementic Segmentation"])
+        self.ui.comboBox.addItems(["Semantic Segmentation", "Object Detection (YOLOv3)"])
 
         # Class variables
         self.originalImg = None
@@ -147,11 +172,17 @@ class mainWindow(QtWidgets.QMainWindow):
         detectedNames = ["all"]
         display_sep = self.ui.checkBox_2.isChecked()
 
+        comboModelType = self.ui.comboBox.currentText()
         if(self.ui.checkBox_3.isChecked() == True):
-            self.worker.setup(self.noiseImg, tmpPath, display_sep, detectedNames)
+            if comboModelType == 'Semantic Segmentation':
+                self.worker.setup(self.noiseImg, tmpPath, display_sep, detectedNames, 'segmentation')
+            else:
+                self.worker.setup(self.noiseImg, tmpPath, display_sep, detectedNames, 'yolov3')
         else:
-            self.worker.setup(self.originalImg, tmpPath, display_sep, detectedNames)
-
+            if comboModelType == 'Semantic Segmentation':
+                self.worker.setup(self.originalImg, tmpPath, display_sep, detectedNames, 'segmentation')
+            else:
+                self.worker.setup(self.originalImg, tmpPath, display_sep, detectedNames, 'yolov3')
 
         self.worker.moveToThread(self.thread)
 
