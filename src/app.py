@@ -32,8 +32,8 @@ class Worker(QtCore.QObject):
         self.detectedNames = detectedNames
 
     def run(self):
-         result = start_from_gui(self.filename, self.tmpPath, self.progress, self.detectedNames, self.display)
-         self.finished.emit(result)
+        result = start_from_gui(self.filename, self.tmpPath, self.progress, self.detectedNames, self.display)
+        self.finished.emit(result)
 
 
 class mainWindow(QtWidgets.QMainWindow):
