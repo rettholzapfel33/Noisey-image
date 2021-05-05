@@ -45,6 +45,7 @@ class Worker(QtCore.QObject):
         self.model_type = model_type
 
     def run(self):
+
         if self.model_type == 'segmentation':
             result = start_from_gui(self.filename, self.tmpPath, self.progress, self.detectedNames, self.display)
             print(result)
@@ -67,7 +68,7 @@ class Worker(QtCore.QObject):
             if (self.display==1):
                 PIL.Image.fromarray(np_img).show()
 
-        self.finished.emit(result)
+         self.finished.emit(result)
 
 
 class mainWindow(QtWidgets.QMainWindow):
