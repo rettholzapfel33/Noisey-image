@@ -66,11 +66,14 @@
          </widget>
         </item>
         <item row="0" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout">
+         <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,3">
           <item>
            <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>Model:</string>
+             <string>Select a model:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
             </property>
            </widget>
           </item>
@@ -94,7 +97,7 @@
           <item>
            <widget class="QCheckBox" name="checkBox_2">
             <property name="text">
-             <string>Display result on separate window</string>
+             <string>Display result on a separate window</string>
             </property>
            </widget>
           </item>

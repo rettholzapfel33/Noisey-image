@@ -16,10 +16,10 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 
-from models import load_model
-from utils.utils import load_classes, rescale_boxes, non_max_suppression, to_cpu, print_environment_info
-from utils.datasets import ImageFolder
-from utils.transforms import Resize, DEFAULT_TRANSFORMS
+from obj_detector.models import load_model
+from obj_detector.utils.utils import load_classes, rescale_boxes, non_max_suppression, to_cpu, print_environment_info
+from obj_detector.utils.datasets import ImageFolder
+from obj_detector.utils.transforms import Resize, DEFAULT_TRANSFORMS
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches

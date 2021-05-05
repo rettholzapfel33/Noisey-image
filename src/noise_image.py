@@ -24,9 +24,9 @@ def add_noise_img(img, level):
     #cv2.imshow('frame', frame)
     #cv2.imwrite(save, frame)
 
-    img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    #img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     #img_rgb_notext = cv2.cvtColor(frame_notext, cv2.COLOR_BGR2RGB)
-    return img_rgb
+    return frame
 
 if __name__ == '__main__':
 

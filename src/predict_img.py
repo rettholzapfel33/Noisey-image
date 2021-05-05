@@ -255,21 +255,24 @@ def start_from_gui(img, save, progress, detectedNames, display = 1, alpha = 0.6)
 
     progress.emit(4)
     
-    cv2.imwrite("{}/pred_color.png".format(save), cv2.cvtColor(pred_color, cv2.COLOR_RGB2BGR))
-    cv2.imwrite("{}/org_pred_split.png".format(save), cv2.cvtColor(org_pred_split, cv2.COLOR_RGB2BGR))
-    cv2.imwrite("{}/dst.png".format(save), cv2.cvtColor(dst, cv2.COLOR_RGB2BGR))
-    cv2.imwrite("{}/pred_color_palette.png".format(save), cv2.cvtColor(pred_color_palette, cv2.COLOR_RGB2BGR))
-    cv2.imwrite("{}/pred_color_palette_dst.png".format(save), cv2.cvtColor(pred_color_palette_dst, cv2.COLOR_RGB2BGR))
-    cv2.imwrite("{}/pred_color_palette_all.png".format(save), cv2.cvtColor(pred_color_palette_all, cv2.COLOR_RGB2BGR))
-    cv2.imwrite("{}/color_palette.png".format(save), cv2.cvtColor(color_palette, cv2.COLOR_RGB2BGR))
+    # cv2.imwrite("{}/pred_color.png".format(save), cv2.cvtColor(pred_color, cv2.COLOR_RGB2BGR))
+    # cv2.imwrite("{}/org_pred_split.png".format(save), cv2.cvtColor(org_pred_split, cv2.COLOR_RGB2BGR))
+    # cv2.imwrite("{}/dst.png".format(save), cv2.cvtColor(dst, cv2.COLOR_RGB2BGR))
+    # cv2.imwrite("{}/pred_color_palette.png".format(save), cv2.cvtColor(pred_color_palette, cv2.COLOR_RGB2BGR))
+    # cv2.imwrite("{}/pred_color_palette_dst.png".format(save), cv2.cvtColor(pred_color_palette_dst, cv2.COLOR_RGB2BGR))
+    # cv2.imwrite("{}/pred_color_palette_all.png".format(save), cv2.cvtColor(pred_color_palette_all, cv2.COLOR_RGB2BGR))
+    # cv2.imwrite("{}/color_palette.png".format(save), cv2.cvtColor(color_palette, cv2.COLOR_RGB2BGR))
     
-    if (display)==1:
+    if (display==1):
         PIL.Image.fromarray(pred_color_palette_dst).show()
     else:
         print("results saved")
 
     progress.emit(5)
-    return dst, pred
+
+    img_rgb = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
+
+    return img_rgb, pred
 
 
 if __name__ == '__main__':

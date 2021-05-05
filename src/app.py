@@ -1,26 +1,27 @@
+# System libs
 import sys
 import os
 from pathlib import Path
+import PIL.Image
 
+# Sementic segmentation
 from predict_img import start_from_gui, new_visualize_result
-#from noise_video_gen import *
 from noise_image import add_noise_img
 
 # import yolov3 stuff:
-sys.path.append('./src/obj_detector') 
-import detect
-from models import load_model
-from utils.utils import load_classes, rescale_boxes, non_max_suppression, to_cpu, print_environment_info
-import cv2
+import obj_detector.detect as detect
+from obj_detector.models import load_model
+from obj_detector.utils.utils import load_classes, rescale_boxes, non_max_suppression, to_cpu, print_environment_info
 
+# PyQt5
 from PyQt5 import QtCore, QtWidgets, QtGui
 from window import Ui_MainWindow
 
-from cv2 import imread
+import cv2
+
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'tmp_results/'
-print(currPath)
 
 
 def convert_cvimg_to_qimg(cv_img):
@@ -48,16 +49,24 @@ class Worker(QtCore.QObject):
             result = start_from_gui(self.filename, self.tmpPath, self.progress, self.detectedNames, self.display)
             print(result)
         else:
+            self.progress.emit(1)  
             CLASSES = os.path.join(currPath, 'obj_detector/cfg', 'coco.names')
             CFG = os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg')
             WEIGHTS = os.path.join(currPath,'obj_detector/weights','yolov3.weights')
+            #self.progress.emit(2)  
             yolo = load_model(CFG, WEIGHTS)
+            self.progress.emit(3)  
             classes = load_classes(CLASSES)  # List of class names
             dets = detect.detect_image(yolo, self.filename)
             np_img = detect._draw_and_return_output_image(self.filename, dets, 416, classes)
             image_dst = os.path.join(tmpPath, 'yolo_output.png')
-            cv2.imwrite(image_dst, np_img)
-            result = (np_img, dets)# output an image:         
+            #cv2.imwrite(image_dst, np_img)
+            result = (np_img, dets)# output an image:   
+            self.progress.emit(4)   
+
+            if (self.display==1):
+                PIL.Image.fromarray(np_img).show()
+
         self.finished.emit(result)
 
 
@@ -106,7 +115,7 @@ class mainWindow(QtWidgets.QMainWindow):
        
         #lineEdit.setText(fileName[0])
         #print(fileName[0])
-        img = imread(fileName[0])
+        img = cv2.imread(fileName[0])
 
         self.originalImgPath = fileName[0]
         self.originalImg = img
@@ -132,8 +141,9 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.noiseImg = cv_img
 
+        img_rgb = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
         # cv_img[0] is the one with text
-        qt_img = convert_cvimg_to_qimg(cv_img)
+        qt_img = convert_cvimg_to_qimg(img_rgb)
 
         self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
 
@@ -144,18 +154,24 @@ class mainWindow(QtWidgets.QMainWindow):
         if(current == None):
             return
 
-        print(current.text())
+        if(self.ui.checkBox_3.isChecked() == True):
+            originalImg = self.noiseImg
+        else:
+            originalImg = self.originalImg
+
+        #print(current.text())
 
         if(current.text() == "all"):
             self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtImg))
         else:
-            img = new_visualize_result(self.pred, self.originalImg, current.text())
+            img = new_visualize_result(self.pred, originalImg, current.text())
             qImg = convert_cvimg_to_qimg(img)
             self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qImg))
 
     def display_result(self, result):
         self.pred = result[1]
         self.predictedImg = result[0]
+
         self.predictedQtImg = convert_cvimg_to_qimg(result[0])
         self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtImg))
 
@@ -173,11 +189,20 @@ class mainWindow(QtWidgets.QMainWindow):
         display_sep = self.ui.checkBox_2.isChecked()
 
         comboModelType = self.ui.comboBox.currentText()
-        if(self.ui.checkBox_3.isChecked() == True):
+        if(self.ui.checkBox_3.isChecked() == True and self.noiseImg is not None):
             if comboModelType == 'Semantic Segmentation':
                 self.worker.setup(self.noiseImg, tmpPath, display_sep, detectedNames, 'segmentation')
             else:
                 self.worker.setup(self.noiseImg, tmpPath, display_sep, detectedNames, 'yolov3')
+
+        elif(self.ui.checkBox_3.isChecked() == True and self.noiseImg is None):
+            self.ui.statusbar.showMessage("Add noise to the image first!", 3000)
+            return
+
+        elif(self.ui.checkBox_3.isChecked() == False and self.originalImg is None):
+            self.ui.statusbar.showMessage("Import an image first!", 3000)
+            return
+            
         else:
             if comboModelType == 'Semantic Segmentation':
                 self.worker.setup(self.originalImg, tmpPath, display_sep, detectedNames, 'segmentation')
