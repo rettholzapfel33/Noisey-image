@@ -68,7 +68,7 @@ class Worker(QtCore.QObject):
             if (self.display==1):
                 PIL.Image.fromarray(np_img).show()
 
-         self.finished.emit(result)
+        self.finished.emit(result)
 
 
 class mainWindow(QtWidgets.QMainWindow):
