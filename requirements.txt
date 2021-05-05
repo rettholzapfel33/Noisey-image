@@ -1,2 +1,6 @@
 numba
 pyqt5
+imgaug
+pytorch
+matplotlib
+opencv
