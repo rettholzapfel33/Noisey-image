@@ -7,4 +7,4 @@ data/
 dist/
 build/
 __pycache__/
-tmp_results
+tmp_results/
