@@ -1,8 +1,5 @@
 *.mp4
 *.avi
-*.png
-*.jpg
-*.JPG
 *.pt
 *.pth
 *.weights
@@ -10,3 +7,4 @@ data/
 dist/
 build/
 __pycache__/
+tmp_results
