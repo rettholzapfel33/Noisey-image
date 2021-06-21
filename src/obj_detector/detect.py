@@ -255,7 +255,8 @@ def _draw_and_return_output_image(image, detections, img_size, classes):
     colors = [cmap(i) for i in np.linspace(0, 1, n_cls_preds)]
     bbox_colors = random.sample(colors, n_cls_preds)
     for x1, y1, x2, y2, conf, cls_pred in detections:
-
+        # print("test: ", detections)
+        # print("test2:", int(x1), int(y1), int(x2), int(y2))
         print(f"\t+ Label: {classes[int(cls_pred)]} | Confidence: {conf.item():0.4f}")
 
         #box_w = x2 - x1
@@ -264,9 +265,9 @@ def _draw_and_return_output_image(image, detections, img_size, classes):
         #color = bbox_colors[int(np.where(unique_labels == int(cls_pred))[0])]
         #color = [int(c*255) for c in color]
         #print(color)
-        cv2.rectangle(org_img, (x1,y1), (x2,y2), (36,255,12), 2)
+        cv2.rectangle(org_img, (int(x1), int(y1)), (int(x2), int(y2)), (36,255,12), 2)
         # create class box:
-        cv2.putText(org_img, classes[int(cls_pred)], (x1, y1-10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (36,255,12), 2)
+        cv2.putText(org_img, classes[int(cls_pred)], (int(x1), int(y1)-10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (36,255,12), 2)
         
         # Create a Rectangle patch
         #bbox = patches.Rectangle((x1, y1), box_w, box_h, linewidth=2, edgecolor=color, facecolor="none")

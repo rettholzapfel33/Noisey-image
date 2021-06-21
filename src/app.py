@@ -19,7 +19,6 @@ from window import Ui_MainWindow
 
 import cv2
 
-
 currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'tmp_results/'
 
@@ -48,7 +47,7 @@ class Worker(QtCore.QObject):
 
         if self.model_type == 'segmentation':
             result = start_from_gui(self.filename, self.tmpPath, self.progress, self.detectedNames, self.display)
-            print(result)
+            #print(result)
         else:
             self.progress.emit(1)  
             CLASSES = os.path.join(currPath, 'obj_detector/cfg', 'coco.names')
@@ -92,11 +91,13 @@ class mainWindow(QtWidgets.QMainWindow):
         self.pred = None
 
         # Buttons
-        self.ui.actionOpen.triggered.connect(self.file_browse)
-        #self.ui.pushButton_browse_file.clicked.connect(lambda : self.file_browse(self.ui.lineEdit_filename))
-        #self.ui.pushButton_browse_file_2.clicked.connect(lambda: self.file_browse(self.ui.lineEdit_filename_2))
+        self.ui.actionOpen.triggered.connect(lambda: self.open_file())
+        #self.ui.pushButton_browse_file.clicked.connect(lambda : self.open_file(self.ui.lineEdit_filename))
+        #self.ui.pushButton_browse_file_2.clicked.connect(lambda: self.open_file(self.ui.lineEdit_filename_2))
         self.ui.pushButton.clicked.connect(self.noise_gen)
         self.ui.pushButton_2.clicked.connect(self.start_model)
+        self.ui.pushButton_3.clicked.connect(self.default_img)
+        self.ui.pushButton_4.clicked.connect(self.quitApp)
         
         # Changing pages
         # self.ui.pb_noise_gen.clicked.connect(lambda: self.ui.stackedWidget.setCurrentWidget(self.ui.page_2))
@@ -110,15 +111,24 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.ui.listWidget.currentItemChanged.connect(self.change_selection)
 
+        self.default_img()
 
-    def file_browse(self):
-        fileName = QtWidgets.QFileDialog.getOpenFileName(self, "Select image", filter="Image files (*.jpg *.png)")
-       
+    def quitApp(self):
+        quit()
+
+    def default_img(self):
+        #self.ui.original.setPixmap(QtGui.QPixmap(currPath+"../imgs/dog.jpg"))
+        self.open_file(currPath+"../imgs/dog.jpg")
+
+    def open_file(self, fileName = None):
+        if(fileName == None):
+            fileName = QtWidgets.QFileDialog.getOpenFileName(self, "Select image", filter="Image files (*.jpg *.png)")
+            fileName = fileName[0]
         #lineEdit.setText(fileName[0])
         #print(fileName[0])
-        img = cv2.imread(fileName[0])
+        img = cv2.imread(fileName)
 
-        self.originalImgPath = fileName[0]
+        self.originalImgPath = fileName
         self.originalImg = img
         self.ui.original.setPixmap(QtGui.QPixmap(self.originalImgPath))
         
@@ -174,12 +184,12 @@ class mainWindow(QtWidgets.QMainWindow):
         self.predictedImg = result[0]
 
         self.predictedQtImg = convert_cvimg_to_qimg(result[0])
-        self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtImg))
+        self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtImg))
 
     def start_model(self):
         self.ui.progressBar.show()
         self.ui.listWidget.clear()
-        self.ui.preview.clear()
+        self.ui.original_2.clear()
 
         #if(self.ui.checkBox_3.isChecked == True):
 

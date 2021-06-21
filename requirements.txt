@@ -1,6 +1,9 @@
+python3
 numba
 pyqt5
 imgaug
 pytorch
+torchvision
 matplotlib
 opencv
+tqdm

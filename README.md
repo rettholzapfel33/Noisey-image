@@ -1,5 +1,6 @@
 # Noisey-image
 
+See requirements.txt for required packages
 Run src/app.py to open the app
 
 
