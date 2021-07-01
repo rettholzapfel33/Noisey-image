@@ -45,7 +45,7 @@ def new_visualize_result(pred, img, name=None, index=None):
     img2 = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     trans = transparent_overlays(img2, pred_color, alpha=0.6)
 
-    return trans
+    return pred_color, trans
 
 
 # pass in mode config(yaml file)
@@ -278,8 +278,9 @@ def start_from_gui(img, save, progress, detectedNames, display = 1, alpha = 0.6)
     progress.emit(5)
 
     img_rgb = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
+    pred_color_rgb = cv2.cvtColor(pred_color, cv2.COLOR_BGR2RGB)
 
-    return img_rgb, pred
+    return img_rgb, pred_color_rgb, pred
 
 
 if __name__ == '__main__':

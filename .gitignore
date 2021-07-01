@@ -1,10 +1,5 @@
 *.mp4
 *.avi
-*.pt
-*.pth
 *.weights
-data/
-dist/
-build/
 __pycache__/
-tmp_results/
+ckpt/

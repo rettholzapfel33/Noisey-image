@@ -88,6 +88,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.noiseImg = None
         self.predictedImg = None
         self.predictedQtImg = None
+        self.predictedColor = None
+        self.predictedQtColor = None
         self.pred = None
 
         # Buttons
@@ -107,7 +109,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.ui.checkBox.stateChanged.connect(self.realTimePreview)
 
-        self.ui.horizontalSlider.valueChanged.connect(lambda: self.ui.label_7.setText(str(self.ui.horizontalSlider.value() / 100)))
+        self.ui.horizontalSlider.valueChanged.connect(lambda: self.ui.doubleSpinBox.setValue(self.ui.horizontalSlider.value() / 100))
+        self.ui.doubleSpinBox.valueChanged.connect(lambda: self.ui.horizontalSlider.setValue(int(self.ui.doubleSpinBox.value() * 100)))
 
         self.ui.listWidget.currentItemChanged.connect(self.change_selection)
 
@@ -118,7 +121,12 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def default_img(self):
         #self.ui.original.setPixmap(QtGui.QPixmap(currPath+"../imgs/dog.jpg"))
-        self.open_file(currPath+"../imgs/dog.jpg")
+        self.open_file(currPath+"../imgs/car detection.png")
+        self.ui.original_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/pred_color.png"))
+        self.ui.preview_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/dst.png"))
+
+        self.ui.horizontalSlider.setValue(5)
+        self.noise_gen()
 
     def open_file(self, fileName = None):
         if(fileName == None):
@@ -173,18 +181,34 @@ class mainWindow(QtWidgets.QMainWindow):
         #print(current.text())
 
         if(current.text() == "all"):
-            self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtImg))
+            self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtColor))
+            self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtImg))
         else:
             img = new_visualize_result(self.pred, originalImg, current.text())
-            qImg = convert_cvimg_to_qimg(img)
-            self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qImg))
+            qImg_color = convert_cvimg_to_qimg(img[0])
+            qImg_overlay = convert_cvimg_to_qimg(img[1])
+            self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(qImg_color))
+            self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(qImg_overlay))
 
     def display_result(self, result):
-        self.pred = result[1]
-        self.predictedImg = result[0]
+        comboModelType = self.ui.comboBox.currentText()
 
-        self.predictedQtImg = convert_cvimg_to_qimg(result[0])
-        self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtImg))
+        if comboModelType == 'Semantic Segmentation':
+            self.pred = result[2]
+            self.predictedImg = result[0]
+            self.predictedColor = result[1]
+
+            self.predictedQtImg = convert_cvimg_to_qimg(result[0])
+            self.predictedQtColor = convert_cvimg_to_qimg(result[1])
+            self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtColor))
+            self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtImg))
+        else:
+            self.pred = result[1]
+            self.predictedImg = result[0]
+            self.predictedQtImg = convert_cvimg_to_qimg(result[0])
+            self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtImg))
+            self.ui.preview_2.clear()
+        
 
     def start_model(self):
         self.ui.progressBar.show()
@@ -243,5 +267,6 @@ if __name__ == '__main__':
 
     window = mainWindow()
     window.show()
+    window.showMaximized()
     
     app.exec_()
