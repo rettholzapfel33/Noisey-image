@@ -93,14 +93,16 @@ class mainWindow(QtWidgets.QMainWindow):
         self.pred = None
 
         # Buttons
-        self.ui.actionOpen.triggered.connect(lambda: self.open_file())
-        #self.ui.pushButton_browse_file.clicked.connect(lambda : self.open_file(self.ui.lineEdit_filename))
-        #self.ui.pushButton_browse_file_2.clicked.connect(lambda: self.open_file(self.ui.lineEdit_filename_2))
         self.ui.pushButton.clicked.connect(self.noise_gen)
         self.ui.pushButton_2.clicked.connect(self.start_model)
         self.ui.pushButton_3.clicked.connect(self.default_img)
         self.ui.pushButton_4.clicked.connect(self.quitApp)
-        
+
+        # Menubar buttons
+        self.ui.actionOpen.triggered.connect(lambda: self.open_file())
+        self.ui.actionIncrease_Size.triggered.connect(self.increaseFont)
+        self.ui.actionDecrease_Size.triggered.connect(self.decreaseFont)
+
         # Changing pages
         # self.ui.pb_noise_gen.clicked.connect(lambda: self.ui.stackedWidget.setCurrentWidget(self.ui.page_2))
         # self.ui.pb_sementic_seg.clicked.connect(lambda: self.ui.stackedWidget.setCurrentWidget(self.ui.page))
@@ -115,12 +117,19 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.listWidget.currentItemChanged.connect(self.change_selection)
 
         self.default_img()
+        self.ui.centralwidget.setFont(QtGui.QFont('Ubuntu', 10))
+
+    def increaseFont(self):
+        self.ui.centralwidget.setFont(QtGui.QFont('Ubuntu', self.ui.centralwidget.fontInfo().pointSize() + 1))
+        print(self.ui.centralwidget.fontInfo().pointSize())
+
+    def decreaseFont(self):
+        self.ui.centralwidget.setFont(QtGui.QFont('Ubuntu', self.ui.centralwidget.fontInfo().pointSize() - 1))
 
     def quitApp(self):
         quit()
 
     def default_img(self):
-        #self.ui.original.setPixmap(QtGui.QPixmap(currPath+"../imgs/dog.jpg"))
         self.open_file(currPath+"../imgs/car detection.png")
         self.ui.original_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/pred_color.png"))
         self.ui.preview_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/dst.png"))
@@ -132,8 +141,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if(fileName == None):
             fileName = QtWidgets.QFileDialog.getOpenFileName(self, "Select image", filter="Image files (*.jpg *.png)")
             fileName = fileName[0]
-        #lineEdit.setText(fileName[0])
-        #print(fileName[0])
+        
         img = cv2.imread(fileName)
 
         self.originalImgPath = fileName
@@ -153,15 +161,13 @@ class mainWindow(QtWidgets.QMainWindow):
             return
 
         noise_level = self.ui.horizontalSlider.value() / 100
-        # out = self.ui.lineEdit.text() + ".jpg"
-        # out = tmpPath + out
-        # print(out)
+        
         cv_img = add_noise_img(self.originalImg, noise_level)
 
         self.noiseImg = cv_img
 
         img_rgb = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
-        # cv_img[0] is the one with text
+        
         qt_img = convert_cvimg_to_qimg(img_rgb)
 
         self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
@@ -215,7 +221,6 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.listWidget.clear()
         self.ui.original_2.clear()
 
-        #if(self.ui.checkBox_3.isChecked == True):
 
         self.thread = QtCore.QThread()
         self.worker = Worker()
@@ -250,16 +255,12 @@ class mainWindow(QtWidgets.QMainWindow):
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
         self.worker.finished.connect(self.ui.progressBar.hide)
-        #self.worker.finished.connect(lambda: self.ui.preview.setPixmap(QtGui.QPixmap(tmpPath + 'dst.png')))
         self.worker.finished.connect(self.display_result)
         self.worker.finished.connect(lambda: self.ui.listWidget.addItems(detectedNames))
         self.worker.progress.connect(self.reportProgress)
         self.thread.finished.connect(self.thread.deleteLater)
         
         self.thread.start()
-
-        #start_from_gui(self.ui.lineEdit_filename_2.text(), tmpPath, display=display_sep)
-
 
 
 if __name__ == '__main__':
@@ -268,5 +269,6 @@ if __name__ == '__main__':
     window = mainWindow()
     window.show()
     window.showMaximized()
-    
+
     app.exec_()
+    
