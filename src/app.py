@@ -47,14 +47,16 @@ class Worker(QtCore.QObject):
 
         if self.model_type == 'segmentation':
             result = start_from_gui(self.filename, self.tmpPath, self.progress, self.detectedNames, self.display)
-            #print(result)
+
         else:
             self.progress.emit(1)  
             CLASSES = os.path.join(currPath, 'obj_detector/cfg', 'coco.names')
             CFG = os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg')
             WEIGHTS = os.path.join(currPath,'obj_detector/weights','yolov3.weights')
-            #self.progress.emit(2)  
+
+            self.progress.emit(2)  
             yolo = load_model(CFG, WEIGHTS)
+            
             self.progress.emit(3)  
             classes = load_classes(CLASSES)  # List of class names
             dets = detect.detect_image(yolo, self.filename)
@@ -109,10 +111,11 @@ class mainWindow(QtWidgets.QMainWindow):
         # self.ui.pb_back.clicked.connect(lambda: self.ui.stackedWidget.setCurrentWidget(self.ui.page_3))
         # self.ui.pb_back_2.clicked.connect(lambda: self.ui.stackedWidget.setCurrentWidget(self.ui.page_3))
 
-        self.ui.checkBox.stateChanged.connect(self.realTimePreview)
+        #self.ui.checkBox.stateChanged.connect(self.realTimePreview)
+        self.ui.horizontalSlider.valueChanged.connect(self.noise_gen)
 
-        self.ui.horizontalSlider.valueChanged.connect(lambda: self.ui.doubleSpinBox.setValue(self.ui.horizontalSlider.value() / 100))
-        self.ui.doubleSpinBox.valueChanged.connect(lambda: self.ui.horizontalSlider.setValue(int(self.ui.doubleSpinBox.value() * 100)))
+        self.ui.horizontalSlider.valueChanged.connect(lambda: self.ui.doubleSpinBox.setValue(self.ui.horizontalSlider.value() / 1000))
+        self.ui.doubleSpinBox.valueChanged.connect(lambda: self.ui.horizontalSlider.setValue(int(self.ui.doubleSpinBox.value() * 1000)))
 
         self.ui.listWidget.currentItemChanged.connect(self.change_selection)
 
@@ -121,7 +124,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def increaseFont(self):
         self.ui.centralwidget.setFont(QtGui.QFont('Ubuntu', self.ui.centralwidget.fontInfo().pointSize() + 1))
-        print(self.ui.centralwidget.fontInfo().pointSize())
+        #print(self.ui.centralwidget.fontInfo().pointSize())
 
     def decreaseFont(self):
         self.ui.centralwidget.setFont(QtGui.QFont('Ubuntu', self.ui.centralwidget.fontInfo().pointSize() - 1))
@@ -148,11 +151,11 @@ class mainWindow(QtWidgets.QMainWindow):
         self.originalImg = img
         self.ui.original.setPixmap(QtGui.QPixmap(self.originalImgPath))
         
-    def realTimePreview(self):
-        if(self.ui.checkBox.isChecked() == True):
-            self.ui.horizontalSlider.valueChanged.connect(self.noise_gen)
-        else:
-            self.ui.horizontalSlider.valueChanged.disconnect(self.noise_gen)
+    # def realTimePreview(self):
+    #     if(self.ui.checkBox.isChecked() == True):
+    #         self.ui.horizontalSlider.valueChanged.connect(self.noise_gen)
+    #     else:
+    #         self.ui.horizontalSlider.valueChanged.disconnect(self.noise_gen)
 
     def noise_gen(self):
 
@@ -160,7 +163,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.statusbar.showMessage("Import an image first.", 3000)
             return
 
-        noise_level = self.ui.horizontalSlider.value() / 100
+        noise_level = self.ui.horizontalSlider.value() / 1000
         
         cv_img = add_noise_img(self.originalImg, noise_level)
 
@@ -179,10 +182,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if(current == None):
             return
 
-        if(self.ui.checkBox_3.isChecked() == True):
-            originalImg = self.noiseImg
-        else:
-            originalImg = self.originalImg
+        originalImg = self.noiseImg
 
         #print(current.text())
 
@@ -229,25 +229,20 @@ class mainWindow(QtWidgets.QMainWindow):
         display_sep = self.ui.checkBox_2.isChecked()
 
         comboModelType = self.ui.comboBox.currentText()
-        if(self.ui.checkBox_3.isChecked() == True and self.noiseImg is not None):
-            if comboModelType == 'Semantic Segmentation':
-                self.worker.setup(self.noiseImg, tmpPath, display_sep, detectedNames, 'segmentation')
-            else:
-                self.worker.setup(self.noiseImg, tmpPath, display_sep, detectedNames, 'yolov3')
-
-        elif(self.ui.checkBox_3.isChecked() == True and self.noiseImg is None):
+        
+        
+        if(self.originalImg is None):
+            self.ui.statusbar.showMessage("Import an image first!", 3000)
+            return
+        elif(self.noiseImg is None):
             self.ui.statusbar.showMessage("Add noise to the image first!", 3000)
             return
 
-        elif(self.ui.checkBox_3.isChecked() == False and self.originalImg is None):
-            self.ui.statusbar.showMessage("Import an image first!", 3000)
-            return
-            
+        if comboModelType == 'Semantic Segmentation':
+            self.worker.setup(self.noiseImg, tmpPath, display_sep, detectedNames, 'segmentation')
         else:
-            if comboModelType == 'Semantic Segmentation':
-                self.worker.setup(self.originalImg, tmpPath, display_sep, detectedNames, 'segmentation')
-            else:
-                self.worker.setup(self.originalImg, tmpPath, display_sep, detectedNames, 'yolov3')
+            self.worker.setup(self.noiseImg, tmpPath, display_sep, detectedNames, 'yolov3')
+
 
         self.worker.moveToThread(self.thread)
 
