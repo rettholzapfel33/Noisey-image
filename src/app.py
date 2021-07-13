@@ -134,8 +134,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def default_img(self):
         self.open_file(currPath+"../imgs/car detection.png")
-        self.ui.original_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/pred_color.png"))
-        self.ui.preview_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/dst.png"))
+        #self.ui.original_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/pred_color.png"))
+        #self.ui.preview_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/dst.png"))
 
         self.ui.horizontalSlider.setValue(5)
         self.noise_gen()
