@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
-from noises import *
+from src.noises import *
 
 def add_noise_img(img, level):
     #img = cv2.imread(img)
@@ -40,6 +40,7 @@ if __name__ == '__main__':
     
     img = cv2.imread(args.img)
     # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    #cv2.imwrite(args.save, img, (cv2.IMWRITE_PNG_COMPRESSION, 0))
 
     frame_width = img.shape[1]
     frame_height = img.shape[0]
@@ -55,4 +56,4 @@ if __name__ == '__main__':
     cv2.imshow('frame', frame)
     cv2.imwrite(args.save, frame)
     cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    #cv2.destroyAllWindows()

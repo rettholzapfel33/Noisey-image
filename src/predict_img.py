@@ -12,8 +12,8 @@ from pathlib import Path
 # System libs
 import os, csv, torch, numpy, scipy.io, PIL.Image, torchvision.transforms
 # Our libs
-from mit_semseg.models import ModelBuilder, SegmentationModule
-from mit_semseg.utils import colorEncode
+from src.mit_semseg.models import ModelBuilder, SegmentationModule
+from src.mit_semseg.utils import colorEncode
 
 # class_list from names
 def new_visualize_result(pred, img, name=None, index=None):

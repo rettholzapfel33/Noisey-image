@@ -6,8 +6,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
-from obj_detector.utils.parse_config import parse_model_config
-from obj_detector.utils.utils import weights_init_normal
+from src.obj_detector.utils.parse_config import parse_model_config
+from src.obj_detector.utils.utils import weights_init_normal
 
 
 def create_modules(module_defs):

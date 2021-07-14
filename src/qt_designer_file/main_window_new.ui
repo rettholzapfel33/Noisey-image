@@ -470,7 +470,7 @@
   <customwidget>
    <class>Label</class>
    <extends>QLabel</extends>
-   <header>qlabel</header>
+   <header>src.qlabel</header>
   </customwidget>
  </customwidgets>
  <resources/>

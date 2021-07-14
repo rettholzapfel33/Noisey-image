@@ -278,4 +278,4 @@ class Ui_MainWindow(object):
         self.actionSave_As.setText(_translate("MainWindow", "Save As"))
         self.actionIncrease_Size.setText(_translate("MainWindow", "Increase Size"))
         self.actionDecrease_Size.setText(_translate("MainWindow", "Decrease Size"))
-from qlabel import Label
+from src.qlabel import Label
