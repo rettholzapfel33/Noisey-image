@@ -233,6 +233,12 @@ class mainWindow(QtWidgets.QMainWindow):
             self.predictedQtImg = convert_cvimg_to_qimg(result[0])
             self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtImg))
             self.ui.preview_2.clear()
+
+    def display_colors(self, names):
+        for x in names:
+            i = QtWidgets.QListWidgetItem(x)
+            i.setBackground(QtGui.QColor(names[x][0], names[x][1], names[x][2]))
+            self.ui.listWidget.addItem(i)
         
 
     def start_model(self):
@@ -245,7 +251,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.thread = QtCore.QThread()
         self.worker = Worker()
 
-        detectedNames = ["all"]
+        detectedNames = {"all": [255,255,255]}
         display_sep = self.ui.checkBox_2.isChecked()
 
         comboModelType = self.ui.comboBox.currentText()
@@ -271,7 +277,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.worker.finished.connect(self.worker.deleteLater)
         self.worker.finished.connect(self.ui.progressBar.hide)
         self.worker.finished.connect(self.display_result)
-        self.worker.finished.connect(lambda: self.ui.listWidget.addItems(detectedNames))
+        self.worker.finished.connect(lambda: self.display_colors(detectedNames))
         self.worker.progress.connect(self.reportProgress)
         self.thread.finished.connect(self.thread.deleteLater)
         

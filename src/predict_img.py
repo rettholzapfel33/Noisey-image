@@ -83,7 +83,7 @@ def visualize_result(img, pred, colors, index=None):
         print(f'{names[index+1]}:')
 
     # colorize prediction
-    pred_color = colorEncode(pred, colors).astype(numpy.uint8)
+    pred_color = colorEncode(pred, colors, mode='BGR').astype(numpy.uint8)
 
     # aggregate images and save
     im_vis = numpy.concatenate((img, pred_color), axis=1)
@@ -161,7 +161,7 @@ def get_color_palette(pred, bar_height, names, colors, detectedNames):
             img = cv2.putText(img, "{}: {:.3f}%".format(name, ratio), (0,top_left_y+20), 5, 1, (255,255,255), 2, cv2.LINE_AA)
             top_left_y+=30
             bottom_right_y+=30
-            detectedNames.append(name)
+            detectedNames[name] = colors[color_index]
             
     return img
 
@@ -273,13 +273,13 @@ def start_from_gui(img, save, progress, detectedNames, display = 1, alpha = 0.6)
 
     progress.emit(4)
     
-    # cv2.imwrite("{}/color.png".format(save), cv2.cvtColor(pred_color, cv2.COLOR_RGB2BGR))
-    # cv2.imwrite("{}/org_pred_split.png".format(save), cv2.cvtColor(org_pred_split, cv2.COLOR_RGB2BGR))
-    # cv2.imwrite("{}/overlay.png".format(save), cv2.cvtColor(dst, cv2.COLOR_RGB2BGR))
-    # cv2.imwrite("{}/pred_color_palette.png".format(save), cv2.cvtColor(pred_color_palette, cv2.COLOR_RGB2BGR))
-    # cv2.imwrite("{}/pred_color_palette_dst.png".format(save), cv2.cvtColor(pred_color_palette_dst, cv2.COLOR_RGB2BGR))
-    # cv2.imwrite("{}/pred_color_palette_all.png".format(save), cv2.cvtColor(pred_color_palette_all, cv2.COLOR_RGB2BGR))
-    # cv2.imwrite("{}/color_palette.png".format(save), cv2.cvtColor(color_palette, cv2.COLOR_RGB2BGR))
+    cv2.imwrite("{}/color.png".format(save), cv2.cvtColor(pred_color, cv2.COLOR_RGB2BGR))
+    cv2.imwrite("{}/org_pred_split.png".format(save), cv2.cvtColor(org_pred_split, cv2.COLOR_RGB2BGR))
+    cv2.imwrite("{}/overlay.png".format(save), cv2.cvtColor(dst, cv2.COLOR_RGB2BGR))
+    cv2.imwrite("{}/pred_color_palette.png".format(save), cv2.cvtColor(pred_color_palette, cv2.COLOR_RGB2BGR))
+    cv2.imwrite("{}/pred_color_palette_dst.png".format(save), cv2.cvtColor(pred_color_palette_dst, cv2.COLOR_RGB2BGR))
+    cv2.imwrite("{}/pred_color_palette_all.png".format(save), cv2.cvtColor(pred_color_palette_all, cv2.COLOR_RGB2BGR))
+    cv2.imwrite("{}/color_palette.png".format(save), cv2.cvtColor(color_palette, cv2.COLOR_RGB2BGR))
     
     if (display==1):
         PIL.Image.fromarray(pred_color_palette_dst).show()
