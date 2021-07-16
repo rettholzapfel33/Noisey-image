@@ -20,7 +20,7 @@ from src.window import Ui_MainWindow
 import cv2
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
-tmpPath = currPath + 'tmp_results/'
+tmpPath = currPath + 'src/tmp_results/'
 
 
 def convert_cvimg_to_qimg(cv_img):
@@ -84,6 +84,20 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.ui.comboBox.addItems(["Semantic Segmentation", "Object Detection (YOLOv3)"])
 
+        # Qactions
+        self.ui.default = QtWidgets.QAction(self)
+        self.ui.default.setObjectName("default")
+        self.ui.default.setIconText("default_traffic")
+        self.ui.default.triggered.connect(lambda: self.default(self.ui.default ,"car detection.png"))
+
+        self.ui.default2 = QtWidgets.QAction(self)
+        self.ui.default2.setObjectName("default2")
+        self.ui.default2.setIconText("default_100_faces")
+        self.ui.default2.triggered.connect(lambda: self.default(self.ui.default2, "100FACES.jpg"))
+
+        self.ui.toolButton.addActions([self.ui.default, self.ui.default2])
+        self.ui.toolButton.setDefaultAction(self.ui.default)
+
         # Class variables
         self.originalImg = None
         self.originalImgPath = None
@@ -97,7 +111,6 @@ class mainWindow(QtWidgets.QMainWindow):
         # Buttons
         self.ui.pushButton.clicked.connect(self.noise_gen)
         self.ui.pushButton_2.clicked.connect(self.start_model)
-        self.ui.pushButton_3.clicked.connect(self.default_img)
         self.ui.pushButton_4.clicked.connect(self.quitApp)
 
         # Menubar buttons
@@ -132,8 +145,13 @@ class mainWindow(QtWidgets.QMainWindow):
     def quitApp(self):
         quit()
 
-    def default_img(self):
-        self.open_file(currPath+"/imgs/car detection.png")
+    def default(self, qaction, fileName):
+        self.default_img(fileName)
+        self.ui.toolButton.setDefaultAction(qaction)
+
+
+    def default_img(self, fileName = "car detection.png"):
+        self.open_file(currPath + "/imgs/" + fileName)
         #self.ui.original_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/pred_color.png"))
         #self.ui.preview_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/dst.png"))
 
@@ -142,7 +160,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def open_file(self, fileName = None):
         if(fileName == None):
-            fileName = QtWidgets.QFileDialog.getOpenFileName(self, "Select image", filter="Image files (*.jpg *.png)")
+            fileName = QtWidgets.QFileDialog.getOpenFileName(self, "Select image", filter="Image files (*.jpg *.png *.bmp)")
             fileName = fileName[0]
         
         img = cv2.imread(fileName)
@@ -150,6 +168,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.originalImgPath = fileName
         self.originalImg = img
         self.ui.original.setPixmap(QtGui.QPixmap(self.originalImgPath))
+        self.noise_gen()
         
     # def realTimePreview(self):
     #     if(self.ui.checkBox.isChecked() == True):
@@ -220,6 +239,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.progressBar.show()
         self.ui.listWidget.clear()
         self.ui.original_2.clear()
+        self.ui.preview_2.clear()
 
 
         self.thread = QtCore.QThread()

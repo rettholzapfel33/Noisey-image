@@ -92,7 +92,7 @@ def visualize_result(img, pred, colors, index=None):
     #else:
     return pred_color, im_vis
 
-def process_img(path=None, frame=None):
+def process_img(path=None, frame=None, cpu = 0):
     # Load and normalize one image as a singleton tensor batch
     pil_to_tensor = torchvision.transforms.Compose([
         torchvision.transforms.ToTensor(),
@@ -109,10 +109,10 @@ def process_img(path=None, frame=None):
     img_original = numpy.array(pil_image)
     img_data = pil_to_tensor(pil_image)
 
-    if torch.cuda.is_available():
+    if torch.cuda.is_available() and cpu == 0:
         singleton_batch = {'img_data': img_data[None].cuda()}
     else:
-        singleton_batch = {'img_data': img_data[None]}
+        singleton_batch = {'img_data': img_data[None].cpu()}
 
     output_size = img_data.shape[1:]
     return (img_original, singleton_batch, output_size)
@@ -232,14 +232,25 @@ def start_from_gui(img, save, progress, detectedNames, display = 1, alpha = 0.6)
     
     segmentation_module.eval()
 
-    if torch.cuda.is_available():
-        segmentation_module.cuda()
-    
-    progress.emit(2)
+    try: 
 
-    # predict
-    img_original, singleton_batch, output_size = process_img(frame = img)
-    pred = predict_img(segmentation_module, singleton_batch, output_size)
+        if torch.cuda.is_available():
+            segmentation_module.cuda()
+        
+        progress.emit(2)
+
+        # predict
+        img_original, singleton_batch, output_size = process_img(frame = img)
+        pred = predict_img(segmentation_module, singleton_batch, output_size)
+    except:
+        segmentation_module.cpu()
+        progress.emit(2)
+        print("Using cpu")
+
+        # predict
+        img_original, singleton_batch, output_size = process_img(frame = img, cpu = 1)
+        pred = predict_img(segmentation_module, singleton_batch, output_size)
+
 
     progress.emit(3)
     # print(type(img_original))
@@ -262,9 +273,9 @@ def start_from_gui(img, save, progress, detectedNames, display = 1, alpha = 0.6)
 
     progress.emit(4)
     
-    # cv2.imwrite("{}/pred_color.png".format(save), cv2.cvtColor(pred_color, cv2.COLOR_RGB2BGR))
+    # cv2.imwrite("{}/color.png".format(save), cv2.cvtColor(pred_color, cv2.COLOR_RGB2BGR))
     # cv2.imwrite("{}/org_pred_split.png".format(save), cv2.cvtColor(org_pred_split, cv2.COLOR_RGB2BGR))
-    # cv2.imwrite("{}/dst.png".format(save), cv2.cvtColor(dst, cv2.COLOR_RGB2BGR))
+    # cv2.imwrite("{}/overlay.png".format(save), cv2.cvtColor(dst, cv2.COLOR_RGB2BGR))
     # cv2.imwrite("{}/pred_color_palette.png".format(save), cv2.cvtColor(pred_color_palette, cv2.COLOR_RGB2BGR))
     # cv2.imwrite("{}/pred_color_palette_dst.png".format(save), cv2.cvtColor(pred_color_palette_dst, cv2.COLOR_RGB2BGR))
     # cv2.imwrite("{}/pred_color_palette_all.png".format(save), cv2.cvtColor(pred_color_palette_all, cv2.COLOR_RGB2BGR))

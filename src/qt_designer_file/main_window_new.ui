@@ -273,14 +273,23 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,0,1,2">
+         <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="2,1,1,2">
           <item>
-           <widget class="QPushButton" name="pushButton_3">
+           <widget class="QToolButton" name="toolButton">
             <property name="styleSheet">
-             <string notr="true">background-color: rgb(173, 127, 168);</string>
+             <string notr="true">background-color: rgb(138, 226, 52);</string>
             </property>
             <property name="text">
-             <string>Default</string>
+             <string>...</string>
+            </property>
+            <property name="popupMode">
+             <enum>QToolButton::MenuButtonPopup</enum>
+            </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonTextOnly</enum>
+            </property>
+            <property name="arrowType">
+             <enum>Qt::DownArrow</enum>
             </property>
            </widget>
           </item>
