@@ -84,7 +84,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.ui.comboBox.addItems(["Semantic Segmentation", "Object Detection (YOLOv3)"])
 
-        # Qactions
+        # QActions
         self.ui.default = QtWidgets.QAction(self)
         self.ui.default.setObjectName("default")
         self.ui.default.setIconText("default_traffic")
@@ -125,10 +125,10 @@ class mainWindow(QtWidgets.QMainWindow):
         # self.ui.pb_back_2.clicked.connect(lambda: self.ui.stackedWidget.setCurrentWidget(self.ui.page_3))
 
         #self.ui.checkBox.stateChanged.connect(self.realTimePreview)
-        self.ui.horizontalSlider.valueChanged.connect(self.noise_gen)
 
-        self.ui.horizontalSlider.valueChanged.connect(lambda: self.ui.doubleSpinBox.setValue(self.ui.horizontalSlider.value() / 1000))
-        self.ui.doubleSpinBox.valueChanged.connect(lambda: self.ui.horizontalSlider.setValue(int(self.ui.doubleSpinBox.value() * 1000)))
+        self.ui.horizontalSlider.valueChanged.connect(lambda: self.ui.doubleSpinBox.setValue(self.ui.horizontalSlider.value()))
+        #self.ui.doubleSpinBox.valueChanged.connect(lambda: self.ui.horizontalSlider.setValue(int(self.ui.doubleSpinBox.value())))
+        self.ui.doubleSpinBox.valueChanged.connect(self.noise_gen)
 
         self.ui.listWidget.currentItemChanged.connect(self.change_selection)
 
@@ -182,7 +182,8 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.statusbar.showMessage("Import an image first.", 3000)
             return
 
-        noise_level = self.ui.horizontalSlider.value() / 1000
+        noise_level = self.ui.doubleSpinBox.value() / 10000
+        print("noise probability: ", noise_level)
         
         cv_img = add_noise_img(self.originalImg, noise_level)
 
