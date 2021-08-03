@@ -1,5 +1,4 @@
 # System libs
-import sys
 import os
 from pathlib import Path
 import PIL.Image
@@ -126,9 +125,11 @@ class mainWindow(QtWidgets.QMainWindow):
 
         #self.ui.checkBox.stateChanged.connect(self.realTimePreview)
 
+        # Noise generator
         self.ui.horizontalSlider.valueChanged.connect(lambda: self.ui.doubleSpinBox.setValue(self.ui.horizontalSlider.value()))
         #self.ui.doubleSpinBox.valueChanged.connect(lambda: self.ui.horizontalSlider.setValue(int(self.ui.doubleSpinBox.value())))
         self.ui.doubleSpinBox.valueChanged.connect(self.noise_gen)
+
 
         self.ui.listWidget.currentItemChanged.connect(self.change_selection)
 
@@ -182,7 +183,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.statusbar.showMessage("Import an image first.", 3000)
             return
 
-        noise_level = self.ui.doubleSpinBox.value() / 10000
+        noise_level = self.ui.doubleSpinBox.value() / 100
         print("noise probability: ", noise_level)
         
         cv_img = add_noise_img(self.originalImg, noise_level)
@@ -190,7 +191,6 @@ class mainWindow(QtWidgets.QMainWindow):
         self.noiseImg = cv_img
 
         img_rgb = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
-        
         qt_img = convert_cvimg_to_qimg(img_rgb)
 
         self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))

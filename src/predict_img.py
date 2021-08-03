@@ -213,7 +213,8 @@ def load_model_from_cfg(cfg):
 
 def start_from_gui(img, save, progress, detectedNames, display = 1, alpha = 0.6):
 
-    cfg = str(Path(__file__).parent.absolute()) + "/config/ade20k-resnet50dilated-ppm_deepsup.yaml"
+    #cfg = str(Path(__file__).parent.absolute()) + "/config/ade20k-resnet50dilated-ppm_deepsup.yaml"
+    cfg = str(Path(__file__).parent.absolute()) + "/config/ade20k-hrnetv2.yaml"
 
     # colors
     colors = scipy.io.loadmat(str(Path(__file__).parent.absolute()) + '/data/color150.mat')['colors']

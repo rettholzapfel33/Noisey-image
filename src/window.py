@@ -131,7 +131,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.addWidget(self.label_6)
         self.horizontalSlider = QtWidgets.QSlider(self.centralwidget)
         self.horizontalSlider.setMinimum(0)
-        self.horizontalSlider.setMaximum(500)
+        self.horizontalSlider.setMaximum(100)
         self.horizontalSlider.setSingleStep(1)
         self.horizontalSlider.setPageStep(1)
         self.horizontalSlider.setProperty("value", 1)
