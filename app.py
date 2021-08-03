@@ -151,7 +151,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.toolButton.setDefaultAction(qaction)
 
 
-    def default_img(self, fileName = "car detection.png"):
+    def default_img(self, fileName = "MISC1/car detection.png"):
         self.open_file(currPath + "/imgs/" + fileName)
         #self.ui.original_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/pred_color.png"))
         #self.ui.preview_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/dst.png"))
