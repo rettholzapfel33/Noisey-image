@@ -45,14 +45,15 @@ class Label(QLabel):
     
     def dragEnterEvent(self, e):
 
-        if e.mimeData().hasFormat('text/plain'):
+        #if e.mimeData().hasFormat('text/plain'):
+        if e.mimeData().hasUrls():
             e.accept()
         else:
             e.ignore()
 
     def dropEvent(self, e):
-
+        print(e.mimeData().urls()[0].toLocalFile())
         #self.setText(e.mimeData().text())
-        filepath = e.mimeData().text()[7:len(e.mimeData().text()) - 2]
+        filepath = e.mimeData().urls()[0].toLocalFile()
         
         self.setPixmap(QPixmap(filepath))
