@@ -1,6 +1,8 @@
 *.mp4
 *.avi
 *.weights
+*.webp
+*.Identifier
 __pycache__/
 ckpt/
 tmp_results/
