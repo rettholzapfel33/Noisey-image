@@ -10,6 +10,8 @@ class Label(QLabel):
         self.pixmap_width: int = 1
         self.pixmapHeight: int = 1
 
+        self.setAcceptDrops(True)
+
     def setPixmap(self, pm: QPixmap) -> None:
         self.pixmap_width = pm.width()
         self.pixmapHeight = pm.height()
@@ -39,3 +41,18 @@ class Label(QLabel):
         else:
             m = int((h - (pixmapHeight * w / pixmapWidth)) / 2)
             self.setContentsMargins(0, m, 0, m)
+
+    
+    def dragEnterEvent(self, e):
+
+        if e.mimeData().hasFormat('text/plain'):
+            e.accept()
+        else:
+            e.ignore()
+
+    def dropEvent(self, e):
+
+        #self.setText(e.mimeData().text())
+        filepath = e.mimeData().text()[7:len(e.mimeData().text()) - 2]
+        
+        self.setPixmap(QPixmap(filepath))

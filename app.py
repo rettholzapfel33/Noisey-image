@@ -136,6 +136,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.default_img()
         self.ui.centralwidget.setFont(QtGui.QFont('Ubuntu', 10))
 
+
     def increaseFont(self):
         self.ui.centralwidget.setFont(QtGui.QFont('Ubuntu', self.ui.centralwidget.fontInfo().pointSize() + 1))
         #print(self.ui.centralwidget.fontInfo().pointSize())
@@ -152,7 +153,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
 
     def default_img(self, fileName = "car detection.png"):
-        self.open_file(currPath + "/imgs/" + fileName)
+        self.open_file(currPath + "imgs/" + fileName)
         #self.ui.original_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/pred_color.png"))
         #self.ui.preview_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/dst.png"))
 
@@ -165,7 +166,7 @@ class mainWindow(QtWidgets.QMainWindow):
             fileName = fileName[0]
         
         img = cv2.imread(fileName)
-
+        
         self.originalImgPath = fileName
         self.originalImg = img
         self.ui.original.setPixmap(QtGui.QPixmap(self.originalImgPath))
