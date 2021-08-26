@@ -17,6 +17,7 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from src.window import Ui_MainWindow
 
 import cv2
+from functools import partial
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'src/tmp_results/'
@@ -84,18 +85,22 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.comboBox.addItems(["Semantic Segmentation", "Object Detection (YOLOv3)"])
 
         # QActions
-        self.ui.default = QtWidgets.QAction(self)
-        self.ui.default.setObjectName("default")
-        self.ui.default.setIconText("default_traffic")
-        self.ui.default.triggered.connect(lambda: self.default(self.ui.default ,"car detection.png"))
+        self.build_qactions()
+        
+        # self.ui.default = QtWidgets.QAction(self)
+        # self.ui.default.setObjectName("default")
+        # self.ui.default.setIconText("default_traffic")
+        # self.ui.default.triggered.connect(lambda: self.default(self.ui.default ,"car detection.png"))
 
-        self.ui.default2 = QtWidgets.QAction(self)
-        self.ui.default2.setObjectName("default2")
-        self.ui.default2.setIconText("default_100_faces")
-        self.ui.default2.triggered.connect(lambda: self.default(self.ui.default2, "100FACES.jpg"))
+        # self.ui.default2 = QtWidgets.QAction(self)
+        # self.ui.default2.setObjectName("default2")
+        # self.ui.default2.setIconText("default_100_faces")
+        # self.ui.default2.triggered.connect(lambda: self.default(self.ui.default2, "100FACES.jpg"))
 
-        self.ui.toolButton.addActions([self.ui.default, self.ui.default2])
-        self.ui.toolButton.setDefaultAction(self.ui.default)
+        # self.ui.toolButton.addActions([self.ui.default, self.ui.default2])
+        # self.ui.toolButton.setDefaultAction(self.ui.default)
+
+        
 
         # Class variables
         self.originalImg = None
@@ -147,13 +152,30 @@ class mainWindow(QtWidgets.QMainWindow):
     def quitApp(self):
         quit()
 
+    def build_qactions(self):
+        mypath = currPath + "imgs/default_imgs"
+        onlyfiles = [f for f in os.listdir(mypath) if os.path.isfile(os.path.join(mypath, f))]
+        self.qactions = []
+
+        for file in onlyfiles:
+            action = QtWidgets.QAction(self)
+            action.setObjectName(file)
+            action.setIconText("default " + file)
+            action.triggered.connect(partial(self.default, action, "default_imgs/" + file))
+            self.qactions.append(action)
+            
+
+        self.ui.toolButton.addActions(self.qactions)
+        self.ui.toolButton.setDefaultAction(self.qactions[0])
+
     def default(self, qaction, fileName):
         self.default_img(fileName)
         self.ui.toolButton.setDefaultAction(qaction)
 
 
     def default_img(self, fileName = "MISC1/car detection.png"):
-        self.open_file(currPath + "/imgs/" + fileName)
+        print(currPath + "imgs/" + fileName)
+        self.open_file(currPath + "imgs/" + fileName)
         #self.ui.original_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/pred_color.png"))
         #self.ui.preview_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/dst.png"))
 
