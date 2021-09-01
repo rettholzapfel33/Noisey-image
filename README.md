@@ -2,6 +2,7 @@
 
 See requirements.txt for required packages
 Run src/app.py to open the app
+Download the [pretrained models](http://sceneparsing.csail.mit.edu/model/pytorch) and place them in 'src/ckpt'.
 
 
 ## YOLOv3
