@@ -10,7 +10,7 @@ from src.noise_image import add_noise_img
 # import yolov3 stuff:
 import src.obj_detector.detect as detect
 from src.obj_detector.models import load_model
-from src.obj_detector.utils.utils import load_classes, rescale_boxes, non_max_suppression, to_cpu, print_environment_info
+from src.obj_detector.utils.utils import load_classes
 
 # PyQt5
 from PyQt5 import QtCore, QtWidgets, QtGui
@@ -23,6 +23,7 @@ currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'src/tmp_results/'
 
 
+# Converts opencv image to qt image
 def convert_cvimg_to_qimg(cv_img):
     height, width, channel = cv_img.shape
     bytesPerLine = 3 * width
@@ -79,7 +80,6 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        #self.ui.stackedWidget.setCurrentWidget(self.ui.page_3)
         self.ui.progressBar.hide()
 
         self.ui.comboBox.addItems(["Semantic Segmentation", "Object Detection (YOLOv3)"])
@@ -100,11 +100,8 @@ class mainWindow(QtWidgets.QMainWindow):
         # self.ui.toolButton.addActions([self.ui.default, self.ui.default2])
         # self.ui.toolButton.setDefaultAction(self.ui.default)
 
-        
 
         # Class variables
-        self.originalImg = None
-        self.originalImgPath = None
         self.noiseImg = None
         self.predictedImg = None
         self.predictedQtImg = None
@@ -122,19 +119,10 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.actionIncrease_Size.triggered.connect(self.increaseFont)
         self.ui.actionDecrease_Size.triggered.connect(self.decreaseFont)
 
-        # Changing pages
-        # self.ui.pb_noise_gen.clicked.connect(lambda: self.ui.stackedWidget.setCurrentWidget(self.ui.page_2))
-        # self.ui.pb_sementic_seg.clicked.connect(lambda: self.ui.stackedWidget.setCurrentWidget(self.ui.page))
-        # self.ui.pb_back.clicked.connect(lambda: self.ui.stackedWidget.setCurrentWidget(self.ui.page_3))
-        # self.ui.pb_back_2.clicked.connect(lambda: self.ui.stackedWidget.setCurrentWidget(self.ui.page_3))
-
-        #self.ui.checkBox.stateChanged.connect(self.realTimePreview)
-
         # Noise generator
         self.ui.horizontalSlider.valueChanged.connect(lambda: self.ui.doubleSpinBox.setValue(self.ui.horizontalSlider.value()))
         #self.ui.doubleSpinBox.valueChanged.connect(lambda: self.ui.horizontalSlider.setValue(int(self.ui.doubleSpinBox.value())))
         self.ui.doubleSpinBox.valueChanged.connect(self.noise_gen)
-
 
         self.ui.listWidget.currentItemChanged.connect(self.change_selection)
 
@@ -189,27 +177,22 @@ class mainWindow(QtWidgets.QMainWindow):
         
         img = cv2.imread(fileName)
         
-        self.originalImgPath = fileName
-        self.originalImg = img
-        self.ui.original.setPixmap(QtGui.QPixmap(self.originalImgPath))
+        self.ui.original.addImg(img)
+        self.ui.original.setPixmap(QtGui.QPixmap(fileName))
         self.noise_gen()
         
-    # def realTimePreview(self):
-    #     if(self.ui.checkBox.isChecked() == True):
-    #         self.ui.horizontalSlider.valueChanged.connect(self.noise_gen)
-    #     else:
-    #         self.ui.horizontalSlider.valueChanged.disconnect(self.noise_gen)
 
     def noise_gen(self):
+        originalImg = self.ui.original.getImg()
 
-        if(self.originalImg is None):
+        if(originalImg is None):
             self.ui.statusbar.showMessage("Import an image first.", 3000)
             return
 
         noise_level = self.ui.doubleSpinBox.value() / 100
         print("noise probability: ", noise_level)
         
-        cv_img = add_noise_img(self.originalImg, noise_level)
+        cv_img = add_noise_img(originalImg, noise_level)
 
         self.noiseImg = cv_img
 
@@ -281,7 +264,7 @@ class mainWindow(QtWidgets.QMainWindow):
         comboModelType = self.ui.comboBox.currentText()
         
         
-        if(self.originalImg is None):
+        if(self.ui.original.getImg() is None):
             self.ui.statusbar.showMessage("Import an image first!", 3000)
             return
         elif(self.noiseImg is None):

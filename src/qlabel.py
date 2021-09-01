@@ -1,7 +1,7 @@
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtGui import QResizeEvent
 from PyQt5.QtWidgets import QLabel, QWidget
-
+from cv2 import imread
 
 class Label(QLabel):
 
@@ -10,19 +10,23 @@ class Label(QLabel):
         self.pixmap_width: int = 1
         self.pixmapHeight: int = 1
 
+        self.img = None
+
         self.setAcceptDrops(True)
+
 
     def setPixmap(self, pm: QPixmap) -> None:
         self.pixmap_width = pm.width()
         self.pixmapHeight = pm.height()
 
-        
         super(Label, self).setPixmap(pm)
         self.updateMargins()
+
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         self.updateMargins()
         super(Label, self).resizeEvent(a0)
+
 
     def updateMargins(self):
         if self.pixmap() is None:
@@ -44,12 +48,12 @@ class Label(QLabel):
 
     
     def dragEnterEvent(self, e):
-
         #if e.mimeData().hasFormat('text/plain'):
         if e.mimeData().hasUrls():
             e.accept()
         else:
             e.ignore()
+
 
     def dropEvent(self, e):
         print(e.mimeData().urls()[0].toLocalFile())
@@ -57,3 +61,13 @@ class Label(QLabel):
         filepath = e.mimeData().urls()[0].toLocalFile()
         
         self.setPixmap(QPixmap(filepath))
+
+        self.img = imread(filepath)
+
+    
+    def addImg(self, img):
+        self.img = img
+
+    
+    def getImg(self):
+        return self.img
