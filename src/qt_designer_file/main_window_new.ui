@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1059</width>
-    <height>666</height>
+    <width>900</width>
+    <height>681</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,7 +25,7 @@
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout_6">
     <item>
-     <layout class="QGridLayout" name="gridLayout" columnstretch="1,5,5">
+     <layout class="QGridLayout" name="gridLayout" columnstretch="1,6,6">
       <item row="0" column="1">
        <layout class="QVBoxLayout" name="verticalLayout_5">
         <item>
@@ -89,9 +89,6 @@
          </layout>
         </item>
        </layout>
-      </item>
-      <item row="0" column="0">
-       <widget class="QListWidget" name="listWidget"/>
       </item>
       <item row="2" column="1">
        <widget class="QLabel" name="label_2">
@@ -312,7 +309,7 @@
              <string notr="true">background-color: rgb(114, 159, 207);</string>
             </property>
             <property name="text">
-             <string>Generate Noise</string>
+             <string>Apply noise</string>
             </property>
            </widget>
           </item>
@@ -411,6 +408,64 @@
         </item>
        </layout>
       </item>
+      <item row="0" column="0" rowspan="2">
+       <widget class="QTabWidget" name="tabWidget">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+        <property name="currentIndex">
+         <number>1</number>
+        </property>
+        <widget class="QWidget" name="tab">
+         <attribute name="title">
+          <string>Items</string>
+         </attribute>
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <item>
+           <widget class="QListWidget" name="listWidget"/>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tab_2">
+         <attribute name="title">
+          <string>Images</string>
+         </attribute>
+         <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <item>
+           <widget class="QListWidget" name="fileList"/>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <layout class="QVBoxLayout" name="verticalLayout_8">
+        <item>
+         <widget class="QPushButton" name="pushButton_3">
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(114, 159, 207);</string>
+          </property>
+          <property name="text">
+           <string>Apply noise
+(all images)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_5">
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(114, 159, 207);</string>
+          </property>
+          <property name="text">
+           <string>Run model
+(all images)</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
      </layout>
     </item>
    </layout>
@@ -420,7 +475,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1059</width>
+     <width>900</width>
      <height>22</height>
     </rect>
    </property>

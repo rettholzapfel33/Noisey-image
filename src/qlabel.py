@@ -1,3 +1,4 @@
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtGui import QResizeEvent
 from PyQt5.QtWidgets import QLabel, QWidget
@@ -9,8 +10,6 @@ class Label(QLabel):
         super(Label, self).__init__()
         self.pixmap_width: int = 1
         self.pixmapHeight: int = 1
-
-        self.img = None
 
         self.setAcceptDrops(True)
 
@@ -48,26 +47,17 @@ class Label(QLabel):
 
     
     def dragEnterEvent(self, e):
-        #if e.mimeData().hasFormat('text/plain'):
         if e.mimeData().hasUrls():
             e.accept()
         else:
             e.ignore()
 
+    imageDropped = pyqtSignal(str)
 
     def dropEvent(self, e):
         print(e.mimeData().urls()[0].toLocalFile())
-        #self.setText(e.mimeData().text())
         filepath = e.mimeData().urls()[0].toLocalFile()
         
-        self.setPixmap(QPixmap(filepath))
+        #self.setPixmap(QPixmap(filepath))
+        self.imageDropped.emit(filepath)
 
-        self.img = imread(filepath)
-
-    
-    def addImg(self, img):
-        self.img = img
-
-    
-    def getImg(self):
-        return self.img

@@ -285,7 +285,7 @@ def _draw_and_return_output_image(image, detections, img_size, classes):
         '''
 
     # Save generated image with detections
-    return cv2.cvtColor(org_img, cv2.COLOR_BGR2RGB)
+    return org_img
 
 
 def _create_data_loader(img_path, batch_size, img_size, n_cpu):

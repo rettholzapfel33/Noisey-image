@@ -23,8 +23,10 @@ currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'src/tmp_results/'
 
 
-# Converts opencv image to qt image
+# Converts opencv image to RGB first then to qt image
 def convert_cvimg_to_qimg(cv_img):
+    cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+
     height, width, channel = cv_img.shape
     bytesPerLine = 3 * width
 
@@ -102,16 +104,16 @@ class mainWindow(QtWidgets.QMainWindow):
 
 
         # Class variables
-        self.noiseImg = None
-        self.predictedImg = None
-        self.predictedQtImg = None
-        self.predictedColor = None
-        self.predictedQtColor = None
-        self.pred = None
+        # self.predictedImg = None
+        # self.predictedQtImg = None
+        # self.predictedColor = None
+        # self.predictedQtColor = None
+        # self.pred = None
 
         # Buttons
         self.ui.pushButton.clicked.connect(self.noise_gen)
         self.ui.pushButton_2.clicked.connect(self.start_model)
+        self.ui.pushButton_3.clicked.connect(self.noise_gen_all)
         self.ui.pushButton_4.clicked.connect(self.quitApp)
 
         # Menubar buttons
@@ -124,10 +126,14 @@ class mainWindow(QtWidgets.QMainWindow):
         #self.ui.doubleSpinBox.valueChanged.connect(lambda: self.ui.horizontalSlider.setValue(int(self.ui.doubleSpinBox.value())))
         self.ui.doubleSpinBox.valueChanged.connect(self.noise_gen)
 
-        self.ui.listWidget.currentItemChanged.connect(self.change_selection)
-
         self.default_img()
+
+        self.ui.listWidget.currentItemChanged.connect(self.change_seg_selection)
+        self.ui.fileList.currentItemChanged.connect(self.change_file_selection)
+
         self.ui.centralwidget.setFont(QtGui.QFont('Ubuntu', 10))
+
+        self.ui.original.imageDropped.connect(self.open_file)
 
 
     def increaseFont(self):
@@ -170,20 +176,35 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.horizontalSlider.setValue(5)
         self.noise_gen()
 
-    def open_file(self, fileName = None):
-        if(fileName == None):
-            fileName = QtWidgets.QFileDialog.getOpenFileName(self, "Select image", filter="Image files (*.jpg *.png *.bmp)")
-            fileName = fileName[0]
+    def open_file(self, filePath = None):
+        if(filePath == None):
+            filePath = QtWidgets.QFileDialog.getOpenFileName(self, "Select image", filter="Image files (*.jpg *.png *.bmp)")
+            filePath = filePath[0]
         
-        img = cv2.imread(fileName)
-        
-        self.ui.original.addImg(img)
-        self.ui.original.setPixmap(QtGui.QPixmap(fileName))
+        fileName = filePath[filePath.rfind('/') + 1:]
+
+        items = self.ui.fileList.findItems(fileName, QtCore.Qt.MatchExactly)
+        if(len(items) > 0):
+            self.ui.statusbar.showMessage("File already opened", 3000)
+            return -1
+
+        img = cv2.imread(filePath)
+
+        new_item = QtWidgets.QListWidgetItem()
+        new_item.setText(fileName)
+        new_item.setData(QtCore.Qt.UserRole, {'filePath':filePath, 'img':img})
+        self.ui.fileList.addItem(new_item)
+
+        self.ui.original.setPixmap(QtGui.QPixmap(filePath))
+        self.ui.fileList.setCurrentItem(new_item)
         self.noise_gen()
-        
+        self.ui.original_2.clear()
+        self.ui.preview_2.clear()
+
 
     def noise_gen(self):
-        originalImg = self.ui.original.getImg()
+        qListItem = self.ui.fileList.currentItem()
+        originalImg = qListItem.data(QtCore.Qt.UserRole)['img']
 
         if(originalImg is None):
             self.ui.statusbar.showMessage("Import an image first.", 3000)
@@ -194,29 +215,79 @@ class mainWindow(QtWidgets.QMainWindow):
         
         cv_img = add_noise_img(originalImg, noise_level)
 
-        self.noiseImg = cv_img
+        temp = qListItem.data(QtCore.Qt.UserRole)
+        temp['noiseImg'] = cv_img
+        qListItem.setData(QtCore.Qt.UserRole, temp)
 
-        img_rgb = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
-        qt_img = convert_cvimg_to_qimg(img_rgb)
+        qt_img = convert_cvimg_to_qimg(cv_img)
 
         self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
+
+    def noise_gen_all(self):
+        lw = self.ui.fileList
+        # let lw haven elements in it.
+        items = []
+        for x in range(lw.count()):
+            if(lw.item(x) != lw.currentItem()):
+                items.append(lw.item(x))
+
+        noise_level = self.ui.doubleSpinBox.value() / 100
+
+        for item in items:
+            temp = item.data(QtCore.Qt.UserRole)
+            cv_img = add_noise_img(temp['img'], noise_level)
+            temp['noiseImg'] = cv_img
+            item.setData(QtCore.Qt.UserRole, temp)
+
+        self.noise_gen()
 
     def reportProgress(self, n):
         self.ui.progressBar.setValue(n)
 
-    def change_selection(self, current):
+    def change_file_selection(self, qListItem):
+        originalImg = qListItem.data(QtCore.Qt.UserRole)['img']
+        noiseImg = qListItem.data(QtCore.Qt.UserRole).get('noiseImg')
+        predictedImg = qListItem.data(QtCore.Qt.UserRole).get('predictedImg')
+        predictedColor = qListItem.data(QtCore.Qt.UserRole).get('predictedColor')
+
+        originalQtImg = convert_cvimg_to_qimg(originalImg) 
+        self.ui.original.setPixmap(QtGui.QPixmap.fromImage(originalQtImg))
+
+        if(noiseImg is not None):
+            noiseQtImg = convert_cvimg_to_qimg(noiseImg)
+            self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(noiseQtImg))
+        else:
+            self.ui.preview.clear()
+
+        if(predictedImg is not None):
+            predictedQtImg = convert_cvimg_to_qimg(predictedImg)
+            self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
+        else:
+            self.ui.original_2.clear()
+
+        if(predictedColor is not None):
+            predictedQtColor = convert_cvimg_to_qimg(predictedColor)
+            self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtColor))
+        else:
+            self.ui.preview_2.clear()
+
+    def change_seg_selection(self, current):
         if(current == None):
             return
 
-        originalImg = self.noiseImg
+        qListItem = self.ui.fileList.currentItem()
+        originalImg = qListItem.data(QtCore.Qt.UserRole)['img']
+
+        predictedQtImg = convert_cvimg_to_qimg(qListItem.data(QtCore.Qt.UserRole)['predictedImg'])
+        predictedQtColor = convert_cvimg_to_qimg(qListItem.data(QtCore.Qt.UserRole)['predictedColor'])
 
         #print(current.text())
 
         if(current.text() == "all"):
-            self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtColor))
-            self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtImg))
+            self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtColor))
+            self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
         else:
-            img = new_visualize_result(self.pred, originalImg, current.text())
+            img = new_visualize_result(qListItem.data(QtCore.Qt.UserRole)['pred'], originalImg, current.text())
             qImg_color = convert_cvimg_to_qimg(img[0])
             qImg_overlay = convert_cvimg_to_qimg(img[1])
             self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(qImg_color))
@@ -224,22 +295,26 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def display_result(self, result):
         comboModelType = self.ui.comboBox.currentText()
+        qListItem = self.ui.fileList.currentItem()
+        temp = qListItem.data(QtCore.Qt.UserRole)
 
         if comboModelType == 'Semantic Segmentation':
-            self.pred = result[2]
-            self.predictedImg = result[0]
-            self.predictedColor = result[1]
+            temp['pred'] = result[2]
+            temp['predictedImg'] = result[0]
+            temp['predictedColor'] = result[1]
 
-            self.predictedQtImg = convert_cvimg_to_qimg(result[0])
-            self.predictedQtColor = convert_cvimg_to_qimg(result[1])
-            self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtColor))
-            self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtImg))
+            predictedQtImg = convert_cvimg_to_qimg(result[0])
+            predictedQtColor = convert_cvimg_to_qimg(result[1])
+            self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtColor))
+            self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
         else:
-            self.pred = result[1]
-            self.predictedImg = result[0]
-            self.predictedQtImg = convert_cvimg_to_qimg(result[0])
-            self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(self.predictedQtImg))
+            temp['pred'] = result[1]
+            temp['predictedImg'] = result[0]
+            predictedQtImg = convert_cvimg_to_qimg(result[0])
+            self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
             self.ui.preview_2.clear()
+
+        qListItem.setData(QtCore.Qt.UserRole, temp)
 
     def display_colors(self, names):
         for x in names:
@@ -249,11 +324,22 @@ class mainWindow(QtWidgets.QMainWindow):
         
 
     def start_model(self):
+        qListItem = self.ui.fileList.currentItem()
+        img = qListItem.data(QtCore.Qt.UserRole).get('img')
+        noiseImg = qListItem.data(QtCore.Qt.UserRole).get('noiseImg')
+
+        if(img is None):
+            self.ui.statusbar.showMessage("Import an image first!", 3000)
+            return
+        elif(noiseImg is None):
+            self.ui.statusbar.showMessage("Add noise to the image first!", 3000)
+            return
+
+
         self.ui.progressBar.show()
         self.ui.listWidget.clear()
         self.ui.original_2.clear()
         self.ui.preview_2.clear()
-
 
         self.thread = QtCore.QThread()
         self.worker = Worker()
@@ -263,18 +349,11 @@ class mainWindow(QtWidgets.QMainWindow):
 
         comboModelType = self.ui.comboBox.currentText()
         
-        
-        if(self.ui.original.getImg() is None):
-            self.ui.statusbar.showMessage("Import an image first!", 3000)
-            return
-        elif(self.noiseImg is None):
-            self.ui.statusbar.showMessage("Add noise to the image first!", 3000)
-            return
 
         if comboModelType == 'Semantic Segmentation':
-            self.worker.setup(self.noiseImg, tmpPath, display_sep, detectedNames, 'segmentation')
+            self.worker.setup(noiseImg, tmpPath, display_sep, detectedNames, 'segmentation')
         else:
-            self.worker.setup(self.noiseImg, tmpPath, display_sep, detectedNames, 'yolov3')
+            self.worker.setup(noiseImg, tmpPath, display_sep, detectedNames, 'yolov3')
 
 
         self.worker.moveToThread(self.thread)
