@@ -248,6 +248,10 @@ class Ui_MainWindow(object):
         self.pushButton_5.setObjectName("pushButton_5")
         self.verticalLayout_8.addWidget(self.pushButton_5)
         self.gridLayout.addLayout(self.verticalLayout_8, 3, 0, 1, 1)
+        self.progressBar_2 = QtWidgets.QProgressBar(self.centralwidget)
+        self.progressBar_2.setProperty("value", 0)
+        self.progressBar_2.setObjectName("progressBar_2")
+        self.gridLayout.addWidget(self.progressBar_2, 2, 0, 1, 1)
         self.gridLayout.setColumnStretch(0, 1)
         self.gridLayout.setColumnStretch(1, 6)
         self.gridLayout.setColumnStretch(2, 6)
@@ -286,7 +290,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuEdit.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
