@@ -15,6 +15,7 @@ from src.obj_detector.utils.utils import load_classes
 # PyQt5
 from PyQt5 import QtCore, QtWidgets, QtGui
 from src.window import Ui_MainWindow
+from PyQt5.QtCore import Qt
 
 import cv2
 from functools import partial
@@ -116,6 +117,26 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.ui.original.imageDropped.connect(self.open_file)
 
+        self.ui.fileList.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.ui.fileList.customContextMenuRequested.connect(self.listwidgetmenu)
+
+        
+
+    def listwidgetmenu(self, position):
+        rightMenu = QtWidgets.QMenu(self.ui.fileList)
+        removeAction = QtWidgets.QAction("delete", self, triggered = self.close)
+        
+        rightMenu.addAction(self.ui.actionOpen)
+
+        if self.ui.fileList.itemAt(position):
+            rightMenu.addAction(removeAction)
+
+        rightMenu.exec_(self.ui.fileList.mapToGlobal(position))
+
+
+    def close(self):
+        currentRow = self.ui.fileList.currentRow()
+        self.ui.fileList.takeItem(currentRow)
 
     def increaseFont(self):
         self.ui.centralwidget.setFont(QtGui.QFont('Ubuntu', self.ui.centralwidget.fontInfo().pointSize() + 1))
@@ -154,31 +175,38 @@ class mainWindow(QtWidgets.QMainWindow):
         #self.ui.original_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/pred_color.png"))
         #self.ui.preview_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/dst.png"))
 
-        self.ui.horizontalSlider.setValue(5)
+        #self.ui.horizontalSlider.setValue(5)
         self.noise_gen()
 
-    def open_file(self, filePath = None):
-        if(filePath == None):
-            filePath = QtWidgets.QFileDialog.getOpenFileName(self, "Select image", filter="Image files (*.jpg *.png *.bmp)")
-            filePath = filePath[0]
-        
-        fileName = filePath[filePath.rfind('/') + 1:]
+    def open_file(self, filePaths = None):
+        if(filePaths == None):
+            filePaths = QtWidgets.QFileDialog.getOpenFileNames(self, "Select image", filter="Image files (*.jpg *.png *.bmp)")
+            filePaths = filePaths[0]
+        else:
+            filePaths = [filePaths]
+    
+        for filePath in filePaths:
 
-        items = self.ui.fileList.findItems(fileName, QtCore.Qt.MatchExactly)
-        if(len(items) > 0):
-            self.ui.statusbar.showMessage("File already opened", 3000)
-            return -1
+            fileName = filePath[filePath.rfind('/') + 1:]
 
-        img = cv2.imread(filePath)
+            items = self.ui.fileList.findItems(fileName, QtCore.Qt.MatchExactly)
+            if(len(items) > 0):
+                self.ui.statusbar.showMessage("File already opened", 3000)
+                return -1
 
-        new_item = QtWidgets.QListWidgetItem()
-        new_item.setText(fileName)
-        new_item.setData(QtCore.Qt.UserRole, {'filePath':filePath, 'img':img})
-        self.ui.fileList.addItem(new_item)
+            img = cv2.imread(filePath)
+
+            new_item = QtWidgets.QListWidgetItem()
+            new_item.setText(fileName)
+            new_item.setData(QtCore.Qt.UserRole, {'filePath':filePath, 'img':img})
+            self.ui.fileList.addItem(new_item)
+            
 
         self.ui.original.setPixmap(QtGui.QPixmap(filePath))
         self.ui.fileList.setCurrentItem(new_item)
+
         self.noise_gen()
+
         self.ui.original_2.clear()
         self.ui.preview_2.clear()
 
@@ -231,7 +259,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 items.append(lw.item(x))
 
 
-        for qListItem in items:
+        for i, qListItem in enumerate(items):
             img = qListItem.data(QtCore.Qt.UserRole).get('img')
             noiseImg = qListItem.data(QtCore.Qt.UserRole).get('noiseImg')
 
@@ -271,6 +299,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
             self.threadPool.append(thread)
             self.workers.append(worker)
+        
+        self.run_model()
             
 
     def reportProgress(self, n):
@@ -390,14 +420,17 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.statusbar.showMessage("Add noise to the image first!", 3000)
             return
 
+        self.ui.pushButton_2.setEnabled(False)
 
         self.ui.progressBar.show()
         self.ui.listWidget.clear()
         self.ui.original_2.clear()
         self.ui.preview_2.clear()
 
-        self.worker = Worker()
         self.thread = QtCore.QThread()
+        self.worker = Worker()
+        
+        print("here")
 
         detectedNames = {"all": [255,255,255]}
         display_sep = self.ui.checkBox_2.isChecked()
@@ -409,18 +442,20 @@ class mainWindow(QtWidgets.QMainWindow):
             self.worker.setup(noiseImg, display_sep, detectedNames, 'segmentation', qListItem)
         else:
             self.worker.setup(noiseImg, display_sep, detectedNames, 'yolov3', qListItem)
-
-
+        
+        
         self.worker.moveToThread(self.thread)
 
         self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
         self.worker.finished.connect(self.ui.progressBar.hide)
         self.worker.finished.connect(self.display_result)
         self.worker.finished.connect(lambda: self.display_items(detectedNames, qListItem))
+        self.worker.finished.connect(lambda: self.ui.pushButton_2.setEnabled(True))
         self.worker.progress.connect(self.reportProgress)
         self.thread.finished.connect(self.thread.deleteLater)
-        
+         
         self.thread.start()
 
 
