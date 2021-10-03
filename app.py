@@ -39,17 +39,16 @@ class Worker(QtCore.QObject):
     finished = QtCore.pyqtSignal(tuple)
     progress = QtCore.pyqtSignal(int)
 
-    def setup(self, file, ifDisplay, detectedNames, model_type, listWidget):
-        self.file = file
+    def setup(self, files, ifDisplay, model_type, listWidgets):
+        self.files = files
         self.ifDisplay = ifDisplay
-        self.detectedNames = detectedNames
-        self.listWidget = listWidget
+        self.listWidgets = listWidgets
         assert model_type == 'segmentation' or model_type == 'yolov3', "Model Type %s is not a defined term!"%(model_type)
         self.model_type = model_type
 
     def run(self):
         if self.model_type == 'segmentation':
-            result = start_from_gui(self.file, tmpPath, self.detectedNames, self.progress, self.ifDisplay)
+            result = start_from_gui(self.files, tmpPath, self.progress, self.ifDisplay)
 
         else:
             self.progress.emit(1)  
@@ -60,19 +59,25 @@ class Worker(QtCore.QObject):
             self.progress.emit(2)  
             yolo = load_model(CFG, WEIGHTS)
             
-            self.progress.emit(3)  
+             
             classes = load_classes(CLASSES)  # List of class names
-            dets = detect.detect_image(yolo, self.file)
-            np_img = detect._draw_and_return_output_image(self.file, dets, 416, classes)
-            image_dst = os.path.join(tmpPath, 'yolo_output.png')
+            
+            result = []
+            for img in self.files:
+                dets = detect.detect_image(yolo, img)
+                np_img = detect._draw_and_return_output_image(img, dets, 416, classes)
+                result.append((np_img, dets))
+                self.progress.emit(3) 
+
+            #image_dst = os.path.join(tmpPath, 'yolo_output.png')
             #cv2.imwrite(image_dst, np_img)
-            result = (np_img, dets)# output an image:   
+               
             self.progress.emit(4)   
 
             if (self.ifDisplay==1):
                 PIL.Image.fromarray(np_img).show()
 
-        self.finished.emit((result, self.listWidget))
+        self.finished.emit((result, self.listWidgets))
 
 
 class mainWindow(QtWidgets.QMainWindow):
@@ -85,6 +90,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.workers = []
 
         self.ui.progressBar.hide()
+        self.ui.progressBar_2.hide()
 
         self.ui.comboBox.addItems(["Semantic Segmentation", "Object Detection (YOLOv3)"])
 
@@ -255,11 +261,13 @@ class mainWindow(QtWidgets.QMainWindow):
         
         items = []
         for x in range(lw.count()):
-            if(lw.item(x) != lw.currentItem()):
-                items.append(lw.item(x))
+            #if(lw.item(x) != lw.currentItem()):
+            items.append(lw.item(x))
 
+        imgs = []
+        qListItems = []
 
-        for i, qListItem in enumerate(items):
+        for qListItem in items:
             img = qListItem.data(QtCore.Qt.UserRole).get('img')
             noiseImg = qListItem.data(QtCore.Qt.UserRole).get('noiseImg')
 
@@ -267,41 +275,54 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.ui.statusbar.showMessage("Import an image first!", 3000)
                 return
             elif(noiseImg is None):
-                self.ui.statusbar.showMessage("Add noise to the image first!", 3000)
-                return
-
-            worker = Worker()
-            thread = QtCore.QThread()
-
-            detectedNames = {"all": [255,255,255]}
-            display_sep = False
-
-            comboModelType = self.ui.comboBox.currentText()
+                # self.ui.statusbar.showMessage("Add noise to the image first!", 3000)
+                # return
+                noiseImg = img
             
-
-            if comboModelType == 'Semantic Segmentation':
-                worker.setup(noiseImg, display_sep, detectedNames, 'segmentation', qListItem)
-            else:
-                worker.setup(noiseImg, display_sep, detectedNames, 'yolov3', qListItem)
-
-
-            worker.moveToThread(thread)
-
-            thread.started.connect(worker.run)
-            worker.finished.connect(worker.deleteLater)
-            worker.finished.connect(self.display_result)
-            worker.finished.connect(lambda: self.display_items(detectedNames, qListItem))
-            #worker.progress.connect(self.reportProgress)
-            thread.finished.connect(thread.deleteLater)
-            print("thread started")
-
-            thread.start()
-
-            self.threadPool.append(thread)
-            self.workers.append(worker)
+            imgs.append(noiseImg)
+            qListItems.append(qListItem)
         
-        self.run_model()
+        self.ui.pushButton_5.setEnabled(False)
+
+        self.ui.progressBar_2.show()
+        self.ui.progressBar_2.reset()
+        self.ui.listWidget.clear()
+        self.ui.original_2.clear()
+        self.ui.preview_2.clear()
+
+        self.ui.progressBar_2.setMaximum(len(imgs))
+
+        self.thread = QtCore.QThread()
+        self.worker = Worker()
+
+        display_sep = False
+        comboModelType = self.ui.comboBox.currentText()
+
+        if comboModelType == 'Semantic Segmentation':
+            self.worker.setup(imgs, display_sep, 'segmentation', qListItems)
+        else:
+            self.worker.setup(imgs, display_sep, 'yolov3', qListItems)
+
+
+        self.worker.moveToThread(self.thread)
+
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.finished.connect(self.ui.progressBar_2.hide)
+        self.worker.finished.connect(self.display_result)
+        if(comboModelType == "Semantic Segmentation"):
+            self.worker.finished.connect(self.display_items)
+        self.worker.finished.connect(lambda: self.ui.pushButton_5.setEnabled(True))
+        self.worker.progress.connect(self.reportProgress2)
+        self.thread.finished.connect(self.thread.deleteLater)
+         
+        self.thread.start()
             
+    def reportProgress2(self, n):
+        if(n == 3):
+            self.ui.progressBar_2.setValue(self.ui.progressBar_2.value() + 1)
+
 
     def reportProgress(self, n):
         self.ui.progressBar.setValue(n)
@@ -371,41 +392,49 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def display_result(self, result):
         comboModelType = self.ui.comboBox.currentText()
-        qListItem = result[1]
-        temp = qListItem.data(QtCore.Qt.UserRole)
-        result = result[0]
+        qListItems = result[1]
+        model_results = result[0]
 
-        if comboModelType == 'Semantic Segmentation':
-            temp['pred'] = result[2]
-            temp['predictedImg'] = result[0]
-            temp['predictedColor'] = result[1]
+        for i, result in enumerate(model_results):
+            qListItem = qListItems[i]
+            temp = qListItem.data(QtCore.Qt.UserRole)
+            if comboModelType == 'Semantic Segmentation':
+                temp['pred'] = result[2]
+                temp['predictedImg'] = result[0]
+                temp['predictedColor'] = result[1]
 
+                if(self.ui.fileList.currentItem() == qListItem):
+                    predictedQtImg = convert_cvimg_to_qimg(result[0])
+                    predictedQtColor = convert_cvimg_to_qimg(result[1])
+                    self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtColor))
+                    self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
+            else:
+                temp['pred'] = result[1]
+                temp['predictedImg'] = result[0]
+                
+                if(self.ui.fileList.currentItem() == qListItem):
+                    predictedQtImg = convert_cvimg_to_qimg(result[0])
+                    self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
+                    self.ui.preview_2.clear()
+
+            qListItem.setData(QtCore.Qt.UserRole, temp)
+
+    def display_items(self, results):
+        qListItems = results[1]
+        seg_results = results[0]
+
+        for i, result in enumerate(seg_results):
+            qListItem = qListItems[i]
+            names = result[3]
             if(self.ui.fileList.currentItem() == qListItem):
-                predictedQtImg = convert_cvimg_to_qimg(result[0])
-                predictedQtColor = convert_cvimg_to_qimg(result[1])
-                self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtColor))
-                self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
-        else:
-            temp['pred'] = result[1]
-            temp['predictedImg'] = result[0]
+                for x in names:
+                    i = QtWidgets.QListWidgetItem(x)
+                    i.setBackground(QtGui.QColor(names[x][0], names[x][1], names[x][2]))
+                    self.ui.listWidget.addItem(i)
             
-            if(self.ui.fileList.currentItem() == qListItem):
-                predictedQtImg = convert_cvimg_to_qimg(result[0])
-                self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
-                self.ui.preview_2.clear()
-
-        qListItem.setData(QtCore.Qt.UserRole, temp)
-
-    def display_items(self, names, qListItem):
-        if(self.ui.fileList.currentItem() == qListItem):
-            for x in names:
-                i = QtWidgets.QListWidgetItem(x)
-                i.setBackground(QtGui.QColor(names[x][0], names[x][1], names[x][2]))
-                self.ui.listWidget.addItem(i)
-        
-        temp = qListItem.data(QtCore.Qt.UserRole)
-        temp['items'] = names
-        qListItem.setData(QtCore.Qt.UserRole, temp)
+            temp = qListItem.data(QtCore.Qt.UserRole)
+            temp['items'] = names
+            qListItem.setData(QtCore.Qt.UserRole, temp)
         
 
     def run_model(self):
@@ -418,7 +447,7 @@ class mainWindow(QtWidgets.QMainWindow):
             return
         elif(noiseImg is None):
             self.ui.statusbar.showMessage("Add noise to the image first!", 3000)
-            return
+            noiseImg = img
 
         self.ui.pushButton_2.setEnabled(False)
 
@@ -430,18 +459,17 @@ class mainWindow(QtWidgets.QMainWindow):
         self.thread = QtCore.QThread()
         self.worker = Worker()
         
-        print("here")
 
-        detectedNames = {"all": [255,255,255]}
+        #detectedNames = {"all": [255,255,255]}
         display_sep = self.ui.checkBox_2.isChecked()
 
         comboModelType = self.ui.comboBox.currentText()
         
 
         if comboModelType == 'Semantic Segmentation':
-            self.worker.setup(noiseImg, display_sep, detectedNames, 'segmentation', qListItem)
+            self.worker.setup([noiseImg], display_sep, 'segmentation', [qListItem])
         else:
-            self.worker.setup(noiseImg, display_sep, detectedNames, 'yolov3', qListItem)
+            self.worker.setup([noiseImg], display_sep, 'yolov3', [qListItem])
         
         
         self.worker.moveToThread(self.thread)
@@ -451,7 +479,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.worker.finished.connect(self.worker.deleteLater)
         self.worker.finished.connect(self.ui.progressBar.hide)
         self.worker.finished.connect(self.display_result)
-        self.worker.finished.connect(lambda: self.display_items(detectedNames, qListItem))
+        if(comboModelType == "Semantic Segmentation"):
+            self.worker.finished.connect(self.display_items)
         self.worker.finished.connect(lambda: self.ui.pushButton_2.setEnabled(True))
         self.worker.progress.connect(self.reportProgress)
         self.thread.finished.connect(self.thread.deleteLater)

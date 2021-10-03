@@ -211,7 +211,8 @@ def load_model_from_cfg(cfg):
     return segmentation_module
     
 
-def start_from_gui(img, save, detectedNames, progress = None, display = 0, alpha = 0.6):
+def start_from_gui(imgs, save, progress = None, display = 0, alpha = 0.6):
+    results = []
 
     #cfg = str(Path(__file__).parent.absolute()) + "/config/ade20k-resnet50dilated-ppm_deepsup.yaml"
     cfg = str(Path(__file__).parent.absolute()) + "/config/ade20k-hrnetv2.yaml"
@@ -234,59 +235,67 @@ def start_from_gui(img, save, detectedNames, progress = None, display = 0, alpha
     
     segmentation_module.eval()
 
-    try: 
-
-        if torch.cuda.is_available():
-            segmentation_module.cuda()
-        
-        if(progress is not None):
-            progress.emit(2)
-
-        # predict
-        img_original, singleton_batch, output_size = process_img(frame = img)
-        pred = predict_img(segmentation_module, singleton_batch, output_size)
-    except:
+    if torch.cuda.is_available():
+        segmentation_module.cuda()
+    else:
         segmentation_module.cpu()
-        
+
+    for img in imgs:
+
+        try: 
+            
+            if(progress is not None):
+                progress.emit(2)
+
+            # predict
+            img_original, singleton_batch, output_size = process_img(frame = img)
+            pred = predict_img(segmentation_module, singleton_batch, output_size)
+        except:
+            segmentation_module.cpu()
+            
+            print("Using cpu")
+
+            # predict
+            img_original, singleton_batch, output_size = process_img(frame = img, cpu = 1)
+            pred = predict_img(segmentation_module, singleton_batch, output_size)
+
+            if torch.cuda.is_available():
+                segmentation_module.cuda()
+
+
         if(progress is not None):
-            progress.emit(2)
-        print("Using cpu")
+            progress.emit(3)
+        # print(type(img_original))
+        pred_color, org_pred_split = visualize_result(img_original, pred, colors)
+        
+        # color_palette
+        detectedNames = {"all": [255,255,255]}
+        color_palette = get_color_palette(pred, org_pred_split.shape[0], names, colors, detectedNames)
+        color_palette = cv2.cvtColor(color_palette, cv2.COLOR_RGB2BGR)
+        # transparent pred on org
+        dst = transparent_overlays(img_original, pred_color, alpha=alpha)
+        
+        # colored_pred + color_palette
+        pred_color_palette = numpy.concatenate((color_palette, pred_color), axis=1)
+        
+        # transparent pred on org + color_palette
+        pred_color_palette_dst = numpy.concatenate((color_palette, dst), axis=1)
+        
+        # org + colored_pred + color_palette
+        pred_color_palette_all = numpy.concatenate((org_pred_split, color_palette), axis=1)
 
-        # predict
-        img_original, singleton_batch, output_size = process_img(frame = img, cpu = 1)
-        pred = predict_img(segmentation_module, singleton_batch, output_size)
-
-
-    if(progress is not None):
-        progress.emit(3)
-    # print(type(img_original))
-    pred_color, org_pred_split = visualize_result(img_original, pred, colors)
-    
-    # color_palette
-    color_palette = get_color_palette(pred, org_pred_split.shape[0], names, colors, detectedNames)
-    color_palette = cv2.cvtColor(color_palette, cv2.COLOR_RGB2BGR)
-    # transparent pred on org
-    dst = transparent_overlays(img_original, pred_color, alpha=alpha)
-    
-    # colored_pred + color_palette
-    pred_color_palette = numpy.concatenate((color_palette, pred_color), axis=1)
-    
-    # transparent pred on org + color_palette
-    pred_color_palette_dst = numpy.concatenate((color_palette, dst), axis=1)
-    
-    # org + colored_pred + color_palette
-    pred_color_palette_all = numpy.concatenate((org_pred_split, color_palette), axis=1)
+        results.append((dst, pred_color, pred, detectedNames))
 
     if(progress is not None):
         progress.emit(4)
     
-    cv2.imwrite("{}/color.png".format(save), pred_color)
-    cv2.imwrite("{}/org_pred_split.png".format(save), org_pred_split)
-    cv2.imwrite("{}/overlay.png".format(save), dst)
-    cv2.imwrite("{}/pred_color_palette.png".format(save), pred_color_palette)
-    cv2.imwrite("{}/pred_color_palette_dst.png".format(save), pred_color_palette_dst)
-    cv2.imwrite("{}/pred_color_palette_all.png".format(save), pred_color_palette_all)
-    cv2.imwrite("{}/color_palette.png".format(save), color_palette)
+    # cv2.imwrite("{}/color.png".format(save), pred_color)
+    # cv2.imwrite("{}/org_pred_split.png".format(save), org_pred_split)
+    # cv2.imwrite("{}/overlay.png".format(save), dst)
+    # cv2.imwrite("{}/pred_color_palette.png".format(save), pred_color_palette)
+    # cv2.imwrite("{}/pred_color_palette_dst.png".format(save), pred_color_palette_dst)
+    # cv2.imwrite("{}/pred_color_palette_all.png".format(save), pred_color_palette_all)
+    # cv2.imwrite("{}/color_palette.png".format(save), color_palette)
     
     if (display==1):
         PIL.Image.fromarray(cv2.cvtColor(pred_color_palette_dst, cv2.COLOR_RGB2BGR)).show()
@@ -299,7 +308,7 @@ def start_from_gui(img, save, detectedNames, progress = None, display = 0, alpha
     #img_rgb = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
     #pred_color_rgb = cv2.cvtColor(pred_color, cv2.COLOR_BGR2RGB)
 
-    return dst, pred_color, pred
+    return results
 
 
 if __name__ == '__main__':
