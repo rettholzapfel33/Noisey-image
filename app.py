@@ -202,7 +202,7 @@ class mainWindow(QtWidgets.QMainWindow):
             items = self.ui.fileList.findItems(fileName, QtCore.Qt.MatchExactly)
             if(len(items) > 0):
                 self.ui.statusbar.showMessage("File already opened", 3000)
-                return -1
+                continue
 
             img = cv2.imread(filePath)
 
