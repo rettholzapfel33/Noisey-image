@@ -2,7 +2,6 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtGui import QResizeEvent
 from PyQt5.QtWidgets import QLabel, QWidget
-from cv2 import imread
 
 class Label(QLabel):
 
@@ -52,12 +51,16 @@ class Label(QLabel):
         else:
             e.ignore()
 
-    imageDropped = pyqtSignal(str)
+    imageDropped = pyqtSignal(list)
 
     def dropEvent(self, e):
-        print(e.mimeData().urls()[0].toLocalFile())
-        filepath = e.mimeData().urls()[0].toLocalFile()
+        #print(e.mimeData().urls())
+
+        links = []
+        for url in e.mimeData().urls():
+            #print(url.toLocalFile())
+            links.append(url.toLocalFile())
         
         #self.setPixmap(QPixmap(filepath))
-        self.imageDropped.emit(filepath)
+        self.imageDropped.emit(links)
 

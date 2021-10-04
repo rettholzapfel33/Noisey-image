@@ -86,8 +86,6 @@ class mainWindow(QtWidgets.QMainWindow):
         
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.threadPool = []
-        self.workers = []
 
         self.ui.progressBar.hide()
         self.ui.progressBar_2.hide()
@@ -125,6 +123,9 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.ui.fileList.setContextMenuPolicy(Qt.CustomContextMenu)
         self.ui.fileList.customContextMenuRequested.connect(self.listwidgetmenu)
+        self.ui.fileList.setSelectionMode(
+            QtWidgets.QAbstractItemView.ExtendedSelection
+        )
 
         
 
@@ -141,8 +142,11 @@ class mainWindow(QtWidgets.QMainWindow):
 
 
     def close(self):
-        currentRow = self.ui.fileList.currentRow()
-        self.ui.fileList.takeItem(currentRow)
+        items = self.ui.fileList.selectedItems()
+        
+        for item in items:
+            row = self.ui.fileList.row(item)
+            self.ui.fileList.takeItem(row)
 
     def increaseFont(self):
         self.ui.centralwidget.setFont(QtGui.QFont('Ubuntu', self.ui.centralwidget.fontInfo().pointSize() + 1))
@@ -188,7 +192,7 @@ class mainWindow(QtWidgets.QMainWindow):
         if(filePaths == None):
             filePaths = QtWidgets.QFileDialog.getOpenFileNames(self, "Select image", filter="Image files (*.jpg *.png *.bmp)")
             filePaths = filePaths[0]
-        else:
+        elif(isinstance(filePaths, list) == 0):
             filePaths = [filePaths]
     
         for filePath in filePaths:
