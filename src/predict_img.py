@@ -242,7 +242,7 @@ def start_from_gui(imgs, save, progress = None, display = 0, alpha = 0.6):
 
     for img in imgs:
 
-        try: 
+        try:
             
             if(progress is not None):
                 progress.emit(2)
@@ -252,7 +252,7 @@ def start_from_gui(imgs, save, progress = None, display = 0, alpha = 0.6):
             pred = predict_img(segmentation_module, singleton_batch, output_size)
         except:
             segmentation_module.cpu()
-            
+
             print("Using cpu")
 
             # predict
@@ -285,6 +285,7 @@ def start_from_gui(imgs, save, progress = None, display = 0, alpha = 0.6):
         pred_color_palette_all = numpy.concatenate((org_pred_split, color_palette), axis=1)
 
         results.append((dst, pred_color, pred, detectedNames))
+        torch.cuda.empty_cache()
 
     if(progress is not None):
         progress.emit(4)
