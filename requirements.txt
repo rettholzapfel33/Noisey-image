@@ -3,5 +3,5 @@ imgaug
 torch
 torchvision
 matplotlib
-opencv
+opencv-python
 tqdm

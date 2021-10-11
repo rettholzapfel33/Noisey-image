@@ -20,6 +20,9 @@ from PyQt5.QtCore import Qt
 import cv2
 from functools import partial
 
+# import utilities:
+from src.utils import weights
+
 currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'src/tmp_results/'
 
@@ -47,6 +50,10 @@ class Worker(QtCore.QObject):
         self.model_type = model_type
 
     def run(self):
+        # Check for weights first:
+        weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights"}
+        weights.checkWeightsExists(weight_dict)
+
         if self.model_type == 'segmentation':
             result = start_from_gui(self.files, tmpPath, self.progress, self.ifDisplay)
 
@@ -78,7 +85,6 @@ class Worker(QtCore.QObject):
                 PIL.Image.fromarray(np_img).show()
 
         self.finished.emit((result, self.listWidgets))
-
 
 class mainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
