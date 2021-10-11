@@ -100,6 +100,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # QActions
         self.build_qactions()
+        self.qactions[0].trigger()
 
         # Buttons
         self.ui.pushButton.clicked.connect(self.noise_gen)
@@ -118,13 +119,14 @@ class mainWindow(QtWidgets.QMainWindow):
         #self.ui.doubleSpinBox.valueChanged.connect(lambda: self.ui.horizontalSlider.setValue(int(self.ui.doubleSpinBox.value())))
         self.ui.doubleSpinBox.valueChanged.connect(self.noise_gen)
 
-        self.default_img()
-
+        # Qlistwidget signals
         self.ui.listWidget.currentItemChanged.connect(self.change_seg_selection)
         self.ui.fileList.currentItemChanged.connect(self.change_file_selection)
 
+        # Font
         self.ui.centralwidget.setFont(QtGui.QFont('Ubuntu', 10))
 
+        # Drag and drop
         self.ui.original.imageDropped.connect(self.open_file)
 
         self.ui.fileList.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -132,12 +134,11 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.fileList.setSelectionMode(
             QtWidgets.QAbstractItemView.ExtendedSelection
         )
-
         
 
     def listwidgetmenu(self, position):
         rightMenu = QtWidgets.QMenu(self.ui.fileList)
-        removeAction = QtWidgets.QAction("delete", self, triggered = self.close)
+        removeAction = QtWidgets.QAction("close", self, triggered = self.close)
         
         rightMenu.addAction(self.ui.actionOpen)
 
@@ -181,18 +182,18 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.toolButton.setDefaultAction(self.qactions[0])
 
     def default_qaction(self, qaction, fileName):
-        self.default_img(fileName)
+        self.open_file(currPath + "imgs/" + fileName)
         self.ui.toolButton.setDefaultAction(qaction)
 
 
-    def default_img(self, fileName = "MISC1/car detection.png"):
-        print(currPath + "imgs/" + fileName)
-        self.open_file(currPath + "imgs/" + fileName)
+    # def default_img(self, fileName = "MISC1/car detection.png"):
+    #     print(currPath + "imgs/" + fileName)
+    #     self.open_file(currPath + "imgs/" + fileName)
         #self.ui.original_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/pred_color.png"))
         #self.ui.preview_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/dst.png"))
 
         #self.ui.horizontalSlider.setValue(5)
-        self.noise_gen()
+        #self.noise_gen()
 
     def open_file(self, filePaths = None):
         if(filePaths == None):
@@ -200,6 +201,8 @@ class mainWindow(QtWidgets.QMainWindow):
             filePaths = filePaths[0]
         elif(isinstance(filePaths, list) == 0):
             filePaths = [filePaths]
+
+        new_item = None
     
         for filePath in filePaths:
 
@@ -218,13 +221,14 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.fileList.addItem(new_item)
             
 
-        self.ui.original.setPixmap(QtGui.QPixmap(filePath))
-        self.ui.fileList.setCurrentItem(new_item)
+        if(new_item is not None):
+            self.ui.original.setPixmap(QtGui.QPixmap(filePath))
+            self.ui.fileList.setCurrentItem(new_item)
 
-        self.noise_gen()
+            self.noise_gen()
 
-        self.ui.original_2.clear()
-        self.ui.preview_2.clear()
+            self.ui.original_2.clear()
+            self.ui.preview_2.clear()
 
 
     def noise_gen(self):
