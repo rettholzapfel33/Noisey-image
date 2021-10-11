@@ -5,3 +5,5 @@ torchvision
 matplotlib
 opencv-python
 tqdm
+beautifulsoup4
+requests

@@ -19,6 +19,7 @@ from PyQt5.QtCore import Qt
 
 import cv2
 from functools import partial
+import yaml
 
 # import utilities:
 from src.utils import weights
@@ -197,7 +198,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def open_file(self, filePaths = None):
         if(filePaths == None):
-            filePaths = QtWidgets.QFileDialog.getOpenFileNames(self, "Select image", filter="Image files (*.jpg *.png *.bmp)")
+            filePaths = QtWidgets.QFileDialog.getOpenFileNames(self, "Select image", filter="Image files (*.jpg *.png *.bmp *.yaml)")
             filePaths = filePaths[0]
         elif(isinstance(filePaths, list) == 0):
             filePaths = [filePaths]
@@ -211,6 +212,11 @@ class mainWindow(QtWidgets.QMainWindow):
             items = self.ui.fileList.findItems(fileName, QtCore.Qt.MatchExactly)
             if(len(items) > 0):
                 self.ui.statusbar.showMessage("File already opened", 3000)
+                continue
+            
+            if filePath.endswith(".yaml"):
+                filePaths.extend(self.read_yaml(filePath))
+                #self.read_yaml(filePath)
                 continue
 
             img = cv2.imread(filePath)
@@ -229,6 +235,34 @@ class mainWindow(QtWidgets.QMainWindow):
 
             self.ui.original_2.clear()
             self.ui.preview_2.clear()
+
+    def read_yaml(self, filePath):
+        print(filePath[:filePath.rfind('/') + 1])
+        filePaths = []
+        with open(filePath) as file:
+            documents = yaml.full_load(file)
+            #print(documents)
+        
+        if(isinstance(documents["train"], list)):
+            filePaths.extend(documents["train"])
+        else:
+            filePaths.append(documents["train"])
+
+        root = filePath[:filePath.rfind('/') + 1]
+
+        if "path" in documents:
+            root = root + documents["path"]
+
+        if root[len(root) - 1] != "/":
+            root = root + "/"
+
+        filePaths = list(map(lambda path: root + path, filePaths))
+
+
+        print(filePaths)
+
+        return filePaths
+
 
 
     def noise_gen(self):
