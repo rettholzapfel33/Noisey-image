@@ -131,7 +131,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def listwidgetmenu(self, position):
         rightMenu = QtWidgets.QMenu(self.ui.fileList)
-        removeAction = QtWidgets.QAction("delete", self, triggered = self.close)
+        removeAction = QtWidgets.QAction("close", self, triggered = self.close)
         
         rightMenu.addAction(self.ui.actionOpen)
 
