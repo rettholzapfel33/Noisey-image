@@ -23,7 +23,7 @@ import yaml
 
 # import utilities:
 from src.utils import weights
-from src.transforms import AugDialog
+from src.transforms import AugDialog, AugmentationPipeline, Augmentation, demoAug, mainAug
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'src/tmp_results/'
@@ -112,7 +112,10 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.pushButton_3.clicked.connect(self.noise_gen_all)
         self.ui.pushButton_4.clicked.connect(self.quitApp)
         self.ui.pushButton_5.clicked.connect(self.run_model_all)
+        
+        # Augmentation Generator:
         self.ui.addAug.clicked.connect(self.addWindow.show)
+        self.ui.demoAug.clicked.connect(demoAug)
 
         # Menubar buttons
         self.ui.actionOpen.triggered.connect(lambda: self.open_file())

@@ -1,4 +1,4 @@
-from random import gauss
+import random
 from src.utils.qt5extra import CheckState
 import PyQt5
 from PyQt5.QtWidgets import QDialog, QListWidgetItem
@@ -76,8 +76,9 @@ def gaussian_noise(image, std, seed=-1):
 
 def gaussian_blur(image, kernel_size_factor, stdX=0, stdY=0, seed=-1):
     if type(kernel_size_factor) == float or type(kernel_size_factor) == int:
-        w = (kernel_size_factor*2)+1
-        h = (kernel_size_factor*2)+1
+        w = int((kernel_size_factor*2)+1)
+        h = int((kernel_size_factor*2)+1)
+        print(w,h)
         blur_img = cv2.GaussianBlur(
             image, (w, h), cv2.BORDER_DEFAULT, stdX, stdY)
         return blur_img
@@ -154,11 +155,35 @@ augList = {
     "Speckle Noise": speckle_noise,
 }
 
+augDefaultParams = {
+    "Intensity": [0.0,0.5], #ranges
+    "Gaussian Noise": [0,50],
+    "Gaussian Blur": [10,30],
+    "JPEG Compression": [50],
+    "Normal Compression": [20],
+    "Salt and Pepper": [],
+    "Poisson Noise": [],
+    "Speckle Noise": [],
+}
+
+assert len(list(augList.keys())) == len(list(augDefaultParams.keys())), "Default parameters are not the same length as augmentation list. If no default values, leave an empty list"
+
 class Augmentation:
-    def __init__(self, aug, original_position) -> None:
-        self.__run__ = aug
+    def __init__(self, aug, original_position, *args) -> None:
+        self.__title__ = aug[0]
+        self.__run__ = aug[1]
         self.__checked__ = False
         self.__position__ = original_position
+        self.__function_args__ = args # range of values
+        if len(self.__function_args__) == 2: 
+            low, high = self.__function_args__
+            self.__example__ = (low+high)/2
+        else:
+            self.__example__ = 0
+
+    @property
+    def title(self):
+        return self.__title__
 
     @property
     def enabled(self):
@@ -167,21 +192,57 @@ class Augmentation:
     @property
     def position(self):
         return self.__position__
+    
+    @property
+    def function_arg(self):
+        return self.__function_args__
+
+    @property
+    def exampleParam(self):
+        return self.__example__
+
+    @property
+    def setExampleParam(self, value):
+        self.__example__ = value
+
+    def __call__(self, image, dtype=float):
+        # random between function arg ranges:
+        if len(self.__function_args__) == 1:
+            _param = self.__function_args__
+        elif len(self.__function_args__) == 2:
+            if dtype == float:
+                _param = random.uniform(*self.__function_args__)
+            else:
+                _param = random.randint(*self.__function_args__)
+        else:
+            print("WARNING: Passing no parameters. Assuming 0...")
+            _param = self.__example__
+        return self.__run__[0](image, _param)
+
+    def setParam(self, *args):
+        self.__function_args__ = args
 
 class AugmentationPipeline:
-    def __init__(self, augList:dict) -> None:
+    def __init__(self, augList:dict, defaultParams:dict) -> None:
         self.__list__ = augList
+        self.__keys__ = list(self.__list__.keys())
+        self.__defaultParams__ = defaultParams
         self.__augList__ = []
         self.__index__ = 0
         self.__pipeline__ = []
+        self.__wrapper__()
 
     def __wrapper__(self):
+        _default_items = [item[1] for item in self.__defaultParams__.items()]
         for pos, item in enumerate(self.__list__.items()):
-            _item = Augmentation(item, pos)
+            _item = Augmentation(item, pos, *_default_items[pos])
             self.__augList__.append(_item)
 
     def __iter__(self):
         return (x for x in range(len(self.__pipeline__)))
+
+    def __getitem__(self, key):
+        self.__pipeline__[key]
 
     def __next__(self):
         self.__index__ += 1
@@ -194,33 +255,52 @@ class AugmentationPipeline:
     def __repr__(self) -> str:
         _out = ''
         for pipe in self.__pipeline__:
-            _out += '%s\n'%(pipe.position)
+            _out += '%s - %s\n'%(pipe.title, pipe.position)
         return _out
 
     def append(self, aug_title):
-        augItem = self.__list__.keys().index(aug_title)
+        augIndex = self.__keys__.index(aug_title)
+        augItem = self.__augList__[augIndex]
         self.__pipeline__.append(augItem)
 
     def remove(self, aug_title):
-        augItem = self.__list__.keys().index(aug_title)
-        #self.__pipeline__[
+        augIndex = self.__keys__.index(aug_title)
+        for i, aug in enumerate(self.__pipeline__):
+            if aug.position == augIndex:
+                self.__pipeline__.remove(i)
+                break
+
+    def clear(self):
+        self.__pipeline__.clear()
+        self.__index__ = 0
+        return 0
+
+    '''
+    @property
+    def mask():
+        return
+    '''
 
     next = __next__ # python 2
 
 class AugDialog(QDialog):
-    def __init__(self, config=None):
+    def __init__(self):
         # Config tells what noises are active, what the parameters are
         super(AugDialog, self).__init__()
         uic.loadUi('./src/qt_designer_file/dialogAug.ui', self)
-        self.config = config
-        self.__loadAugs__(augList)
+        self.__loadAugs__()
+        self.__loadEvents__()
         self.defaultImage = './src/data/tmp/car_detection_sample.png'
         self.__loadInitialImage__()
+        self.__loadExample__()
     
-    def __loadAugs__(self, augList):
-        for aug in augList.items():
+    def __loadEvents__(self):
+        self.listWidget.itemClicked.connect(self.__loadAugSelection__)
+
+    def __loadAugs__(self):
+        for aug in mainAug.__augList__:
             _item = QListWidgetItem()
-            _item.setText(aug[0])
+            _item.setText(aug.title)
             _item.setCheckState(CheckState.Unchecked)
             self.listWidget.addItem(_item)
     
@@ -231,26 +311,67 @@ class AugDialog(QDialog):
         new_w = int((new_h/h)*w)
         self._img = cv2.resize(self._img, (new_w, new_h))
 
-    def __loadExample__(self, ):
+    def __loadExample__(self):
         # Assuming default image:
         _copy = np.copy(self._img)
         qtImage = images.convertCV2QT(_copy, 1000, 500)
         self.previewImage.setPixmap(qtImage)
+        self.__loadAugSelection__(self.listWidget.itemAt(0,0))
 
     def __loadAugSelection__(self, aug):
-        # change GUI:
-        self.__loadExample__
+        # change GUI when item is clicked
+        currentItem = aug.text()
+        augIndex = mainAug.__keys__.index(currentItem)
+        augItem = mainAug.__augList__[augIndex]
+        print(augItem.function_arg)
+        if len(augItem.function_arg) == 2:
+            low, high = augItem.function_arg #values
+            self.lowLine.setText(str(low))
+            self.highLine.setText(str(high))
+            _copy = np.copy(self._img)
+            _copy = augItem.__run__(_copy, augItem.exampleParam)
+            qtImage = images.convertCV2QT(_copy, 1000, 500)
+            self.previewImage.setPixmap(qtImage)
+        else:
+            _copy = np.copy(self._img)
+            qtImage = images.convertCV2QT(_copy, 1000, 500)
+            self.previewImage.setPixmap(qtImage)
+            
 
-    def __changeNoiseSelection__(self, target):
+    def __changeNoiseSelection__(self, target:Augmentation):
+        _low = self.lowLine.text()
+        _high = self.highLine.text()
+        _entry = []
+        if _low != '':
+            _entry.append(float(_low))
+        if _high != '':
+            _entry.append(float(_low))
+        target.setParam(*_entry)
         return 0
 
+    # change selection with mainAug
     def __applyConfig__(self):
         # update config given
+        _list = [item[1] for item in augList.items()]
+        for aug in mainAug:
+            _list[aug.position]
+        
+    # change mainAug with selected items
+    def __applySelection__(self):
+        # get checks from listWidget:
         return 0
 
-# Augmentation holder:
-mainAug = AugmentationPipeline(augList)
 
+# Augmentation holder:
+mainAug = AugmentationPipeline(augList, augDefaultParams)
+print(mainAug)
+
+def demoAug():
+    mainAug.clear()
+    mainAug.append('Gaussian Noise')
+    mainAug.append('JPEG Compression')
+    mainAug.append('Salt and Pepper')
+    print(mainAug)
 
 if __name__ == '__main__':
     img = cv2.imread('./data/samples/bus.jpg')

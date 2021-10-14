@@ -1,7 +1,7 @@
 import cv2
 from PyQt5 import QtGui
 from PyQt5.QtGui import QPixmap
-from PyQt5 import Qt
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QThread
 
 def convertCV2QT(cv_img, display_width, display_height):
     """Convert from an opencv image to QPixmap"""
