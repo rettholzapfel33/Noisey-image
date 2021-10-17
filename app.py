@@ -258,7 +258,6 @@ class mainWindow(QtWidgets.QMainWindow):
 
         filePaths = list(map(lambda path: root + path, filePaths))
 
-
         print(filePaths)
 
         return filePaths
