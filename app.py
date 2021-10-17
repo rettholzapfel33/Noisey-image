@@ -5,7 +5,7 @@ import PIL.Image
 
 # Sementic segmentation
 from src.predict_img import start_from_gui, new_visualize_result
-from src.noise_image import add_noise_img
+#from src.noise_image import add_noise_img
 
 # import yolov3 stuff:
 import src.obj_detector.detect as detect
@@ -23,6 +23,7 @@ import yaml
 
 # import utilities:
 from src.utils import weights
+from src.transforms import AugDialog, AugmentationPipeline, Augmentation, demoAug, mainAug
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'src/tmp_results/'
@@ -66,8 +67,6 @@ class Worker(QtCore.QObject):
 
             self.progress.emit(2)  
             yolo = load_model(CFG, WEIGHTS)
-            
-             
             classes = load_classes(CLASSES)  # List of class names
             
             result = []
@@ -91,8 +90,11 @@ class mainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
+        self.addWindow = AugDialog()
+
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.ui.listAugs.setMaximumSize(400,100) # quickfix for sizing issue with layouts
 
         self.ui.progressBar.hide()
         self.ui.progressBar_2.hide()
@@ -100,15 +102,20 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.comboBox.addItems(["Semantic Segmentation", "Object Detection (YOLOv3)"])
 
         # QActions
+        # Default values (images, noise, etc.) are set up here:
         self.build_qactions()
         self.qactions[0].trigger()
 
         # Buttons
-        self.ui.pushButton.clicked.connect(self.noise_gen)
+        #self.ui.pushButton.clicked.connect(self.noise_gen)
         self.ui.pushButton_2.clicked.connect(self.run_model)
         self.ui.pushButton_3.clicked.connect(self.noise_gen_all)
         self.ui.pushButton_4.clicked.connect(self.quitApp)
         self.ui.pushButton_5.clicked.connect(self.run_model_all)
+        
+        # Augmentation Generator:
+        self.ui.addAug.clicked.connect(self.addWindow.show)
+        self.ui.demoAug.clicked.connect(demoAug)
 
         # Menubar buttons
         self.ui.actionOpen.triggered.connect(lambda: self.open_file())
@@ -116,9 +123,9 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.actionDecrease_Size.triggered.connect(self.decreaseFont)
 
         # Noise generator
-        self.ui.horizontalSlider.valueChanged.connect(lambda: self.ui.doubleSpinBox.setValue(self.ui.horizontalSlider.value()))
+        #self.ui.horizontalSlider.valueChanged.connect(lambda: self.ui.doubleSpinBox.setValue(self.ui.horizontalSlider.value()))
         #self.ui.doubleSpinBox.valueChanged.connect(lambda: self.ui.horizontalSlider.setValue(int(self.ui.doubleSpinBox.value())))
-        self.ui.doubleSpinBox.valueChanged.connect(self.noise_gen)
+        #self.ui.doubleSpinBox.valueChanged.connect(self.noise_gen)
 
         # Qlistwidget signals
         self.ui.listWidget.currentItemChanged.connect(self.change_seg_selection)
@@ -135,7 +142,6 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.fileList.setSelectionMode(
             QtWidgets.QAbstractItemView.ExtendedSelection
         )
-        
 
     def listwidgetmenu(self, position):
         rightMenu = QtWidgets.QMenu(self.ui.fileList)
@@ -179,12 +185,13 @@ class mainWindow(QtWidgets.QMainWindow):
             self.qactions.append(action)
             
 
-        self.ui.toolButton.addActions(self.qactions)
-        self.ui.toolButton.setDefaultAction(self.qactions[0])
+        #self.ui.toolButton.addActions(self.qactions)
+        #self.ui.toolButton.setDefaultAction(self.qactions[0])
 
     def default_qaction(self, qaction, fileName):
+        print("default action!")
         self.open_file(currPath + "imgs/" + fileName)
-        self.ui.toolButton.setDefaultAction(qaction)
+        #self.ui.toolButton.setDefaultAction(qaction)
 
 
     # def default_img(self, fileName = "MISC1/car detection.png"):
@@ -206,9 +213,7 @@ class mainWindow(QtWidgets.QMainWindow):
         new_item = None
     
         for filePath in filePaths:
-
             fileName = filePath[filePath.rfind('/') + 1:]
-
             items = self.ui.fileList.findItems(fileName, QtCore.Qt.MatchExactly)
             if(len(items) > 0):
                 self.ui.statusbar.showMessage("File already opened", 3000)
@@ -231,7 +236,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.original.setPixmap(QtGui.QPixmap(filePath))
             self.ui.fileList.setCurrentItem(new_item)
 
-            self.noise_gen()
+            #self.noise_gen()
 
             self.ui.original_2.clear()
             self.ui.preview_2.clear()
