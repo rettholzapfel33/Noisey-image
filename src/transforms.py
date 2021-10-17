@@ -3,7 +3,7 @@ from src.utils.qt5extra import CheckState
 import PyQt5
 from PyQt5.QtWidgets import QDialog, QListWidgetItem
 from PyQt5 import uic
-from cv2 import cv2
+import cv2
 import numpy as np
 import time
 from src.utils import images

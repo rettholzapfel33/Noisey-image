@@ -16,6 +16,7 @@ from src.obj_detector.utils.utils import load_classes
 from PyQt5 import QtCore, QtWidgets, QtGui
 from src.window import Ui_MainWindow
 from PyQt5.QtCore import Qt
+from src.yamlDialog import Ui_Dialog
 
 import cv2
 from functools import partial
@@ -248,10 +249,41 @@ class mainWindow(QtWidgets.QMainWindow):
             documents = yaml.full_load(file)
             #print(documents)
         
-        if(isinstance(documents["train"], list)):
-            filePaths.extend(documents["train"])
-        else:
-            filePaths.append(documents["train"])
+        trainVT = []
+        if("train" in documents):
+            trainVT.append("train")
+        if("val" in documents):
+            trainVT.append("val")
+        if("test" in documents):
+            trainVT.append("test")
+
+        if(len(trainVT) > 1):
+            dialogUI = Ui_Dialog()
+            dialog = QtWidgets.QDialog()
+            dialogUI.setupUi(dialog)
+            
+            for x in trainVT:
+                item = QtWidgets.QListWidgetItem()
+                item.setText(x)
+                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+                item.setCheckState(Qt.Unchecked)
+                dialogUI.listWidget.addItem(item)
+
+            dialog.exec_()
+
+            if(dialog.result() == 0):
+                return []
+
+            checkedItems = []
+            for index in range(dialogUI.listWidget.count()):
+                if dialogUI.listWidget.item(index).checkState() == Qt.Checked:
+                    checkedItems.append(dialogUI.listWidget.item(index).text())
+
+        for x in checkedItems:
+            if(isinstance(documents[x], list)):
+                filePaths.extend(documents[x])
+            else:
+                filePaths.append(documents[x])
 
         root = filePath[:filePath.rfind('/') + 1]
 
