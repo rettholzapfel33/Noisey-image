@@ -29,3 +29,5 @@ _registry = {
     'Semantic Segmentation': 1,
     'YOLOv3': 2
 }
+
+class segmentation()
