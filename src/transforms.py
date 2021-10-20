@@ -1,7 +1,9 @@
 import random
+
+from PyQt5.uic.uiparser import QtCore
 from src.utils.qt5extra import CheckState
 import PyQt5
-from PyQt5.QtWidgets import QDialog, QListWidgetItem
+from PyQt5.QtWidgets import QDialog, QFileDialog, QListWidgetItem
 from PyQt5 import uic
 import cv2
 import numpy as np
@@ -109,11 +111,13 @@ def jpeg_comp(image, quality):
 
 def normal_comp(image, scale_factor):
     print(image.shape)
+    original_shape = image.shape
     width = int(image.shape[1] * scale_factor / 100)
     height = int(image.shape[0] * scale_factor / 100)
     dim = (width, height)
     # resize image
     resized_img = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
+    resized_img = cv2.resize(resized_img, (original_shape[1], original_shape[0]), interpolation=cv2.INTER_CUBIC) 
     print('Resized Dimensions : ', resized_img.shape)
     return resized_img
 
@@ -151,19 +155,19 @@ augList = {
     "JPEG Compression": jpeg_comp,
     "Normal Compression": normal_comp,
     "Salt and Pepper": saltAndPapper_noise,
-    "Poisson Noise": poisson_noise,
-    "Speckle Noise": speckle_noise,
+    #"Poisson Noise": poisson_noise,
+    #"Speckle Noise": speckle_noise,
 }
 
 augDefaultParams = {
     "Intensity": [0.0,0.5], #ranges
     "Gaussian Noise": [0,50],
     "Gaussian Blur": [10,30],
-    "JPEG Compression": [50],
+    "JPEG Compression": [20],
     "Normal Compression": [20],
-    "Salt and Pepper": [],
-    "Poisson Noise": [],
-    "Speckle Noise": [],
+    "Salt and Pepper": [0.05, 0.3],
+    #"Poisson Noise": [],
+    #"Speckle Noise": [],
 }
 
 assert len(list(augList.keys())) == len(list(augDefaultParams.keys())), "Default parameters are not the same length as augmentation list. If no default values, leave an empty list"
@@ -178,6 +182,8 @@ class Augmentation:
         if len(self.__function_args__) == 2: 
             low, high = self.__function_args__
             self.__example__ = (low+high)/2
+        elif len(self.__function_args__) == 1:
+            self.__example__ = self.__function_args__[0]
         else:
             self.__example__ = 0
 
@@ -239,7 +245,7 @@ class AugmentationPipeline:
             self.__augList__.append(_item)
 
     def __iter__(self):
-        return (x for x in range(len(self.__pipeline__)))
+        return (self.__pipeline__[x] for x in range(len(self.__pipeline__)))
 
     def __getitem__(self, key):
         self.__pipeline__[key]
@@ -275,6 +281,44 @@ class AugmentationPipeline:
         self.__index__ = 0
         return 0
 
+    def load(self, filename):
+        # check if filename is a .txt:
+        print(filename)
+        with open(filename, 'r') as f:
+            content = list(map(str.strip, f.readlines()))
+
+        # format: [title,# of parameters,*parameters]
+        for _content in content:
+            _content = _content.split(',')
+            name = _content[0]
+            nargs = int(_content[1])
+            params = []
+            for i in range(nargs):
+                params.append( float(_content[i+2]) )
+            
+            if name in augList:
+                _aug  = Augmentation(name, list(augList.keys()).index(name), params)
+                mainAug.__pipeline__.append(_aug)
+            else:
+                print("Augmentation name is not recognized! Ignoring this line")
+        print(mainAug.__pipeline__)
+
+    def save(self, filename):
+        print(filename)
+        if '.txt' not in filename[0]:
+            _filename = "%s.txt"%(filename[0])
+        else:
+            _filename = filename[0]
+        
+        with open(_filename, 'w') as f:
+            for aug in self.__pipeline__:
+                aug_title = aug.__title__
+                parameters = [str(i) for i in aug.__function_args__]
+                para_out = ','.join(parameters)
+                para_length = len(parameters)
+                str_out = "%s,%i,%s\n"%(aug_title, para_length, para_out)
+                f.write(str_out)
+
     '''
     @property
     def mask():
@@ -293,6 +337,7 @@ class AugDialog(QDialog):
         self.defaultImage = './src/data/tmp/car_detection_sample.png'
         self.__loadInitialImage__()
         self.__loadExample__()
+        self.savedAugPath = './src/data/saved_augs'
     
     def __loadEvents__(self):
         self.listWidget.itemClicked.connect(self.__loadAugSelection__)
@@ -332,6 +377,11 @@ class AugDialog(QDialog):
             _copy = augItem.__run__(_copy, augItem.exampleParam)
             qtImage = images.convertCV2QT(_copy, 1000, 500)
             self.previewImage.setPixmap(qtImage)
+        elif len(augItem.function_arg) == 1:
+            _copy = np.copy(self._img)
+            _copy = augItem.__run__(_copy, augItem.exampleParam)
+            qtImage = images.convertCV2QT(_copy, 1000, 500)
+            self.previewImage.setPixmap(qtImage)
         else:
             _copy = np.copy(self._img)
             qtImage = images.convertCV2QT(_copy, 1000, 500)
@@ -352,15 +402,30 @@ class AugDialog(QDialog):
     # change selection with mainAug
     def __applyConfig__(self):
         # update config given
-        _list = [item[1] for item in augList.items()]
+        #_list = [item[1] for item in augList.items()]
         for aug in mainAug:
-            _list[aug.position]
-        
+            itemPos = aug.position
+            listItem = self.listWidget.item(itemPos)
+            listItem.setCheckState(CheckState.Checked)
+            
+        for i in range(len(augList)):
+            listItem = self.listWidget.item(i)
+            print(listItem.checkState())
+
     # change mainAug with selected items
     def __applySelection__(self):
         # get checks from listWidget:
         return 0
 
+    def __loadFileDialog__(self):
+        _file = QFileDialog.getOpenFileName(self, "Load in Augmentation", self.savedAugPath, '*.txt')
+        if _file[0] != '':
+            mainAug.load(_file[0])
+            self.__applyConfig__() # change GUI
+
+    def __saveFileDialog__(self):
+        save_path = QFileDialog.getSaveFileName(self, 'Save Current Augmentation', self.savedAugPath, '*.txt')
+        mainAug.save(save_path)
 
 # Augmentation holder:
 mainAug = AugmentationPipeline(augList, augDefaultParams)
