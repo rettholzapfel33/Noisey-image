@@ -95,6 +95,9 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.listAugs.setMaximumSize(400,100) # quickfix for sizing issue with layouts
+        self.ui.deleteListAug.setMaximumWidth(30)
+        self.ui.upListAug.setMaximumWidth(30)
+        self.ui.downListAug.setMaximumWidth(30)
 
         self.ui.progressBar.hide()
         self.ui.progressBar_2.hide()
@@ -116,6 +119,8 @@ class mainWindow(QtWidgets.QMainWindow):
         # Augmentation Generator:
         self.ui.addAug.clicked.connect(self.addWindow.show)
         self.ui.demoAug.clicked.connect(demoAug)
+        self.ui.loadAug.clicked.connect(self.addWindow.__loadFileDialog__)
+        self.ui.saveAug.clicked.connect(self.addWindow.__saveFileDialog__)
 
         # Menubar buttons
         self.ui.actionOpen.triggered.connect(lambda: self.open_file())

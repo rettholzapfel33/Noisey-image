@@ -68,8 +68,8 @@
   <widget class="QLineEdit" name="lowLine">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>360</y>
+     <x>300</x>
+     <y>276</y>
      <width>91</width>
      <height>25</height>
     </rect>
@@ -78,8 +78,8 @@
   <widget class="QLineEdit" name="highLine">
    <property name="geometry">
     <rect>
-     <x>140</x>
-     <y>359</y>
+     <x>420</x>
+     <y>275</y>
      <width>91</width>
      <height>25</height>
     </rect>
@@ -88,8 +88,8 @@
   <widget class="QLabel" name="label_3">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>340</y>
+     <x>301</x>
+     <y>256</y>
      <width>91</width>
      <height>17</height>
     </rect>
@@ -101,8 +101,8 @@
   <widget class="QLabel" name="label_4">
    <property name="geometry">
     <rect>
-     <x>140</x>
-     <y>340</y>
+     <x>421</x>
+     <y>256</y>
      <width>91</width>
      <height>17</height>
     </rect>
