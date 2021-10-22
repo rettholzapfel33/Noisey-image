@@ -307,7 +307,7 @@ class AugmentationPipeline:
                 params.append( float(_content[i+2]) )
             
             if name in augList:
-                _aug  = Augmentation(name, list(augList.keys()).index(name), params)
+                _aug  = Augmentation([name, augList[name]], list(augList.keys()).index(name), params)
                 mainAug.__pipeline__.append(_aug)
             else:
                 print("Augmentation name is not recognized! Ignoring this line")
@@ -451,6 +451,7 @@ class AugDialog(QDialog):
         if _file[0] != '':
             mainAug.load(_file[0])
             self.__applyConfig__() # change GUI
+            self.__updateViewer__()
 
     def __saveFileDialog__(self):
         save_path = QFileDialog.getSaveFileName(self, 'Save Current Augmentation', self.savedAugPath, '*.txt')
