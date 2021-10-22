@@ -24,7 +24,7 @@ import yaml
 
 # import utilities:
 from src.utils import weights
-from src.transforms import AugDialog, AugmentationPipeline, Augmentation, demoAug, mainAug
+from src.transforms import AugDialog, AugmentationPipeline, Augmentation, mainAug
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'src/tmp_results/'
@@ -90,11 +90,11 @@ class Worker(QtCore.QObject):
 class mainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
-        self.addWindow = AugDialog()
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.addWindow = AugDialog(self.ui.listAugs)
+        
         self.ui.listAugs.setMaximumSize(400,100) # quickfix for sizing issue with layouts
         self.ui.deleteListAug.setMaximumWidth(30)
         self.ui.upListAug.setMaximumWidth(30)
@@ -119,9 +119,12 @@ class mainWindow(QtWidgets.QMainWindow):
         
         # Augmentation Generator:
         self.ui.addAug.clicked.connect(self.addWindow.show)
-        self.ui.demoAug.clicked.connect(demoAug)
+        self.ui.demoAug.clicked.connect(self.addWindow.demoAug)
         self.ui.loadAug.clicked.connect(self.addWindow.__loadFileDialog__)
         self.ui.saveAug.clicked.connect(self.addWindow.__saveFileDialog__)
+        self.ui.deleteListAug.clicked.connect(self.addWindow.__deleteItem__)
+        self.ui.downListAug.clicked.connect(self.addWindow.__moveDown__)
+        self.ui.upListAug.clicked.connect(self.addWindow.__moveUp__)
 
         # Menubar buttons
         self.ui.actionOpen.triggered.connect(lambda: self.open_file())

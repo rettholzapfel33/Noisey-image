@@ -1,9 +1,10 @@
 import random
 
 from PyQt5.uic.uiparser import QtCore
+from numpy.lib.function_base import select
 from src.utils.qt5extra import CheckState
 import PyQt5
-from PyQt5.QtWidgets import QDialog, QFileDialog, QListWidgetItem
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QListWidgetItem
 from PyQt5 import uic
 import cv2
 import numpy as np
@@ -244,6 +245,9 @@ class AugmentationPipeline:
             _item = Augmentation(item, pos, *_default_items[pos])
             self.__augList__.append(_item)
 
+    def __len__(self):
+        return len(self.__pipeline__)
+
     def __iter__(self):
         return (self.__pipeline__[x] for x in range(len(self.__pipeline__)))
 
@@ -264,6 +268,12 @@ class AugmentationPipeline:
             _out += '%s - %s\n'%(pipe.title, pipe.position)
         return _out
 
+    def exists(self, title):
+        for item in self.__pipeline__:
+            if title == item.title:
+                return True
+        return False
+
     def append(self, aug_title):
         augIndex = self.__keys__.index(aug_title)
         augItem = self.__augList__[augIndex]
@@ -273,7 +283,7 @@ class AugmentationPipeline:
         augIndex = self.__keys__.index(aug_title)
         for i, aug in enumerate(self.__pipeline__):
             if aug.position == augIndex:
-                self.__pipeline__.remove(i)
+                self.__pipeline__.remove(aug)
                 break
 
     def clear(self):
@@ -319,18 +329,13 @@ class AugmentationPipeline:
                 str_out = "%s,%i,%s\n"%(aug_title, para_length, para_out)
                 f.write(str_out)
 
-    '''
-    @property
-    def mask():
-        return
-    '''
-
     next = __next__ # python 2
 
 class AugDialog(QDialog):
-    def __init__(self):
+    def __init__(self, listViewer):
         # Config tells what noises are active, what the parameters are
         super(AugDialog, self).__init__()
+        self.__viewer__ = listViewer # outside of the Augmentation Dialog UI
         uic.loadUi('./src/qt_designer_file/dialogAug.ui', self)
         self.__loadAugs__()
         self.__loadEvents__()
@@ -338,7 +343,10 @@ class AugDialog(QDialog):
         self.__loadInitialImage__()
         self.__loadExample__()
         self.savedAugPath = './src/data/saved_augs'
-    
+        self.__applyConfig__()
+        _btn1, _btn2 = self.buttonBox.buttons() # ok, cancel
+        _btn1.clicked.connect(self.__applySelection__)
+
     def __loadEvents__(self):
         self.listWidget.itemClicked.connect(self.__loadAugSelection__)
 
@@ -401,21 +409,42 @@ class AugDialog(QDialog):
 
     # change selection with mainAug
     def __applyConfig__(self):
-        # update config given
-        #_list = [item[1] for item in augList.items()]
+        # update config given:
         for aug in mainAug:
             itemPos = aug.position
             listItem = self.listWidget.item(itemPos)
             listItem.setCheckState(CheckState.Checked)
-            
-        for i in range(len(augList)):
-            listItem = self.listWidget.item(i)
-            print(listItem.checkState())
+
+    def show(self):
+        self.__applyConfig__()
+        return super().show()
 
     # change mainAug with selected items
     def __applySelection__(self):
         # get checks from listWidget:
+        for i in range(self.listWidget.count()):
+            listItem = self.listWidget.item(i)
+            if(listItem.checkState() and not mainAug.exists(listItem.text())):
+                mainAug.append(listItem.text())
+            elif not listItem.checkState(): # make more efficient later
+                for item in mainAug.__pipeline__:
+                    if item.title == listItem.text():
+                        print("removed", item.title)
+                        mainAug.remove(listItem.text())
+                        print(mainAug)
+                        print()
+                        break
+        self.__updateViewer__()
         return 0
+    
+    def __updateViewer__(self):
+        # add listviewer:
+        self.__viewer__.clear()
+        print()
+        print(mainAug)
+        print()
+        for item in mainAug:
+            self.__viewer__.addItem(item.title)
 
     def __loadFileDialog__(self):
         _file = QFileDialog.getOpenFileName(self, "Load in Augmentation", self.savedAugPath, '*.txt')
@@ -427,16 +456,55 @@ class AugDialog(QDialog):
         save_path = QFileDialog.getSaveFileName(self, 'Save Current Augmentation', self.savedAugPath, '*.txt')
         mainAug.save(save_path)
 
+    def __deleteItem__(self):
+        selected_item = self.__viewer__.currentItem()
+        if selected_item is not None:
+            for item in mainAug:
+                if item.title == selected_item.text():
+                    mainAug.remove(item.title)
+                    self.__updateViewer__()
+                    return 0
+
+    def __moveDown__(self):
+        selected_idx = self.__viewer__.currentRow()
+        print(selected_idx)
+        if selected_idx != -1:
+            if selected_idx != len(mainAug)-1:
+                #print("running!")
+                item = self.__viewer__.takeItem(selected_idx)
+                #print(item)
+                #self.__viewer__.removeItemWidget(item)
+                mainAug.__pipeline__.insert(selected_idx+1, mainAug.__pipeline__.pop(selected_idx))
+                self.__viewer__.insertItem(selected_idx+1, item)
+                self.__viewer__.setCurrentRow(selected_idx+1)
+                #self.__updateViewer__()
+        return 0
+
+    def __moveUp__(self):
+        selected_idx = self.__viewer__.currentRow()
+        print(selected_idx)
+        if selected_idx != -1:
+            if selected_idx != 0:
+                #print("running!")
+                item = self.__viewer__.takeItem(selected_idx)
+                #print(item)
+                #self.__viewer__.removeItemWidget(item)
+                mainAug.__pipeline__.insert(selected_idx-1, mainAug.__pipeline__.pop(selected_idx))
+                self.__viewer__.insertItem(selected_idx-1, item)
+                self.__viewer__.setCurrentRow(selected_idx-1)
+                #self.__updateViewer__()
+        return 0
+
+    def demoAug(self):
+        mainAug.clear()
+        mainAug.append('Gaussian Noise')
+        mainAug.append('JPEG Compression')
+        mainAug.append('Salt and Pepper')
+        self.__updateViewer__()
+
 # Augmentation holder:
 mainAug = AugmentationPipeline(augList, augDefaultParams)
 print(mainAug)
-
-def demoAug():
-    mainAug.clear()
-    mainAug.append('Gaussian Noise')
-    mainAug.append('JPEG Compression')
-    mainAug.append('Salt and Pepper')
-    print(mainAug)
 
 if __name__ == '__main__':
     img = cv2.imread('./data/samples/bus.jpg')
