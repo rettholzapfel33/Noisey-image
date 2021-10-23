@@ -212,19 +212,26 @@ class Augmentation:
     def setExampleParam(self, value):
         self.__example__ = value
 
-    def __call__(self, image, dtype=float):
+    def __call__(self, image, example=False, dtype=float):
         # random between function arg ranges:
         if len(self.__function_args__) == 1:
             _param = self.__function_args__
+        elif example:
+            _param = self.__example__
+            if not isinstance(_param, list): 
+                _param = [_param]
         elif len(self.__function_args__) == 2:
             if dtype == float:
                 _param = random.uniform(*self.__function_args__)
             else:
                 _param = random.randint(*self.__function_args__)
+            _param = (_param)
         else:
             print("WARNING: Passing no parameters. Assuming 0...")
             _param = self.__example__
-        return self.__run__[0](image, _param)
+
+        print(_param)
+        return self.__run__(image, *_param)
 
     def setParam(self, *args):
         self.__function_args__ = args
@@ -379,8 +386,10 @@ class AugDialog(QDialog):
         print(augItem.function_arg)
         if len(augItem.function_arg) == 2:
             low, high = augItem.function_arg #values
+            example = augItem.exampleParam
             self.lowLine.setText(str(low))
             self.highLine.setText(str(high))
+            self.exampleLine.setText(str(example))
             _copy = np.copy(self._img)
             _copy = augItem.__run__(_copy, augItem.exampleParam)
             qtImage = images.convertCV2QT(_copy, 1000, 500)
@@ -399,13 +408,16 @@ class AugDialog(QDialog):
     def __changeNoiseSelection__(self, target:Augmentation):
         _low = self.lowLine.text()
         _high = self.highLine.text()
+        _example = self.exampleLine.text()
         _entry = []
         if _low != '':
             _entry.append(float(_low))
         if _high != '':
             _entry.append(float(_low))
+        if _example != '':
+            _example_value = float(_example)
+            target.setExampleParam(_example_value)
         target.setParam(*_entry)
-        return 0
 
     # change selection with mainAug
     def __applyConfig__(self):
@@ -429,20 +441,13 @@ class AugDialog(QDialog):
             elif not listItem.checkState(): # make more efficient later
                 for item in mainAug.__pipeline__:
                     if item.title == listItem.text():
-                        print("removed", item.title)
                         mainAug.remove(listItem.text())
-                        print(mainAug)
-                        print()
                         break
         self.__updateViewer__()
-        return 0
     
     def __updateViewer__(self):
         # add listviewer:
         self.__viewer__.clear()
-        print()
-        print(mainAug)
-        print()
         for item in mainAug:
             self.__viewer__.addItem(item.title)
 
@@ -479,7 +484,6 @@ class AugDialog(QDialog):
                 self.__viewer__.insertItem(selected_idx+1, item)
                 self.__viewer__.setCurrentRow(selected_idx+1)
                 #self.__updateViewer__()
-        return 0
 
     def __moveUp__(self):
         selected_idx = self.__viewer__.currentRow()
@@ -494,7 +498,6 @@ class AugDialog(QDialog):
                 self.__viewer__.insertItem(selected_idx-1, item)
                 self.__viewer__.setCurrentRow(selected_idx-1)
                 #self.__updateViewer__()
-        return 0
 
     def demoAug(self):
         mainAug.clear()

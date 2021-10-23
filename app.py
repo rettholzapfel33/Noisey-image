@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 import PIL.Image
+import numpy as np
 
 # Sementic segmentation
 from src.predict_img import start_from_gui, new_visualize_result
@@ -94,6 +95,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.addWindow = AugDialog(self.ui.listAugs)
+        self.addWindow.demoAug()
         
         self.ui.listAugs.setMaximumSize(400,100) # quickfix for sizing issue with layouts
         self.ui.deleteListAug.setMaximumWidth(30)
@@ -107,6 +109,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # QActions
         # Default values (images, noise, etc.) are set up here:
+        self.activeFileListItem = None
         self.build_qactions()
         self.qactions[0].trigger()
 
@@ -125,6 +128,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.deleteListAug.clicked.connect(self.addWindow.__deleteItem__)
         self.ui.downListAug.clicked.connect(self.addWindow.__moveDown__)
         self.ui.upListAug.clicked.connect(self.addWindow.__moveUp__)
+        #self.ui.listAugs.itemChanged.connect(lambda: self.change_file_selection())
+
 
         # Menubar buttons
         self.ui.actionOpen.triggered.connect(lambda: self.open_file())
@@ -197,19 +202,31 @@ class mainWindow(QtWidgets.QMainWindow):
         #self.ui.toolButton.addActions(self.qactions)
         #self.ui.toolButton.setDefaultAction(self.qactions[0])
 
+    def updateNoisePixMap(self, image_mat, augs):
+        mat = np.copy(image_mat)
+        for aug in augs:
+            mat = aug(mat, example=True)
+        qt_img = convert_cvimg_to_qimg(mat)
+        self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
+        
+
     def default_qaction(self, qaction, fileName):
-        print("default action!")
-        self.open_file(currPath + "imgs/" + fileName)
+        #self.open_file(currPath + "imgs/" + fileName)
+        self.default_img()
+        self.activeFileListItem 
         #self.ui.toolButton.setDefaultAction(qaction)
 
 
-    # def default_img(self, fileName = "MISC1/car detection.png"):
-    #     print(currPath + "imgs/" + fileName)
-    #     self.open_file(currPath + "imgs/" + fileName)
+    def default_img(self, fileName = "MISC1/car detection.png"):
+        print(currPath + "imgs/" + fileName)
+        self.open_file(currPath + "imgs/" + fileName)
+        default_image = self.ui.fileList.itemAt(0,0)
+        _data = default_image.data(QtCore.Qt.UserRole)
+        self.updateNoisePixMap(_data["img"], mainAug)
+
+        #print("setting original and preview")
         #self.ui.original_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/pred_color.png"))
         #self.ui.preview_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/dst.png"))
-
-        #self.ui.horizontalSlider.setValue(5)
         #self.noise_gen()
 
     def open_file(self, filePaths = None):
@@ -436,6 +453,10 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(noiseQtImg))
         else:
             self.ui.preview.clear()
+            # TODO: Change to store temp noise:
+            noiseImg = self.updateNoisePixMap(originalImg, mainAug)
+            noiseQtImg = convert_cvimg_to_qimg(noiseImg)
+            self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(noiseQtImg))
 
         if(predictedImg is not None):
             predictedQtImg = convert_cvimg_to_qimg(predictedImg)
@@ -463,7 +484,7 @@ class mainWindow(QtWidgets.QMainWindow):
         originalImg = qListItem.data(QtCore.Qt.UserRole)['img']
 
         predictedImg = qListItem.data(QtCore.Qt.UserRole).get('predictedImg')
-
+        print(originalImg)
         if(predictedImg is None):
             return
 
