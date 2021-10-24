@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>912</width>
+    <width>1000</width>
     <height>681</height>
    </rect>
   </property>
@@ -285,7 +285,7 @@
           <item>
            <widget class="QLabel" name="label_11">
             <property name="text">
-             <string>Segmentation overlay</string>
+             <string>Overlay</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -449,7 +449,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>912</width>
+     <width>1000</width>
      <height>22</height>
     </rect>
    </property>

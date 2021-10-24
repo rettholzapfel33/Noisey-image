@@ -1,4 +1,5 @@
 import random
+from PyQt5.QtCore import QObject, pyqtSignal
 
 from PyQt5.uic.uiparser import QtCore
 from numpy.lib.function_base import select
@@ -164,7 +165,7 @@ augDefaultParams = {
     "Intensity": [0.0,0.5], #ranges
     "Gaussian Noise": [0,50],
     "Gaussian Blur": [10,30],
-    "JPEG Compression": [20],
+    "JPEG Compression": [5],
     "Normal Compression": [20],
     "Salt and Pepper": [0.05, 0.3],
     #"Poisson Noise": [],
@@ -236,7 +237,7 @@ class Augmentation:
     def setParam(self, *args):
         self.__function_args__ = args
 
-class AugmentationPipeline:
+class AugmentationPipeline():
     def __init__(self, augList:dict, defaultParams:dict) -> None:
         self.__list__ = augList
         self.__keys__ = list(self.__list__.keys())
@@ -339,6 +340,8 @@ class AugmentationPipeline:
     next = __next__ # python 2
 
 class AugDialog(QDialog):
+    pipelineChanged = pyqtSignal(object)
+
     def __init__(self, listViewer):
         # Config tells what noises are active, what the parameters are
         super(AugDialog, self).__init__()
@@ -395,6 +398,8 @@ class AugDialog(QDialog):
             qtImage = images.convertCV2QT(_copy, 1000, 500)
             self.previewImage.setPixmap(qtImage)
         elif len(augItem.function_arg) == 1:
+            example = augItem.exampleParam
+            self.exampleLine.setText(str(example))
             _copy = np.copy(self._img)
             _copy = augItem.__run__(_copy, augItem.exampleParam)
             qtImage = images.convertCV2QT(_copy, 1000, 500)
@@ -419,19 +424,24 @@ class AugDialog(QDialog):
             target.setExampleParam(_example_value)
         target.setParam(*_entry)
 
-    # change selection with mainAug
+    # change GUI to match mainAug
     def __applyConfig__(self):
         # update config given:
-        for aug in mainAug:
-            itemPos = aug.position
-            listItem = self.listWidget.item(itemPos)
-            listItem.setCheckState(CheckState.Checked)
+        if len(mainAug) == 0:
+            for i in range(self.listWidget.count()):
+                listItem = self.listWidget.item(i)
+                listItem.setCheckState(CheckState.Unchecked)
+        else:
+            for aug in mainAug:
+                itemPos = aug.position
+                listItem = self.listWidget.item(itemPos)
+                listItem.setCheckState(CheckState.Checked)
 
     def show(self):
         self.__applyConfig__()
         return super().show()
 
-    # change mainAug with selected items
+    # change mainAug to match selected items from GUI:
     def __applySelection__(self):
         # get checks from listWidget:
         for i in range(self.listWidget.count()):
@@ -450,6 +460,7 @@ class AugDialog(QDialog):
         self.__viewer__.clear()
         for item in mainAug:
             self.__viewer__.addItem(item.title)
+        self.pipelineChanged.emit(None)
 
     def __loadFileDialog__(self):
         _file = QFileDialog.getOpenFileName(self, "Load in Augmentation", self.savedAugPath, '*.txt')
@@ -481,6 +492,7 @@ class AugDialog(QDialog):
                 #print(item)
                 #self.__viewer__.removeItemWidget(item)
                 mainAug.__pipeline__.insert(selected_idx+1, mainAug.__pipeline__.pop(selected_idx))
+
                 self.__viewer__.insertItem(selected_idx+1, item)
                 self.__viewer__.setCurrentRow(selected_idx+1)
                 #self.__updateViewer__()
@@ -495,6 +507,7 @@ class AugDialog(QDialog):
                 #print(item)
                 #self.__viewer__.removeItemWidget(item)
                 mainAug.__pipeline__.insert(selected_idx-1, mainAug.__pipeline__.pop(selected_idx))
+
                 self.__viewer__.insertItem(selected_idx-1, item)
                 self.__viewer__.setCurrentRow(selected_idx-1)
                 #self.__updateViewer__()

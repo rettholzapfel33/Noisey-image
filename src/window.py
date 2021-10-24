@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(912, 681)
+        MainWindow.resize(1000, 681)
         MainWindow.setAutoFillBackground(False)
         MainWindow.setStyleSheet("")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -254,7 +254,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_6.addLayout(self.gridLayout)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 912, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1000, 22))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -301,7 +301,7 @@ class Ui_MainWindow(object):
         self.label_3.setText(_translate("MainWindow", "Select a model:"))
         self.checkBox_2.setText(_translate("MainWindow", "Display result on a separate window"))
         self.label_9.setText(_translate("MainWindow", "Noisy"))
-        self.label_11.setText(_translate("MainWindow", "Segmentation overlay"))
+        self.label_11.setText(_translate("MainWindow", "Overlay"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Items"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Images"))
         self.pushButton_3.setText(_translate("MainWindow", "Apply noise\n"

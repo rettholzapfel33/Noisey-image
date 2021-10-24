@@ -109,7 +109,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # QActions
         # Default values (images, noise, etc.) are set up here:
-        self.activeFileListItem = None
+        self.currentFileListItem = None
         self.build_qactions()
         self.qactions[0].trigger()
 
@@ -128,8 +128,12 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.deleteListAug.clicked.connect(self.addWindow.__deleteItem__)
         self.ui.downListAug.clicked.connect(self.addWindow.__moveDown__)
         self.ui.upListAug.clicked.connect(self.addWindow.__moveUp__)
-        #self.ui.listAugs.itemChanged.connect(lambda: self.change_file_selection())
-
+        self.ui.listAugs.itemChanged.connect(self.changePreviewImage)
+        # access model of listwidget to detect changes
+        self.addWindow.pipelineChanged.connect(self.changePreviewImage)
+        #self.listAugsModel = self.ui.listAugs.model()
+        #self.listAugsModel.rowsInserted.connect(self.changePreviewImage) #Any time an element is added run function
+        #self.listAugsModel.rowsRemoved.connect(self.changePreviewImage) #Any time an element is removed run function
 
         # Menubar buttons
         self.ui.actionOpen.triggered.connect(lambda: self.open_file())
@@ -213,9 +217,21 @@ class mainWindow(QtWidgets.QMainWindow):
     def default_qaction(self, qaction, fileName):
         #self.open_file(currPath + "imgs/" + fileName)
         self.default_img()
-        self.activeFileListItem 
+        self.currentFileListItem =  self.ui.fileList.itemAt(0,0)
         #self.ui.toolButton.setDefaultAction(qaction)
 
+    def changePreviewImage(self, *kwargs):
+        #print(kwargs)
+        print("recreating noisey image")
+        image = self.currentFileListItem.data(QtCore.Qt.UserRole)['img']
+        if image is not None:
+            noiseyImage = np.copy(image)
+            print(mainAug)
+            for aug in mainAug:
+                noiseyImage = aug(noiseyImage, example=True)
+            noiseQImage = convert_cvimg_to_qimg(noiseyImage)
+            self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(noiseQImage))
+        else: print("No root image to create preview with...")
 
     def default_img(self, fileName = "MISC1/car detection.png"):
         print(currPath + "imgs/" + fileName)
@@ -437,6 +453,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.progressBar.setValue(n)
 
     def change_file_selection(self, qListItem):
+        self.currentFileListItem = qListItem
         originalImg = qListItem.data(QtCore.Qt.UserRole)['img']
         noiseImg = qListItem.data(QtCore.Qt.UserRole).get('noiseImg')
         predictedImg = qListItem.data(QtCore.Qt.UserRole).get('predictedImg')
