@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 import PIL.Image
+import numpy as np
 
 # Sementic segmentation
 from src.predict_img import start_from_gui, new_visualize_result
@@ -24,22 +25,14 @@ import yaml
 
 # import utilities:
 from src.utils import weights
-from src.transforms import AugDialog, AugmentationPipeline, Augmentation, demoAug, mainAug
+from src.utils.images import convert_cvimg_to_qimg
+from src.transforms import AugDialog, AugmentationPipeline, Augmentation, mainAug
+from src import models
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'src/tmp_results/'
 
-
-# Converts opencv image to RGB first then to qt image
-def convert_cvimg_to_qimg(cv_img):
-    cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
-
-    height, width, channel = cv_img.shape
-    bytesPerLine = 3 * width
-
-    qt_img = QtGui.QImage(cv_img.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
-    return qt_img
-
+models._registry['YOLOv3']
 
 class Worker(QtCore.QObject):
     finished = QtCore.pyqtSignal(tuple)
@@ -90,12 +83,16 @@ class Worker(QtCore.QObject):
 class mainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
-        self.addWindow = AugDialog()
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.addWindow = AugDialog(self.ui.listAugs)
+        self.addWindow.demoAug()
+        
         self.ui.listAugs.setMaximumSize(400,100) # quickfix for sizing issue with layouts
+        self.ui.deleteListAug.setMaximumWidth(30)
+        self.ui.upListAug.setMaximumWidth(30)
+        self.ui.downListAug.setMaximumWidth(30)
 
         self.ui.progressBar.hide()
         self.ui.progressBar_2.hide()
@@ -104,6 +101,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # QActions
         # Default values (images, noise, etc.) are set up here:
+        self.currentFileListItem = None
         self.build_qactions()
         self.qactions[0].trigger()
 
@@ -116,7 +114,18 @@ class mainWindow(QtWidgets.QMainWindow):
         
         # Augmentation Generator:
         self.ui.addAug.clicked.connect(self.addWindow.show)
-        self.ui.demoAug.clicked.connect(demoAug)
+        self.ui.demoAug.clicked.connect(self.addWindow.demoAug)
+        self.ui.loadAug.clicked.connect(self.addWindow.__loadFileDialog__)
+        self.ui.saveAug.clicked.connect(self.addWindow.__saveFileDialog__)
+        self.ui.deleteListAug.clicked.connect(self.addWindow.__deleteItem__)
+        self.ui.downListAug.clicked.connect(self.addWindow.__moveDown__)
+        self.ui.upListAug.clicked.connect(self.addWindow.__moveUp__)
+        self.ui.listAugs.itemChanged.connect(self.changePreviewImage)
+        # access model of listwidget to detect changes
+        self.addWindow.pipelineChanged.connect(self.changePreviewImage)
+        #self.listAugsModel = self.ui.listAugs.model()
+        #self.listAugsModel.rowsInserted.connect(self.changePreviewImage) #Any time an element is added run function
+        #self.listAugsModel.rowsRemoved.connect(self.changePreviewImage) #Any time an element is removed run function
 
         # Menubar buttons
         self.ui.actionOpen.triggered.connect(lambda: self.open_file())
@@ -189,19 +198,43 @@ class mainWindow(QtWidgets.QMainWindow):
         #self.ui.toolButton.addActions(self.qactions)
         #self.ui.toolButton.setDefaultAction(self.qactions[0])
 
+    def updateNoisePixMap(self, image_mat, augs):
+        mat = np.copy(image_mat)
+        for aug in augs:
+            mat = aug(mat, example=True)
+        qt_img = convert_cvimg_to_qimg(mat)
+        self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
+        
+
     def default_qaction(self, qaction, fileName):
-        print("default action!")
-        self.open_file(currPath + "imgs/" + fileName)
+        #self.open_file(currPath + "imgs/" + fileName)
+        self.default_img()
+        self.currentFileListItem =  self.ui.fileList.itemAt(0,0)
         #self.ui.toolButton.setDefaultAction(qaction)
 
+    def changePreviewImage(self, *kwargs):
+        #print(kwargs)
+        print("recreating noisey image")
+        image = self.currentFileListItem.data(QtCore.Qt.UserRole)['img']
+        if image is not None:
+            noiseyImage = np.copy(image)
+            print(mainAug)
+            for aug in mainAug:
+                noiseyImage = aug(noiseyImage, example=True)
+            noiseQImage = convert_cvimg_to_qimg(noiseyImage)
+            self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(noiseQImage))
+        else: print("No root image to create preview with...")
 
-    # def default_img(self, fileName = "MISC1/car detection.png"):
-    #     print(currPath + "imgs/" + fileName)
-    #     self.open_file(currPath + "imgs/" + fileName)
+    def default_img(self, fileName = "MISC1/car detection.png"):
+        print(currPath + "imgs/" + fileName)
+        self.open_file(currPath + "imgs/" + fileName)
+        default_image = self.ui.fileList.itemAt(0,0)
+        _data = default_image.data(QtCore.Qt.UserRole)
+        self.updateNoisePixMap(_data["img"], mainAug)
+
+        #print("setting original and preview")
         #self.ui.original_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/pred_color.png"))
         #self.ui.preview_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/dst.png"))
-
-        #self.ui.horizontalSlider.setValue(5)
         #self.noise_gen()
 
     def open_file(self, filePaths = None):
@@ -412,6 +445,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.progressBar.setValue(n)
 
     def change_file_selection(self, qListItem):
+        self.currentFileListItem = qListItem
         originalImg = qListItem.data(QtCore.Qt.UserRole)['img']
         noiseImg = qListItem.data(QtCore.Qt.UserRole).get('noiseImg')
         predictedImg = qListItem.data(QtCore.Qt.UserRole).get('predictedImg')
@@ -428,6 +462,10 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(noiseQtImg))
         else:
             self.ui.preview.clear()
+            # TODO: Change to store temp noise:
+            noiseImg = self.updateNoisePixMap(originalImg, mainAug)
+            noiseQtImg = convert_cvimg_to_qimg(noiseImg)
+            self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(noiseQtImg))
 
         if(predictedImg is not None):
             predictedQtImg = convert_cvimg_to_qimg(predictedImg)
@@ -455,7 +493,7 @@ class mainWindow(QtWidgets.QMainWindow):
         originalImg = qListItem.data(QtCore.Qt.UserRole)['img']
 
         predictedImg = qListItem.data(QtCore.Qt.UserRole).get('predictedImg')
-
+        print(originalImg)
         if(predictedImg is None):
             return
 

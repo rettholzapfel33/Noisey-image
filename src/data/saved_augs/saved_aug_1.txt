@@ -1,0 +1,3 @@
+Gaussian Noise,2,0,50
+JPEG Compression,1,20
+Salt and Pepper,2,0.05,0.3

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>912</width>
+    <width>1000</width>
     <height>681</height>
    </rect>
   </property>
@@ -285,7 +285,7 @@
           <item>
            <widget class="QLabel" name="label_11">
             <property name="text">
-             <string>Segmentation overlay</string>
+             <string>Overlay</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -364,11 +364,36 @@
       <item row="3" column="1">
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0">
+         <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0,0">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_13">
+            <item>
+             <widget class="QListWidget" name="listAugs"/>
+            </item>
+           </layout>
+          </item>
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_11">
             <item>
-             <widget class="QListWidget" name="listAugs"/>
+             <widget class="QPushButton" name="upListAug">
+              <property name="text">
+               <string>^</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="downListAug">
+              <property name="text">
+               <string>v</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="deleteListAug">
+              <property name="text">
+               <string>x</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -424,7 +449,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>912</width>
+     <width>1000</width>
      <height>22</height>
     </rect>
    </property>
