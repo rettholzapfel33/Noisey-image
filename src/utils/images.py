@@ -11,3 +11,13 @@ def convertCV2QT(cv_img, display_width, display_height):
     convert_to_Qt_format = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
     p = convert_to_Qt_format.scaled(display_width, display_height, Qt.KeepAspectRatio)
     return QPixmap.fromImage(p)
+
+# Converts opencv image to RGB first then to qt image
+def convert_cvimg_to_qimg(cv_img):
+    cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+
+    height, width, channel = cv_img.shape
+    bytesPerLine = 3 * width
+
+    qt_img = QtGui.QImage(cv_img.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
+    return qt_img

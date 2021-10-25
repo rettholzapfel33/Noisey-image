@@ -25,22 +25,14 @@ import yaml
 
 # import utilities:
 from src.utils import weights
+from src.utils.images import convert_cvimg_to_qimg
 from src.transforms import AugDialog, AugmentationPipeline, Augmentation, mainAug
+from src import models
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'src/tmp_results/'
 
-
-# Converts opencv image to RGB first then to qt image
-def convert_cvimg_to_qimg(cv_img):
-    cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
-
-    height, width, channel = cv_img.shape
-    bytesPerLine = 3 * width
-
-    qt_img = QtGui.QImage(cv_img.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
-    return qt_img
-
+models._registry['YOLOv3']
 
 class Worker(QtCore.QObject):
     finished = QtCore.pyqtSignal(tuple)
