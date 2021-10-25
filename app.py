@@ -51,32 +51,35 @@ class Worker(QtCore.QObject):
         weights.checkWeightsExists(weight_dict)
 
         if self.model_type == 'segmentation':
-            result = start_from_gui(self.files, tmpPath, self.progress, self.ifDisplay)
-
-        else:
-            self.progress.emit(1)  
-            CLASSES = os.path.join(currPath, 'src/obj_detector/cfg', 'coco.names')
-            CFG = os.path.join(currPath, 'src/obj_detector/cfg', 'yolov3.cfg')
-            WEIGHTS = os.path.join(currPath,'src/obj_detector/weights','yolov3.weights')
-
-            self.progress.emit(2)  
-            yolo = load_model(CFG, WEIGHTS)
-            classes = load_classes(CLASSES)  # List of class names
+            self.progress.emit(1) 
             
+            segmentation_model = models.Segmentation()
+            self.progress.emit(2) 
+            segmentation_model.initialize()
+
             result = []
             for img in self.files:
-                dets = detect.detect_image(yolo, img)
-                np_img = detect._draw_and_return_output_image(img, dets, 416, classes)
-                result.append((np_img, dets))
+                pred = segmentation_model.run(img)
+                dst, pred_color, detectedNames = segmentation_model.draw(pred, img)
+                result.append((dst, pred_color, pred, detectedNames))
+                self.progress.emit(3) 
+            
+            self.progress.emit(4) 
+
+        elif self.model_type == 'yolov3':
+            self.progress.emit(1) 
+            yolo_model = models.YOLOv3()
+            yolo_model.initialize()
+
+            self.progress.emit(2) 
+            result = []
+            for img in self.files:
+                pred = yolo_model.run(img)
+                np_img = yolo_model.draw(pred, img)
+                result.append((np_img, pred))
                 self.progress.emit(3) 
 
-            #image_dst = os.path.join(tmpPath, 'yolo_output.png')
-            #cv2.imwrite(image_dst, np_img)
-               
-            self.progress.emit(4)   
-
-            if (self.ifDisplay==1):
-                PIL.Image.fromarray(np_img).show()
+            self.progress.emit(4) 
 
         self.finished.emit((result, self.listWidgets))
 
