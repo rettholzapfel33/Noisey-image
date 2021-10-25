@@ -92,7 +92,10 @@ class Segmentation(Model):
         # transparent pred on org
         dst = transparent_overlays(img, pred_color, alpha=0.6)
 
-        return dst, pred_color, detectedNames
+        return {"dst": dst, 
+        "segmentation": pred_color, 
+        "listOfNames":detectedNames
+                }
 
     
 
@@ -120,7 +123,7 @@ class YOLOv3(Model):
     
     def draw(self, pred, img):
         np_img = detect._draw_and_return_output_image(img, pred, 416, self.classes)
-        return np_img
+        return {"dst": np_img}
 
 _registry = {
     'Semantic Segmentation': 1,

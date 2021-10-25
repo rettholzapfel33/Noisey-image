@@ -51,35 +51,24 @@ class Worker(QtCore.QObject):
         weights.checkWeightsExists(weight_dict)
 
         if self.model_type == 'segmentation':
-            self.progress.emit(1) 
-            
-            segmentation_model = models.Segmentation()
-            self.progress.emit(2) 
-            segmentation_model.initialize()
-
-            result = []
-            for img in self.files:
-                pred = segmentation_model.run(img)
-                dst, pred_color, detectedNames = segmentation_model.draw(pred, img)
-                result.append((dst, pred_color, pred, detectedNames))
-                self.progress.emit(3) 
-            
-            self.progress.emit(4) 
-
+            model = models.Segmentation()
         elif self.model_type == 'yolov3':
-            self.progress.emit(1) 
-            yolo_model = models.YOLOv3()
-            yolo_model.initialize()
+            model = models.YOLOv3()
 
-            self.progress.emit(2) 
-            result = []
-            for img in self.files:
-                pred = yolo_model.run(img)
-                np_img = yolo_model.draw(pred, img)
-                result.append((np_img, pred))
-                self.progress.emit(3) 
+        self.progress.emit(1) 
+        
+        model.initialize()
+        self.progress.emit(2) 
 
-            self.progress.emit(4) 
+        result = []
+        for img in self.files:
+            pred = model.run(img)
+            temp = model.draw(pred, img)
+            temp["pred"] = pred
+            result.append(temp)
+            self.progress.emit(3) 
+        
+        self.progress.emit(4) 
 
         self.finished.emit((result, self.listWidgets))
 
