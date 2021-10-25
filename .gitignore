@@ -6,3 +6,4 @@
 __pycache__/
 ckpt/
 tmp_results/
+jupyter_files/.ipynb_checkpoints/
