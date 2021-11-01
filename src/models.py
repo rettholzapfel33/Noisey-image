@@ -56,6 +56,7 @@ class Segmentation(Model):
         else:
             self.segmentation_module.cpu()
 
+        img_original, singleton_batch, output_size = process_img(frame = input)
 
         try:
             # predict
@@ -69,7 +70,6 @@ class Segmentation(Model):
             # predict
             img_original, singleton_batch, output_size = process_img(frame = input, cpu = 1)
             pred = predict_img(self.segmentation_module, singleton_batch, output_size)
-
         return pred
 
     def initialize(self, *kwargs):

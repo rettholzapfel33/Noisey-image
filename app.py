@@ -32,8 +32,6 @@ from src import models
 currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'src/tmp_results/'
 
-models._registry['YOLOv3']
-
 class Worker(QtCore.QObject):
     finished = QtCore.pyqtSignal(tuple)
     progress = QtCore.pyqtSignal(int)
@@ -49,7 +47,7 @@ class Worker(QtCore.QObject):
         # Check for weights first:
         weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights"}
         weights.checkWeightsExists(weight_dict)
-
+        
         if self.model_type == 'segmentation':
             model = models.Segmentation()
         elif self.model_type == 'yolov3':
