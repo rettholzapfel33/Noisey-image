@@ -69,6 +69,7 @@ class Worker(QtCore.QObject):
             self.progress.emit(3) 
         
         self.progress.emit(4) 
+        model.deinitialize()
 
         self.finished.emit((result, self.listWidgets))
 
