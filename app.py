@@ -71,6 +71,23 @@ class Worker(QtCore.QObject):
 
         self.finished.emit((result, self.listWidgets))
 
+class Worker_aug(QtCore.QObject):
+    finished = QtCore.pyqtSignal(int)
+
+    def __init__(self, mainaug, img, qlabel):
+        super(Worker_aug, self).__init__()
+        self.mainAug = mainAug
+        self.img = img
+        self.qlabel = qlabel
+
+    def run(self):
+        for aug in self.mainAug:
+                self.img = aug(self.img, example=True)
+        noiseQImage = convert_cvimg_to_qimg(self.img)
+        self.qlabel.setPixmap(QtGui.QPixmap.fromImage(noiseQImage))
+
+        self.finished.emit(1)
+
 class mainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -210,10 +227,19 @@ class mainWindow(QtWidgets.QMainWindow):
         if image is not None:
             noiseyImage = np.copy(image)
             print(mainAug)
-            for aug in mainAug:
-                noiseyImage = aug(noiseyImage, example=True)
-            noiseQImage = convert_cvimg_to_qimg(noiseyImage)
-            self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(noiseQImage))
+
+            self.thread2 = QtCore.QThread()
+            self.worker2 = Worker_aug(mainAug, noiseyImage, self.ui.preview)
+
+            self.worker2.moveToThread(self.thread2)
+
+            self.thread2.started.connect(self.worker2.run)
+            self.worker2.finished.connect(self.thread2.quit)
+            self.worker2.finished.connect(self.worker2.deleteLater)
+            self.thread2.finished.connect(self.thread2.deleteLater)
+
+            self.thread2.start()
+            
         else: print("No root image to create preview with...")
 
     def default_img(self, fileName = "MISC1/car detection.png"):
