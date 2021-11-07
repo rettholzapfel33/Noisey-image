@@ -537,24 +537,40 @@ class mainWindow(QtWidgets.QMainWindow):
         for i, result in enumerate(model_results):
             qListItem = qListItems[i]
             temp = qListItem.data(QtCore.Qt.UserRole)
-            if comboModelType == 'Semantic Segmentation':
-                temp['pred'] = result[2]
-                temp['predictedImg'] = result[0]
-                temp['predictedColor'] = result[1]
+
+            temp['pred'] = result["pred"]
+            temp['predictedImg'] = result["dst"]
+
+            if "segmentation" in result:
+                temp['predictedColor'] = result["segmentation"]
 
                 if(self.ui.fileList.currentItem() == qListItem):
-                    predictedQtImg = convert_cvimg_to_qimg(result[0])
-                    predictedQtColor = convert_cvimg_to_qimg(result[1])
+                    predictedQtColor = convert_cvimg_to_qimg(result["segmentation"])
                     self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtColor))
-                    self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
             else:
-                temp['pred'] = result[1]
-                temp['predictedImg'] = result[0]
+                self.ui.preview_2.clear()
+            
+            predictedQtImg = convert_cvimg_to_qimg(result["dst"])
+            self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
+
+            # if comboModelType == 'Semantic Segmentation':
+            #     temp['pred'] = result["pred"]
+            #     temp['predictedImg'] = result["dst"]
+            #     temp['predictedColor'] = result["segmentation"]
+
+            #     if(self.ui.fileList.currentItem() == qListItem):
+            #         predictedQtImg = convert_cvimg_to_qimg(result[0])
+            #         predictedQtColor = convert_cvimg_to_qimg(result[1])
+            #         self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtColor))
+            #         self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
+            # else:
+            #     temp['pred'] = result["pred"]
+            #     temp['predictedImg'] = result[0]
                 
-                if(self.ui.fileList.currentItem() == qListItem):
-                    predictedQtImg = convert_cvimg_to_qimg(result[0])
-                    self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
-                    self.ui.preview_2.clear()
+            #     if(self.ui.fileList.currentItem() == qListItem):
+            #         predictedQtImg = convert_cvimg_to_qimg(result[0])
+            #         self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
+            #         self.ui.preview_2.clear()
 
             qListItem.setData(QtCore.Qt.UserRole, temp)
 
@@ -564,7 +580,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         for i, result in enumerate(seg_results):
             qListItem = qListItems[i]
-            names = result[3]
+            names = result["listOfNames"]
             if(self.ui.fileList.currentItem() == qListItem):
                 for x in names:
                     i = QtWidgets.QListWidgetItem(x)
