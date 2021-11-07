@@ -481,8 +481,8 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.preview.clear()
             # TODO: Change to store temp noise:
             noiseImg = self.updateNoisePixMap(originalImg, mainAug)
-            noiseQtImg = convert_cvimg_to_qimg(noiseImg)
-            self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(noiseQtImg))
+            #noiseQtImg = convert_cvimg_to_qimg(noiseImg)
+            #self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(noiseImg))
 
         if(predictedImg is not None):
             predictedQtImg = convert_cvimg_to_qimg(predictedImg)
