@@ -160,6 +160,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.fileList.setSelectionMode(
             QtWidgets.QAbstractItemView.ExtendedSelection
         )
+        self.ui.listAugs.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
 
     def listwidgetmenu(self, position):
         rightMenu = QtWidgets.QMenu(self.ui.fileList)
