@@ -49,10 +49,11 @@ class Worker(QtCore.QObject):
         weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights"}
         weights.checkWeightsExists(weight_dict)
         
-        if self.model_type == 'segmentation':
-            model = models.Segmentation()
-        elif self.model_type == 'yolov3':
-            model = models.YOLOv3()
+        model = models._registry[self.model_type]
+        # if self.model_type == 'segmentation':
+        #     model = models.Segmentation()
+        # elif self.model_type == 'yolov3':
+        #     model = models.YOLOv3()
 
         self.progress.emit(1) 
         
@@ -96,6 +97,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.addWindow = AugDialog(self.ui.listAugs)
+        self.addWindow.setModal(True)
         self.addWindow.demoAug()
         
         self.ui.listAugs.setMaximumSize(400,100) # quickfix for sizing issue with layouts
