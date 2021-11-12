@@ -28,6 +28,7 @@ from src.utils import weights
 from src.utils.images import convert_cvimg_to_qimg
 from src.transforms import AugDialog, AugmentationPipeline, Augmentation, mainAug
 from src import models
+from src.utils.qt5extra import CheckState
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'src/tmp_results/'
@@ -131,6 +132,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.listAugs.itemChanged.connect(self.changePreviewImage)
         # access model of listwidget to detect changes
         self.addWindow.pipelineChanged.connect(self.changePreviewImage)
+        self.ui.runOnAug.stateChanged.connect(self.runAugOnImage)
         #self.listAugsModel = self.ui.listAugs.model()
         #self.listAugsModel.rowsInserted.connect(self.changePreviewImage) #Any time an element is added run function
         #self.listAugsModel.rowsRemoved.connect(self.changePreviewImage) #Any time an element is removed run function
@@ -190,6 +192,12 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def quitApp(self):
         quit()
+
+    def runAugOnImage(self, state):
+        if state == CheckState.Checked:
+            pass
+        elif state == CheckState.Unchecked:
+            pass
 
     def build_qactions(self):
         mypath = currPath + "imgs/default_imgs"

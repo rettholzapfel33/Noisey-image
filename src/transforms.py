@@ -82,7 +82,6 @@ def gaussian_blur(image, kernel_size_factor, stdX=0, stdY=0, seed=-1):
     if type(kernel_size_factor) == float or type(kernel_size_factor) == int:
         w = int((kernel_size_factor*2)+1)
         h = int((kernel_size_factor*2)+1)
-        print(w,h)
         blur_img = cv2.GaussianBlur(
             image, (w, h), cv2.BORDER_DEFAULT, stdX, stdY)
         return blur_img
@@ -91,10 +90,8 @@ def gaussian_blur(image, kernel_size_factor, stdX=0, stdY=0, seed=-1):
             np.random.seed(seed)
         lower, upper = kernel_size_factor
         random_size_factor = np.random.uniform(lower, upper)
-        print(random_size_factor)
         w_r = (int(random_size_factor)*2)+1
         h_r = (int(random_size_factor)*2)+1
-        print(w_r)
         blur_img = cv2.GaussianBlur(
             image, (w_r, h_r), cv2.BORDER_DEFAULT, stdX, stdY)
         return blur_img
@@ -102,17 +99,13 @@ def gaussian_blur(image, kernel_size_factor, stdX=0, stdY=0, seed=-1):
 
 def jpeg_comp(image, quality):
     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
-    print(image.shape)
     result, enc_img = cv2.imencode('.jpg', image, encode_param)
     if result is True:
-        print(enc_img.shape)
         dec_img = cv2.imdecode(enc_img, 1)
-        print(dec_img.shape)
         return dec_img
 
 
 def normal_comp(image, scale_factor):
-    print(image.shape)
     original_shape = image.shape
     width = int(image.shape[1] * scale_factor / 100)
     height = int(image.shape[0] * scale_factor / 100)
@@ -120,7 +113,6 @@ def normal_comp(image, scale_factor):
     # resize image
     resized_img = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
     resized_img = cv2.resize(resized_img, (original_shape[1], original_shape[0]), interpolation=cv2.INTER_CUBIC) 
-    print('Resized Dimensions : ', resized_img.shape)
     return resized_img
 
 def saltAndPapper_noise(image, prob=0.01):
@@ -238,8 +230,6 @@ class Augmentation:
         else:
             print("WARNING: Passing no parameters. Assuming 0...")
             _param = self.__example__
-
-        print(_param)
         return self.__run__(image, *_param)
 
     def setParam(self, *args):
@@ -394,7 +384,6 @@ class AugDialog(QDialog):
         currentItem = aug.text()
         augIndex = mainAug.__keys__.index(currentItem)
         augItem = mainAug.__augList__[augIndex]
-        print(augItem.function_arg)
         if len(augItem.function_arg) == 2:
             low, high = augItem.function_arg #values
             example = augItem.exampleParam
@@ -435,10 +424,9 @@ class AugDialog(QDialog):
     # change GUI to match mainAug
     def __applyConfig__(self):
         # update config given:
-        if len(mainAug) == 0:
-            for i in range(self.listWidget.count()):
-                listItem = self.listWidget.item(i)
-                listItem.setCheckState(CheckState.Unchecked)
+        for i in range(self.listWidget.count()):
+            listItem = self.listWidget.item(i)
+            listItem.setCheckState(CheckState.Unchecked)
         else:
             for aug in mainAug:
                 itemPos = aug.position
@@ -492,7 +480,6 @@ class AugDialog(QDialog):
 
     def __moveDown__(self):
         selected_idx = self.__viewer__.currentRow()
-        print(selected_idx)
         if selected_idx != -1:
             if selected_idx != len(mainAug)-1:
                 #print("running!")
@@ -507,7 +494,6 @@ class AugDialog(QDialog):
 
     def __moveUp__(self):
         selected_idx = self.__viewer__.currentRow()
-        print(selected_idx)
         if selected_idx != -1:
             if selected_idx != 0:
                 #print("running!")
@@ -529,7 +515,6 @@ class AugDialog(QDialog):
 
 # Augmentation holder:
 mainAug = AugmentationPipeline(augList, augDefaultParams)
-print(mainAug)
 
 if __name__ == '__main__':
     img = cv2.imread('./data/samples/bus.jpg')

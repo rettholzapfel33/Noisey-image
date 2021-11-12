@@ -7,3 +7,7 @@ __pycache__/
 ckpt/
 tmp_results/
 jupyter_files/.ipynb_checkpoints/
+src/jit/yolo_test/build
+src/jit/darknet_radar_cfg/
+jupyter_files/libtorch
+dev

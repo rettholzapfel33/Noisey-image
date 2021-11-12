@@ -97,8 +97,6 @@ class Segmentation(Model):
         "listOfNames":detectedNames
                 }
 
-    
-
 class YOLOv3(Model):
     def __init__(self, *network_config) -> None:
         # network_config: CLASSES, CFG, WEIGHTS
@@ -110,7 +108,6 @@ class YOLOv3(Model):
 
     def run(self, input):
         pred = detect.detect_image(self.yolo, input)
-        
         return pred
 
     def initialize(self, *kwargs):

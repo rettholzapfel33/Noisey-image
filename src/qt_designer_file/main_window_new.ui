@@ -195,6 +195,13 @@
         <item row="2" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
+           <widget class="QCheckBox" name="runOnAug">
+            <property name="text">
+             <string>Run on Augmentations</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="checkBox_2">
             <property name="text">
              <string>Display result on a separate window</string>
