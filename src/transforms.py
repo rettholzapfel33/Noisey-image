@@ -489,8 +489,8 @@ class AugDialog(QDialog):
                 mainAug.__pipeline__.insert(selected_idx+1, mainAug.__pipeline__.pop(selected_idx))
 
                 self.__viewer__.insertItem(selected_idx+1, item)
+                self.__updateViewer__()
                 self.__viewer__.setCurrentRow(selected_idx+1)
-                #self.__updateViewer__()
 
     def __moveUp__(self):
         selected_idx = self.__viewer__.currentRow()
@@ -503,8 +503,9 @@ class AugDialog(QDialog):
                 mainAug.__pipeline__.insert(selected_idx-1, mainAug.__pipeline__.pop(selected_idx))
 
                 self.__viewer__.insertItem(selected_idx-1, item)
+                self.__updateViewer__()
                 self.__viewer__.setCurrentRow(selected_idx-1)
-                #self.__updateViewer__()
+
 
     def demoAug(self):
         mainAug.clear()
