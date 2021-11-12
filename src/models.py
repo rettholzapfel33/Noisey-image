@@ -40,9 +40,10 @@ class Model(abc.ABC):
 
 class Segmentation(Model):
     def __init__(self, *network_config) -> None:
-        self.cfg = str(Path(__file__).parent.absolute()) + "/config/ade20k-hrnetv2.yaml"
+        self.cfg, self.colors = network_config
+        #self.cfg = str(Path(__file__).parent.absolute()) + "/config/ade20k-hrnetv2.yaml"
         # colors
-        self.colors = scipy.io.loadmat(str(Path(__file__).parent.absolute()) + '/data/color150.mat')['colors']
+        #self.colors = scipy.io.loadmat(str(Path(__file__).parent.absolute()) + '/data/color150.mat')['colors']
         self.names = {}
         with open(str(Path(__file__).parent.absolute()) + '/data/object150_info.csv') as f:
             reader = csv.reader(f)
@@ -102,10 +103,10 @@ class Segmentation(Model):
 class YOLOv3(Model):
     def __init__(self, *network_config) -> None:
         # network_config: CLASSES, CFG, WEIGHTS
-        #self.CLASSES, self.CFG, self.WEIGHTS = network_config
-        self.CLASSES = os.path.join(currPath, 'obj_detector/cfg', 'coco.names')
-        self.CFG = os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg')
-        self.WEIGHTS = os.path.join(currPath,'obj_detector/weights','yolov3.weights')
+        self.CLASSES, self.CFG, self.WEIGHTS = network_config
+        # self.CLASSES = os.path.join(currPath, 'obj_detector/cfg', 'coco.names')
+        # self.CFG = os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg')
+        # self.WEIGHTS = os.path.join(currPath,'obj_detector/weights','yolov3.weights')
         print(self.CLASSES, self.CFG, self.WEIGHTS)
 
     def run(self, input):
@@ -126,10 +127,13 @@ class YOLOv3(Model):
         return {"dst": np_img}
 
 _registry = {
-    'Semantic Segmentation': 1,
-    'YOLOv3': YOLOv3(
-        os.path.join(currPath, '/obj_detector/cfg', 'coco.names'),
-        os.path.join(currPath, '/obj_detector/cfg', 'yolov3.cfg'),
-        os.path.join(currPath,'/obj_detector/weights','yolov3.weights')
+    'segmentation': Segmentation(
+        str(Path(__file__).parent.absolute()) + "/config/ade20k-hrnetv2.yaml",
+        scipy.io.loadmat(str(Path(__file__).parent.absolute()) + '/data/color150.mat')['colors']
+    ),
+    'yolov3': YOLOv3(
+        os.path.join(currPath, 'obj_detector/cfg', 'coco.names'),
+        os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg'),
+        os.path.join(currPath,'obj_detector/weights','yolov3.weights')
     )
 }
