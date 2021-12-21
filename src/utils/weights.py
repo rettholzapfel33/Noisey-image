@@ -43,41 +43,37 @@ class DownloadWorker(QObject):
 
         try:
             for _file in weight_files:
+                self.progress.emit(0)
+                
+                def callback(blocknum, blocksize, totalsize):
+                    readsofar = blocknum*blocksize
+                    if totalsize > 0:
+                        percent = readsofar / totalsize
+                        self.progress.emit(percent)
+                    else: # total size is unknown
+                        self.progress.emit(0)
+
                 file_url = "%s/%s"%(new_url, _file)
                 _folder = './src/ckpt/%s'%(filename)
                 if not os.path.exists(_folder): os.mkdir(_folder)
-                response = requests.get(file_url)
-                total_size_in_bytes = int(response.headers.get('content-length', 0))
-                blocksize = 32768
-                current_bytes_read = 0
-                with open(os.path.join(_folder, _file), "wb") as handle:
-                    for data in response.iter_content():
-                        handle.write(data)
-                        current_bytes_read += len(data)
-                        percent = current_bytes_read/total_size_in_bytes
-                        #print(percent)
-                        self.progress.emit(percent)
-                        #self.progressBar.setValue(percent*100)
+                self.logProgress.emit("Downloading %s\n"%(file_url))
+                request = urllib.request.urlretrieve(file_url, os.path.join(_folder, _file), callback)
+            
         except Exception as e:
             print("Failed in grabbing needed files: %s"%(str(weight_files)))
             print(e)
 
     def downloadYOLOv3Weights(self, save_path, host='https://pjreddie.com/media/files/yolov3.weights'):
-        self.logProgress.emit('Downloading YOLOv3 COCO from pjreddie\n')
-
-        response = requests.get(host)
-        total_size_in_bytes = int(response.headers.get('content-length', 0))
-        blocksize = 32768
-        current_bytes_read = 0
-        print(total_size_in_bytes, host)
-        self.logProgress.emit('Starting download of YOLOv3 weights from %s\n'%(host))
-        with open(save_path, "wb") as handle:
-            for data in response.iter_content(blocksize):
-                handle.write(data)
-                current_bytes_read += len(data)
-                percent = current_bytes_read/total_size_in_bytes
+        self.progress.emit(0)
+        self.logProgress.emit('Downloading YOLOv3 weights from %s\n'%(host))
+        def callback(blocknum, blocksize, totalsize):
+            readsofar = blocknum*blocksize
+            if totalsize > 0:
+                percent = readsofar / totalsize
                 self.progress.emit(percent)
-                #self.progressBar.setValue(percent*100)
+            else: # total size is unknown
+                self.progress.emit(0)
+        request = urllib.request.urlretrieve(host, save_path, callback)
 
     def checkWeightsExists(self, path_dict:dict):
         # path_dict: key=model_name; val=model_type
@@ -99,6 +95,7 @@ class DownloadWorker(QObject):
                 if not os.path.exists(_path_base):
                     print("YOLOv3 COCO weights not found. Attempting to download...")
                     self.downloadYOLOv3Weights(_path_base)
+        self.logProgress.emit("Finished downloading all weights. Press Continue to proceed to main GUI\n")
 
 # Setup Dialog Window:
 class Downloader(QDialog):
@@ -111,6 +108,7 @@ class Downloader(QDialog):
         self.pathDict = pathDict
         self.afterDownload.setEnabled(False)
         self.downloadButton.clicked.connect(self.__startDownload__)
+        self.afterDownload.clicked.connect(self.close)
 
     def switchStates(self, _type:int):
         _type = bool(_type)
@@ -146,17 +144,26 @@ class Downloader(QDialog):
         self.thread.start()
 
         # Final resets
-        '''
+        
         self.thread.finished.connect(
-            lambda: self.longRunningBtn.setEnabled(True)
+            lambda: self.afterDownload.setEnabled(True)
         )
-        '''
 
     def reportProgress(self, val):
-        self.progressBar.setValue(val)
+        self.progressBar.setValue(val*100)
 
     def updateLog(self, val):
         self.logText.insertPlainText(val)
 
-#if __name__ == '__main__':
-#    downloadMITWeight("ade20k-resnet18dilated-c1_deepsup")
+    @staticmethod
+    def check(path_dict:dict):
+        for path in path_dict.items():
+            if path[0] == 'mit_semseg':
+                _path_base = os.path.join('./src/ckpt/', path[1])
+                if not os.path.exists(_path_base):
+                    return True
+            elif path[0] == 'yolov3':
+                _path_base = os.path.join('./src/obj_detector/weights', path[1])
+                if not os.path.exists(_path_base):
+                    return True
+        return False

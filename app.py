@@ -103,9 +103,11 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # Check status of configurations:
         weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights"}
-        self.downloadDialog = Downloader(weight_dict)
-        self.downloadDialog.setModal(True)
-        self.downloadDialog.show()
+        
+        if Downloader.check(weight_dict):
+            self.downloadDialog = Downloader(weight_dict)
+            self.downloadDialog.setModal(True)
+            self.downloadDialog.show()
         
         self.ui.listAugs.setMaximumSize(400,100) # quickfix for sizing issue with layouts
         self.ui.deleteListAug.setMaximumWidth(30)
