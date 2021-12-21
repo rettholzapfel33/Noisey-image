@@ -29,6 +29,7 @@ from src.utils.images import convert_cvimg_to_qimg
 from src.transforms import AugDialog, AugmentationPipeline, Augmentation, mainAug
 from src import models
 from src.utils.qt5extra import CheckState
+from src.utils.weights import Downloader
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 tmpPath = currPath + 'src/tmp_results/'
@@ -46,8 +47,8 @@ class Worker(QtCore.QObject):
 
     def run(self):
         # Check for weights first:
-        weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights"}
-        weights.checkWeightsExists(weight_dict)
+        #weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights"}
+        #weights.checkWeightsExists(weight_dict)
         
         model = models._registry[self.model_type]
         # if self.model_type == 'segmentation':
@@ -99,6 +100,12 @@ class mainWindow(QtWidgets.QMainWindow):
         self.addWindow = AugDialog(self.ui.listAugs)
         self.addWindow.setModal(True)
         self.addWindow.demoAug()
+
+        # Check status of configurations:
+        weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights"}
+        self.downloadDialog = Downloader(weight_dict)
+        self.downloadDialog.setModal(True)
+        self.downloadDialog.show()
         
         self.ui.listAugs.setMaximumSize(400,100) # quickfix for sizing issue with layouts
         self.ui.deleteListAug.setMaximumWidth(30)
