@@ -4,6 +4,7 @@
 #include <memory>
 #include <opencv2/opencv.hpp>
 #include <stdlib.h>
+#include <chrono>
 
 at::Tensor xywh2xyxy(at::Tensor pred) {
     at::Tensor new_pred = torch::clone(pred);
@@ -104,6 +105,7 @@ int main(int argc, const char* argv[]) {
         return -1;
     }
 
+    auto start = std::chrono::high_resolution_clock::now();
     cv::Mat image = cv::imread("/home/vijay/Documents/devmk4/radar-cnn/data/syn_walk/images/frame_40_40.png");
 
     {
@@ -120,4 +122,8 @@ int main(int argc, const char* argv[]) {
         at::Tensor output = module.forward(inputs).toTensor();
         postprocess(output, 500);
     }
+
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);    
+    std::cout << duration.count() << std::endl;
 }
