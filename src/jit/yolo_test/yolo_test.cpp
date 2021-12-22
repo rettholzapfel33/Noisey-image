@@ -15,6 +15,36 @@ at::Tensor xywh2xyxy(at::Tensor pred) {
     return new_pred;
 }
 
+cv::Mat GetSquareImage( const cv::Mat& img, int target_width = 500 )
+{
+    int width = img.cols,
+       height = img.rows;
+
+    cv::Mat square = cv::Mat::zeros( target_width, target_width, img.type() );
+
+    int max_dim = ( width >= height ) ? width : height;
+    float scale = ( ( float ) target_width ) / max_dim;
+    cv::Rect roi;
+    if ( width >= height )
+    {
+        roi.width = target_width;
+        roi.x = 0;
+        roi.height = height * scale;
+        roi.y = ( target_width - roi.height ) / 2;
+    }
+    else
+    {
+        roi.y = 0;
+        roi.height = target_width;
+        roi.width = width * scale;
+        roi.x = ( target_width - roi.width ) / 2;
+    }
+
+    cv::resize( img, square( roi ), roi.size() );
+
+    return square;
+}
+
 at::Tensor preprocess(cv::Mat image, int image_size) {
     std::cout << "Image size: " << image.rows << " x " << image.cols << std::endl;
     int height = image.rows;
@@ -22,6 +52,8 @@ at::Tensor preprocess(cv::Mat image, int image_size) {
     auto newSize = cv::Size(0,0);
 
     // Pad image size:
+    // Uncomment this to do just squared resizing:
+    /*
     if(height < width) {
         // Width is the largest side:
         newSize = cv::Size( image_size, (image_size*height)/width ); // w,h
@@ -31,21 +63,14 @@ at::Tensor preprocess(cv::Mat image, int image_size) {
         newSize = cv::Size( (image_size*width)/height , image_size);
     } 
 
+
     std::cout << "Resizing to: " << newSize << std::endl;
-    //cv::Mat normImg(image_size, image_size, CV_8UC3, cv::Scalar(0,0,0));
-
-    // Resize image:
-    //cv::Mat resized_img;
-    //cv::resize(image, resized_img, newSize, cv::INTER_LINEAR );
-
-    /*
-    cv::namedWindow("test", cv::WINDOW_AUTOSIZE);
-    cv::imshow("test", image);
-    cv::waitKey(1);
-    cv::destroyWindow("test");
     */
 
-    cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
+    // Comment the line below to do adjacent disabling:
+    cv::Mat resized_image = GetSquareImage(image, image_size);
+    cv::cvtColor(resized_image, resized_image, cv::COLOR_BGR2RGB);
+    //cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
     image.convertTo(image, CV_32FC3, 1.0f/255.0f);
     at::Tensor output = torch::from_blob(image.data, {1, image.cols, image.rows, 3});
     output = output.permute({0, 3, 1, 2});
