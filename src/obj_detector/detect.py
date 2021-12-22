@@ -25,6 +25,25 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.ticker import NullLocator
 
+class Colors:
+    # Ultralytics color palette https://ultralytics.com/
+    def __init__(self):
+        # hex = matplotlib.colors.TABLEAU_COLORS.values()
+        hex = ('FF3838', 'FF9D97', 'FF701F', 'FFB21D', 'CFD231', '48F90A', '92CC17', '3DDB86', '1A9334', '00D4BB',
+               '2C99A8', '00C2FF', '344593', '6473FF', '0018EC', '8438FF', '520085', 'CB38FF', 'FF95C8', 'FF37C7')
+        self.palette = [self.hex2rgb('#' + c) for c in hex]
+        self.n = len(self.palette)
+
+    def __call__(self, i, bgr=False):
+        c = self.palette[int(i) % self.n]
+        return (c[2], c[1], c[0]) if bgr else c
+
+    @staticmethod
+    def hex2rgb(h):  # rgb order (PIL)
+        return tuple(int(h[1 + i:1 + i + 2], 16) for i in (0, 2, 4))
+
+colors = Colors()  # create instance for 'from utils.plots import colors'
+
 
 def detect_directory(model_path, weights_path, img_path, classes, output_path,
                      batch_size=8, img_size=416, n_cpu=8, conf_thres=0.5, nms_thres=0.5):
@@ -242,30 +261,25 @@ def _draw_and_return_output_image(image, detections, img_size, classes):
     """
     # Create plot
     org_img = np.copy(image)
-    #plt.figure()
-    #fig, ax = plt.subplots(1)
-    #ax.imshow(org_img)
-    # Rescale boxes to original image
-    #detections = rescale_boxes(detections, img_size, org_img.shape[:2])
-    unique_labels = detections[:, -1].unique() # assume detections are in cpu already
-    n_cls_preds = len(unique_labels)
+    lw = max(round(sum(org_img.shape) / 2 * 0.003), 2)
 
-    # Bounding-box colors
-    cmap = plt.get_cmap("tab20b")
-    colors = [cmap(i) for i in np.linspace(0, 1, n_cls_preds)]
-    bbox_colors = random.sample(colors, n_cls_preds)
     for x1, y1, x2, y2, conf, cls_pred in detections:
         # print("test: ", detections)
         # print("test2:", int(x1), int(y1), int(x2), int(y2))
         print(f"\t+ Label: {classes[int(cls_pred)]} | Confidence: {conf.item():0.4f}")
+        p1, p2 = (int(x1), int(y1)), (int(x2), int(y2))
 
-        #box_w = x2 - x1
-        #box_h = y2 - y1
-
-        #color = bbox_colors[int(np.where(unique_labels == int(cls_pred))[0])]
-        #color = [int(c*255) for c in color]
-        #print(color)
-        cv2.rectangle(org_img, (int(x1), int(y1)), (int(x2), int(y2)), (36,255,12), 2)
+        box_clr = colors(cls_pred)
+        
+        cv2.rectangle(org_img, p1, p2, box_clr, 2, lineType=cv2.LINE_AA)
+        tf = max(lw - 1, 1)  # font thickness
+        w, h = cv2.getTextSize(classes[int(cls_pred)], 0, fontScale=lw / 5, thickness=tf)[0]  # text width, height
+        outside = p1[1] - h - 3 >= 0  # label fits outside box
+        p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
+        cv2.rectangle(org_img, p1, p2, box_clr, -1, cv2.LINE_AA)  # filled
+        cv2.putText(org_img, classes[int(cls_pred)], (p1[0], p1[1] - 2 if outside else p1[1] + h + 2), 0, lw / 5, (255,255,255),
+                    thickness=tf, lineType=cv2.LINE_AA)
+        
         # create class box:
         cv2.putText(org_img, classes[int(cls_pred)], (int(x1), int(y1)-10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (36,255,12), 2)
         
