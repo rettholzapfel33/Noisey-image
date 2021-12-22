@@ -45,17 +45,8 @@ class Worker(QtCore.QObject):
         assert model_type == 'segmentation' or model_type == 'yolov3', "Model Type %s is not a defined term!"%(model_type)
         self.model_type = model_type
 
-    def run(self):
-        # Check for weights first:
-        #weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights"}
-        #weights.checkWeightsExists(weight_dict)
-        
+    def run(self): 
         model = models._registry[self.model_type]
-        # if self.model_type == 'segmentation':
-        #     model = models.Segmentation()
-        # elif self.model_type == 'yolov3':
-        #     model = models.YOLOv3()
-
         self.progress.emit(1) 
         
         model.initialize()
@@ -74,21 +65,20 @@ class Worker(QtCore.QObject):
 
         self.finished.emit((result, self.listWidgets))
 
-class Worker_aug(QtCore.QObject):
+class WorkerAug(QtCore.QObject):
     finished = QtCore.pyqtSignal(int)
 
     def __init__(self, mainaug, img, qlabel):
-        super(Worker_aug, self).__init__()
-        self.mainAug = mainAug
+        super(WorkerAug, self).__init__()
+        self.mainAug = mainaug
         self.img = img
         self.qlabel = qlabel
 
     def run(self):
         for aug in self.mainAug:
-                self.img = aug(self.img, example=True)
+            self.img = aug(self.img, example=True)
         noiseQImage = convert_cvimg_to_qimg(self.img)
         self.qlabel.setPixmap(QtGui.QPixmap.fromImage(noiseQImage))
-
         self.finished.emit(1)
 
 class mainWindow(QtWidgets.QMainWindow):
@@ -152,11 +142,6 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.actionOpen.triggered.connect(lambda: self.open_file())
         self.ui.actionIncrease_Size.triggered.connect(self.increaseFont)
         self.ui.actionDecrease_Size.triggered.connect(self.decreaseFont)
-
-        # Noise generator
-        #self.ui.horizontalSlider.valueChanged.connect(lambda: self.ui.doubleSpinBox.setValue(self.ui.horizontalSlider.value()))
-        #self.ui.doubleSpinBox.valueChanged.connect(lambda: self.ui.horizontalSlider.setValue(int(self.ui.doubleSpinBox.value())))
-        #self.ui.doubleSpinBox.valueChanged.connect(self.noise_gen)
 
         # Qlistwidget signals
         self.ui.listWidget.currentItemChanged.connect(self.change_seg_selection)
@@ -222,18 +207,13 @@ class mainWindow(QtWidgets.QMainWindow):
             action.triggered.connect(partial(self.default_qaction, action, "default_imgs/" + file))
             self.qactions.append(action)
             
-
-        #self.ui.toolButton.addActions(self.qactions)
-        #self.ui.toolButton.setDefaultAction(self.qactions[0])
-
     def updateNoisePixMap(self, image_mat, augs):
         mat = np.copy(image_mat)
         for aug in augs:
             mat = aug(mat, example=True)
         qt_img = convert_cvimg_to_qimg(mat)
         self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
-        
-
+    
     def default_qaction(self, qaction, fileName):
         #self.open_file(currPath + "imgs/" + fileName)
         self.default_img()
@@ -244,23 +224,18 @@ class mainWindow(QtWidgets.QMainWindow):
         #print(kwargs)
         print("recreating noisey image")
         image = self.currentFileListItem.data(QtCore.Qt.UserRole)['img']
-        if image is not None:
-            noiseyImage = np.copy(image)
-            print(mainAug)
+        #if image is not None:
+        noiseyImage = np.copy(image)
 
-            self.thread2 = QtCore.QThread()
-            self.worker2 = Worker_aug(mainAug, noiseyImage, self.ui.preview)
-
-            self.worker2.moveToThread(self.thread2)
-
-            self.thread2.started.connect(self.worker2.run)
-            self.worker2.finished.connect(self.thread2.quit)
-            self.worker2.finished.connect(self.worker2.deleteLater)
-            self.thread2.finished.connect(self.thread2.deleteLater)
-
-            self.thread2.start()
-            
-        else: print("No root image to create preview with...")
+        self.thread2 = QtCore.QThread()
+        self.worker2 = WorkerAug(mainAug, noiseyImage, self.ui.preview)
+        self.worker2.moveToThread(self.thread2)
+        self.thread2.started.connect(self.worker2.run)
+        self.worker2.finished.connect(self.thread2.quit)
+        self.worker2.finished.connect(self.worker2.deleteLater)
+        self.thread2.finished.connect(self.thread2.deleteLater)
+        self.thread2.start()   
+        #else: print("No root image to create preview with...")
 
     def default_img(self, fileName = "MISC1/car detection.png"):
         print(currPath + "imgs/" + fileName)
@@ -306,9 +281,6 @@ class mainWindow(QtWidgets.QMainWindow):
         if(new_item is not None):
             self.ui.original.setPixmap(QtGui.QPixmap(filePath))
             self.ui.fileList.setCurrentItem(new_item)
-
-            #self.noise_gen()
-
             self.ui.original_2.clear()
             self.ui.preview_2.clear()
 
@@ -477,7 +449,6 @@ class mainWindow(QtWidgets.QMainWindow):
         if(n == 3):
             self.ui.progressBar_2.setValue(self.ui.progressBar_2.value() + 1)
 
-
     def reportProgress(self, n):
         self.ui.progressBar.setValue(n)
 
@@ -537,8 +508,6 @@ class mainWindow(QtWidgets.QMainWindow):
         predictedQtImg = convert_cvimg_to_qimg(predictedImg)
         predictedQtColor = convert_cvimg_to_qimg(qListItem.data(QtCore.Qt.UserRole)['predictedColor'])
 
-        #print(current.text())
-
         if(current.text() == "all"):
             self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtColor))
             self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
@@ -572,26 +541,6 @@ class mainWindow(QtWidgets.QMainWindow):
             
             predictedQtImg = convert_cvimg_to_qimg(result["dst"])
             self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
-
-            # if comboModelType == 'Semantic Segmentation':
-            #     temp['pred'] = result["pred"]
-            #     temp['predictedImg'] = result["dst"]
-            #     temp['predictedColor'] = result["segmentation"]
-
-            #     if(self.ui.fileList.currentItem() == qListItem):
-            #         predictedQtImg = convert_cvimg_to_qimg(result[0])
-            #         predictedQtColor = convert_cvimg_to_qimg(result[1])
-            #         self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtColor))
-            #         self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
-            # else:
-            #     temp['pred'] = result["pred"]
-            #     temp['predictedImg'] = result[0]
-                
-            #     if(self.ui.fileList.currentItem() == qListItem):
-            #         predictedQtImg = convert_cvimg_to_qimg(result[0])
-            #         self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
-            #         self.ui.preview_2.clear()
-
             qListItem.setData(QtCore.Qt.UserRole, temp)
 
     def display_items(self, results):

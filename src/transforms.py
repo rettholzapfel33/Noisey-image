@@ -76,6 +76,7 @@ def gaussian_noise(image, std, seed=-1):
         combined = image + normal_matrix
         np.clip(combined, 0, 255, out=combined)
         return combined.astype('uint8')
+    else: assert False
 
 
 def gaussian_blur(image, kernel_size_factor, stdX=0, stdY=0, seed=-1):
@@ -299,9 +300,9 @@ class AugmentationPipeline():
 
     def load(self, filename):
         # check if filename is a .txt:
-        print(filename)
         with open(filename, 'r') as f:
             content = list(map(str.strip, f.readlines()))
+        self.clear()
 
         # format: [title,# of parameters,*parameters]
         for _content in content:
@@ -311,13 +312,13 @@ class AugmentationPipeline():
             params = []
             for i in range(nargs):
                 params.append( float(_content[i+2]) )
-            
+            params = tuple(params)
+
             if name in augList:
-                _aug  = Augmentation([name, augList[name]], list(augList.keys()).index(name), params)
+                _aug  = Augmentation([name, augList[name]], list(augList.keys()).index(name), *params)
                 mainAug.__pipeline__.append(_aug)
             else:
                 print("Augmentation name is not recognized! Ignoring this line")
-        print(mainAug.__pipeline__)
 
     def save(self, filename):
         print(filename)
