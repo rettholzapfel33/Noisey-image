@@ -21,6 +21,7 @@ cv::Mat GetSquareImage( const cv::Mat& img, int target_width = 500 )
        height = img.rows;
 
     cv::Mat square = cv::Mat::zeros( target_width, target_width, img.type() );
+    square.setTo(cv::Scalar(125,125,125));
 
     int max_dim = ( width >= height ) ? width : height;
     float scale = ( ( float ) target_width ) / max_dim;
@@ -47,9 +48,11 @@ cv::Mat GetSquareImage( const cv::Mat& img, int target_width = 500 )
 
 at::Tensor preprocess(cv::Mat image, int image_size) {
     std::cout << "Image size: " << image.rows << " x " << image.cols << std::endl;
+    /*
     int height = image.rows;
     int width = image.cols;
     auto newSize = cv::Size(0,0);
+    */
 
     // Pad image size:
     // Uncomment this to do just squared resizing:
@@ -62,8 +65,6 @@ at::Tensor preprocess(cv::Mat image, int image_size) {
         // Height is the largest side:
         newSize = cv::Size( (image_size*width)/height , image_size);
     } 
-
-
     std::cout << "Resizing to: " << newSize << std::endl;
     */
 
