@@ -14,6 +14,10 @@ from src.obj_detector.utils.utils import load_classes
 currPath = str(Path(__file__).parent.absolute()) + '/'
 
 class Model(abc.ABC):
+    """
+    Creates and adds models. 
+    Requirment: The network needs to be fitted in four main funtions: run, initialize, deinitialize, and draw.   
+    """
     def __init__(self, *network_config) -> None:
         self.__network_config__ = network_config
         self.initialize(*network_config)
@@ -39,6 +43,10 @@ class Model(abc.ABC):
         return pred
 
 class Segmentation(Model):
+    """
+    Segmentation Model that inhertes the Model class
+    It specifies its four main functions: run, initialize, deinitialize, and draw. 
+    """
     def __init__(self, *network_config) -> None:
         self.cfg, self.colors = network_config
         #self.cfg = str(Path(__file__).parent.absolute()) + "/config/ade20k-hrnetv2.yaml"
@@ -99,6 +107,10 @@ class Segmentation(Model):
                 }
 
 class YOLOv3(Model):
+    """
+    YOLO Model that inhertes the Model class
+    It specifies its four main functions: run, initialize, deinitialize, and draw. 
+    """
     def __init__(self, *network_config) -> None:
         # network_config: CLASSES, CFG, WEIGHTS
         self.CLASSES, self.CFG, self.WEIGHTS = network_config

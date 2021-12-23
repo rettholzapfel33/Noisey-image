@@ -1,0 +1,374 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Submodules &#8212; Noisey-Image  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Mit Semseg Module" href="src.mit_semseg.html" />
+    <link rel="prev" title="Welcome to Noisey-Image’s documentation!" href="../index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="submodules">
+<h1>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h1>
+<p>This project use two main Abstract classes namely: Model class (defined in Models Module) and Augmentation class (defined in Transforms Module).</p>
+<div class="toctree-wrapper compound">
+</div>
+<section id="module-src.models">
+<span id="models-module"></span><h2>Models Module<a class="headerlink" href="#module-src.models" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="src.models.Model">
+<em class="property">class </em><code class="sig-prename descclassname">src.models.</code><code class="sig-name descname">Model</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">network_config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.models.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Creates and adds models. 
+Requirment: The network needs to be fitted in four main funtions: run, initialize, deinitialize, and draw.</p>
+<dl class="py method">
+<dt id="src.models.Model.deinitialize">
+<em class="property">abstract classmethod </em><code class="sig-name descname">deinitialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.models.Model.deinitialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.models.Model.draw">
+<em class="property">abstract classmethod </em><code class="sig-name descname">draw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.models.Model.draw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.models.Model.initialize">
+<em class="property">abstract classmethod </em><code class="sig-name descname">initialize</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.models.Model.initialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.models.Model.run">
+<em class="property">abstract classmethod </em><code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.models.Model.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.models.Segmentation">
+<em class="property">class </em><code class="sig-prename descclassname">src.models.</code><code class="sig-name descname">Segmentation</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">network_config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.models.Segmentation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#src.models.Model" title="src.models.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">src.models.Model</span></code></a></p>
+<p>Segmentation Model that inhertes the Model class
+It specifies its four main functions: run, initialize, deinitialize, and draw.</p>
+<dl class="py method">
+<dt id="src.models.Segmentation.deinitialize">
+<code class="sig-name descname">deinitialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.models.Segmentation.deinitialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.models.Segmentation.draw">
+<code class="sig-name descname">draw</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pred</span></em>, <em class="sig-param"><span class="n">img</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.models.Segmentation.draw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.models.Segmentation.initialize">
+<code class="sig-name descname">initialize</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.models.Segmentation.initialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.models.Segmentation.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.models.Segmentation.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.models.YOLOv3">
+<em class="property">class </em><code class="sig-prename descclassname">src.models.</code><code class="sig-name descname">YOLOv3</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">network_config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.models.YOLOv3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#src.models.Model" title="src.models.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">src.models.Model</span></code></a></p>
+<p>YOLO Model that inhertes the Model class
+It specifies its four main functions: run, initialize, deinitialize, and draw.</p>
+<dl class="py method">
+<dt id="src.models.YOLOv3.deinitialize">
+<code class="sig-name descname">deinitialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.models.YOLOv3.deinitialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.models.YOLOv3.draw">
+<code class="sig-name descname">draw</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pred</span></em>, <em class="sig-param"><span class="n">img</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.models.YOLOv3.draw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.models.YOLOv3.initialize">
+<code class="sig-name descname">initialize</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.models.YOLOv3.initialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.models.YOLOv3.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.models.YOLOv3.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-src.transforms">
+<span id="transforms-module"></span><h2>Transforms Module<a class="headerlink" href="#module-src.transforms" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="src.transforms.AugDialog">
+<em class="property">class </em><code class="sig-prename descclassname">src.transforms.</code><code class="sig-name descname">AugDialog</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">listViewer</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.AugDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QDialog</span></code></p>
+<dl class="py method">
+<dt id="src.transforms.AugDialog.demoAug">
+<code class="sig-name descname">demoAug</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.AugDialog.demoAug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="src.transforms.AugDialog.pipelineChanged">
+<code class="sig-name descname">pipelineChanged</code><a class="headerlink" href="#src.transforms.AugDialog.pipelineChanged" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.transforms.AugDialog.show">
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.AugDialog.show" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.transforms.Augmentation">
+<em class="property">class </em><code class="sig-prename descclassname">src.transforms.</code><code class="sig-name descname">Augmentation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">aug</span></em>, <em class="sig-param"><span class="n">original_position</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.Augmentation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Creates and Add Augmentations</p>
+<dl class="py method">
+<dt id="src.transforms.Augmentation.enabled">
+<em class="property">property </em><code class="sig-name descname">enabled</code><a class="headerlink" href="#src.transforms.Augmentation.enabled" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.transforms.Augmentation.exampleParam">
+<em class="property">property </em><code class="sig-name descname">exampleParam</code><a class="headerlink" href="#src.transforms.Augmentation.exampleParam" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.transforms.Augmentation.function_arg">
+<em class="property">property </em><code class="sig-name descname">function_arg</code><a class="headerlink" href="#src.transforms.Augmentation.function_arg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.transforms.Augmentation.position">
+<em class="property">property </em><code class="sig-name descname">position</code><a class="headerlink" href="#src.transforms.Augmentation.position" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.transforms.Augmentation.setExampleParam">
+<em class="property">property </em><code class="sig-name descname">setExampleParam</code><a class="headerlink" href="#src.transforms.Augmentation.setExampleParam" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.transforms.Augmentation.setParam">
+<code class="sig-name descname">setParam</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.Augmentation.setParam" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.transforms.Augmentation.title">
+<em class="property">property </em><code class="sig-name descname">title</code><a class="headerlink" href="#src.transforms.Augmentation.title" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.transforms.AugmentationPipeline">
+<em class="property">class </em><code class="sig-prename descclassname">src.transforms.</code><code class="sig-name descname">AugmentationPipeline</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">augList</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">defaultParams</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.AugmentationPipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="src.transforms.AugmentationPipeline.append">
+<code class="sig-name descname">append</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">aug_title</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.AugmentationPipeline.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.transforms.AugmentationPipeline.clear">
+<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.AugmentationPipeline.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.transforms.AugmentationPipeline.exists">
+<code class="sig-name descname">exists</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">title</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.AugmentationPipeline.exists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.transforms.AugmentationPipeline.load">
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.AugmentationPipeline.load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.transforms.AugmentationPipeline.next">
+<code class="sig-name descname">next</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.AugmentationPipeline.next" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.transforms.AugmentationPipeline.remove">
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">aug_title</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.AugmentationPipeline.remove" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.transforms.AugmentationPipeline.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.AugmentationPipeline.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.transforms.dim_intensity">
+<code class="sig-prename descclassname">src.transforms.</code><code class="sig-name descname">dim_intensity</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em>, <em class="sig-param"><span class="n">factor</span></em>, <em class="sig-param"><span class="n">seed</span><span class="o">=</span><span class="default_value">- 1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.dim_intensity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dims the intensity of the image by the give factor/range of factor.</p>
+<blockquote>
+<div><dl class="simple">
+<dt><a href="#id1"><span class="problematic" id="id2">|</span></a>Parameters: </dt><dd><p><a href="#id3"><span class="problematic" id="id4">|</span></a>image (numpy array): The original input image
+<a href="#id5"><span class="problematic" id="id6">|</span></a>factor (float or tuple): The diming factor (if float) or the dimimg factor range (if tuple)
+<a href="#id7"><span class="problematic" id="id8">|</span></a>seed (int or 1-d array_like): Seed for RandomState. Must be convertible to 32 bit unsigned integers.</p>
+</dd>
+<dt><a href="#id9"><span class="problematic" id="id10">|</span></a>Returns: </dt><dd><p><a href="#id11"><span class="problematic" id="id12">|</span></a>image (numpy array): The dimed image</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.transforms.gaussian_blur">
+<code class="sig-prename descclassname">src.transforms.</code><code class="sig-name descname">gaussian_blur</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em>, <em class="sig-param"><span class="n">kernel_size_factor</span></em>, <em class="sig-param"><span class="n">stdX</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">stdY</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">seed</span><span class="o">=</span><span class="default_value">- 1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.gaussian_blur" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.transforms.gaussian_noise">
+<code class="sig-prename descclassname">src.transforms.</code><code class="sig-name descname">gaussian_noise</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em>, <em class="sig-param"><span class="n">std</span></em>, <em class="sig-param"><span class="n">seed</span><span class="o">=</span><span class="default_value">- 1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.gaussian_noise" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.transforms.jpeg_comp">
+<code class="sig-prename descclassname">src.transforms.</code><code class="sig-name descname">jpeg_comp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em>, <em class="sig-param"><span class="n">quality</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.jpeg_comp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.transforms.letterbox_image">
+<code class="sig-prename descclassname">src.transforms.</code><code class="sig-name descname">letterbox_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em>, <em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.letterbox_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resize image with unchanged aspect ratio using padding.
+This function replaces “letterbox” and enforces non-rectangle static inferencing only</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.transforms.normal_comp">
+<code class="sig-prename descclassname">src.transforms.</code><code class="sig-name descname">normal_comp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em>, <em class="sig-param"><span class="n">scale_factor</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.normal_comp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.transforms.poisson_noise">
+<code class="sig-prename descclassname">src.transforms.</code><code class="sig-name descname">poisson_noise</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.poisson_noise" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.transforms.saltAndPapper_noise">
+<code class="sig-prename descclassname">src.transforms.</code><code class="sig-name descname">saltAndPapper_noise</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em>, <em class="sig-param"><span class="n">prob</span><span class="o">=</span><span class="default_value">0.01</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.saltAndPapper_noise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add salt and pepper noise to image
+prob: Probability of the noise</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.transforms.speckle_noise">
+<code class="sig-prename descclassname">src.transforms.</code><code class="sig-name descname">speckle_noise</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.transforms.speckle_noise" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Noisey-Image</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Submodules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-src.models">Models Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-src.transforms">Transforms Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="src.mit_semseg.html">Mit Semseg Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="src.obj_detector.html">Object Detector Module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../index.html" title="previous chapter">Welcome to Noisey-Image’s documentation!</a></li>
+      <li>Next: <a href="src.mit_semseg.html" title="next chapter">Mit Semseg Module</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Vijay, Russ.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/source/src.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

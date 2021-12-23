@@ -1,0 +1,533 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>src.mit_semseg.lib.nn.modules package &#8212; Noisey-Image  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="src-mit-semseg-lib-nn-modules-package">
+<h1>src.mit_semseg.lib.nn.modules package<a class="headerlink" href="#src-mit-semseg-lib-nn-modules-package" title="Permalink to this headline">¶</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="src.mit_semseg.lib.nn.modules.tests.html">src.mit_semseg.lib.nn.modules.tests package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="src.mit_semseg.lib.nn.modules.tests.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.mit_semseg.lib.nn.modules.tests.html#src-mit-semseg-lib-nn-modules-tests-test-numeric-batchnorm-module">src.mit_semseg.lib.nn.modules.tests.test_numeric_batchnorm module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.mit_semseg.lib.nn.modules.tests.html#src-mit-semseg-lib-nn-modules-tests-test-sync-batchnorm-module">src.mit_semseg.lib.nn.modules.tests.test_sync_batchnorm module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.mit_semseg.lib.nn.modules.tests.html#module-src.mit_semseg.lib.nn.modules.tests">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-src.mit_semseg.lib.nn.modules.batchnorm">
+<span id="src-mit-semseg-lib-nn-modules-batchnorm-module"></span><h2>src.mit_semseg.lib.nn.modules.batchnorm module<a class="headerlink" href="#module-src.mit_semseg.lib.nn.modules.batchnorm" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.batchnorm.</code><code class="sig-name descname">SynchronizedBatchNorm1d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_features</span></em>, <em class="sig-param"><span class="n">eps</span><span class="o">=</span><span class="default_value">1e-05</span></em>, <em class="sig-param"><span class="n">momentum</span><span class="o">=</span><span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">affine</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">src.mit_semseg.lib.nn.modules.batchnorm._SynchronizedBatchNorm</span></code></p>
+<p>Applies Synchronized Batch Normalization over a 2d or 3d input that is seen as a
+mini-batch.</p>
+<div class="math notranslate nohighlight">
+\[y = \frac{x - mean[x]}{ \sqrt{Var[x] + \epsilon}} * gamma + beta\]</div>
+<p>This module differs from the built-in PyTorch BatchNorm1d as the mean and
+standard-deviation are reduced across all devices during training.</p>
+<p>For example, when one uses <cite>nn.DataParallel</cite> to wrap the network during
+training, PyTorch’s implementation normalize the tensor on each device using
+the statistics only on that device, which accelerated the computation and
+is also easy to implement, but the statistics might be inaccurate.
+Instead, in this synchronized version, the statistics will be computed
+over all training samples distributed on multiple devices.</p>
+<p>Note that, for one-GPU or CPU-only case, this module behaves exactly same
+as the built-in PyTorch implementation.</p>
+<p>The mean and standard-deviation are calculated per-dimension over
+the mini-batches and gamma and beta are learnable parameter vectors
+of size C (where C is the input size).</p>
+<p>During training, this layer keeps a running estimate of its computed mean
+and variance. The running sum is kept with a default momentum of 0.1.</p>
+<p>During evaluation, this running mean/variance is used for normalization.</p>
+<p>Because the BatchNorm is done over the <cite>C</cite> dimension, computing statistics
+on <cite>(N, L)</cite> slices, it’s common terminology to call this Temporal BatchNorm</p>
+<dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>num_features: num_features from an expected input of size</dt><dd><p><cite>batch_size x num_features [x width]</cite></p>
+</dd>
+<dt>eps: a value added to the denominator for numerical stability.</dt><dd><p>Default: 1e-5</p>
+</dd>
+<dt>momentum: the value used for the running_mean and running_var</dt><dd><p>computation. Default: 0.1</p>
+</dd>
+<dt>affine: a boolean value that when set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, gives the layer learnable</dt><dd><p>affine parameters. Default: <code class="docutils literal notranslate"><span class="pre">True</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt>Shape:</dt><dd><ul class="simple">
+<li><p>Input: <span class="math notranslate nohighlight">\((N, C)\)</span> or <span class="math notranslate nohighlight">\((N, C, L)\)</span></p></li>
+<li><p>Output: <span class="math notranslate nohighlight">\((N, C)\)</span> or <span class="math notranslate nohighlight">\((N, C, L)\)</span> (same shape as input)</p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># With Learnable Parameters</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">SynchronizedBatchNorm1d</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Without Learnable Parameters</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">SynchronizedBatchNorm1d</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">m</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.affine">
+<code class="sig-name descname">affine</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.affine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.eps">
+<code class="sig-name descname">eps</code><em class="property">: float</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.eps" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.momentum">
+<code class="sig-name descname">momentum</code><em class="property">: float</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.momentum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.num_features">
+<code class="sig-name descname">num_features</code><em class="property">: int</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.num_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.track_running_stats">
+<code class="sig-name descname">track_running_stats</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.track_running_stats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.batchnorm.</code><code class="sig-name descname">SynchronizedBatchNorm2d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_features</span></em>, <em class="sig-param"><span class="n">eps</span><span class="o">=</span><span class="default_value">1e-05</span></em>, <em class="sig-param"><span class="n">momentum</span><span class="o">=</span><span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">affine</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">src.mit_semseg.lib.nn.modules.batchnorm._SynchronizedBatchNorm</span></code></p>
+<p>Applies Batch Normalization over a 4d input that is seen as a mini-batch
+of 3d inputs</p>
+<div class="math notranslate nohighlight">
+\[y = \frac{x - mean[x]}{ \sqrt{Var[x] + \epsilon}} * gamma + beta\]</div>
+<p>This module differs from the built-in PyTorch BatchNorm2d as the mean and
+standard-deviation are reduced across all devices during training.</p>
+<p>For example, when one uses <cite>nn.DataParallel</cite> to wrap the network during
+training, PyTorch’s implementation normalize the tensor on each device using
+the statistics only on that device, which accelerated the computation and
+is also easy to implement, but the statistics might be inaccurate.
+Instead, in this synchronized version, the statistics will be computed
+over all training samples distributed on multiple devices.</p>
+<p>Note that, for one-GPU or CPU-only case, this module behaves exactly same
+as the built-in PyTorch implementation.</p>
+<p>The mean and standard-deviation are calculated per-dimension over
+the mini-batches and gamma and beta are learnable parameter vectors
+of size C (where C is the input size).</p>
+<p>During training, this layer keeps a running estimate of its computed mean
+and variance. The running sum is kept with a default momentum of 0.1.</p>
+<p>During evaluation, this running mean/variance is used for normalization.</p>
+<p>Because the BatchNorm is done over the <cite>C</cite> dimension, computing statistics
+on <cite>(N, H, W)</cite> slices, it’s common terminology to call this Spatial BatchNorm</p>
+<dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>num_features: num_features from an expected input of</dt><dd><p>size batch_size x num_features x height x width</p>
+</dd>
+<dt>eps: a value added to the denominator for numerical stability.</dt><dd><p>Default: 1e-5</p>
+</dd>
+<dt>momentum: the value used for the running_mean and running_var</dt><dd><p>computation. Default: 0.1</p>
+</dd>
+<dt>affine: a boolean value that when set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, gives the layer learnable</dt><dd><p>affine parameters. Default: <code class="docutils literal notranslate"><span class="pre">True</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt>Shape:</dt><dd><ul class="simple">
+<li><p>Input: <span class="math notranslate nohighlight">\((N, C, H, W)\)</span></p></li>
+<li><p>Output: <span class="math notranslate nohighlight">\((N, C, H, W)\)</span> (same shape as input)</p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># With Learnable Parameters</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">SynchronizedBatchNorm2d</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Without Learnable Parameters</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">SynchronizedBatchNorm2d</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">45</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">m</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.affine">
+<code class="sig-name descname">affine</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.affine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.eps">
+<code class="sig-name descname">eps</code><em class="property">: float</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.eps" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.momentum">
+<code class="sig-name descname">momentum</code><em class="property">: float</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.momentum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.num_features">
+<code class="sig-name descname">num_features</code><em class="property">: int</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.num_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.track_running_stats">
+<code class="sig-name descname">track_running_stats</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.track_running_stats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.batchnorm.</code><code class="sig-name descname">SynchronizedBatchNorm3d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_features</span></em>, <em class="sig-param"><span class="n">eps</span><span class="o">=</span><span class="default_value">1e-05</span></em>, <em class="sig-param"><span class="n">momentum</span><span class="o">=</span><span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">affine</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">src.mit_semseg.lib.nn.modules.batchnorm._SynchronizedBatchNorm</span></code></p>
+<p>Applies Batch Normalization over a 5d input that is seen as a mini-batch
+of 4d inputs</p>
+<div class="math notranslate nohighlight">
+\[y = \frac{x - mean[x]}{ \sqrt{Var[x] + \epsilon}} * gamma + beta\]</div>
+<p>This module differs from the built-in PyTorch BatchNorm3d as the mean and
+standard-deviation are reduced across all devices during training.</p>
+<p>For example, when one uses <cite>nn.DataParallel</cite> to wrap the network during
+training, PyTorch’s implementation normalize the tensor on each device using
+the statistics only on that device, which accelerated the computation and
+is also easy to implement, but the statistics might be inaccurate.
+Instead, in this synchronized version, the statistics will be computed
+over all training samples distributed on multiple devices.</p>
+<p>Note that, for one-GPU or CPU-only case, this module behaves exactly same
+as the built-in PyTorch implementation.</p>
+<p>The mean and standard-deviation are calculated per-dimension over
+the mini-batches and gamma and beta are learnable parameter vectors
+of size C (where C is the input size).</p>
+<p>During training, this layer keeps a running estimate of its computed mean
+and variance. The running sum is kept with a default momentum of 0.1.</p>
+<p>During evaluation, this running mean/variance is used for normalization.</p>
+<p>Because the BatchNorm is done over the <cite>C</cite> dimension, computing statistics
+on <cite>(N, D, H, W)</cite> slices, it’s common terminology to call this Volumetric BatchNorm
+or Spatio-temporal BatchNorm</p>
+<dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>num_features: num_features from an expected input of</dt><dd><p>size batch_size x num_features x depth x height x width</p>
+</dd>
+<dt>eps: a value added to the denominator for numerical stability.</dt><dd><p>Default: 1e-5</p>
+</dd>
+<dt>momentum: the value used for the running_mean and running_var</dt><dd><p>computation. Default: 0.1</p>
+</dd>
+<dt>affine: a boolean value that when set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, gives the layer learnable</dt><dd><p>affine parameters. Default: <code class="docutils literal notranslate"><span class="pre">True</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt>Shape:</dt><dd><ul class="simple">
+<li><p>Input: <span class="math notranslate nohighlight">\((N, C, D, H, W)\)</span></p></li>
+<li><p>Output: <span class="math notranslate nohighlight">\((N, C, D, H, W)\)</span> (same shape as input)</p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># With Learnable Parameters</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">SynchronizedBatchNorm3d</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Without Learnable Parameters</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">SynchronizedBatchNorm3d</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">45</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">m</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.affine">
+<code class="sig-name descname">affine</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.affine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.eps">
+<code class="sig-name descname">eps</code><em class="property">: float</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.eps" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.momentum">
+<code class="sig-name descname">momentum</code><em class="property">: float</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.momentum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.num_features">
+<code class="sig-name descname">num_features</code><em class="property">: int</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.num_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.track_running_stats">
+<code class="sig-name descname">track_running_stats</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.track_running_stats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-src.mit_semseg.lib.nn.modules.comm">
+<span id="src-mit-semseg-lib-nn-modules-comm-module"></span><h2>src.mit_semseg.lib.nn.modules.comm module<a class="headerlink" href="#module-src.mit_semseg.lib.nn.modules.comm" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="src.mit_semseg.lib.nn.modules.comm.FutureResult">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.comm.</code><code class="sig-name descname">FutureResult</code><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.FutureResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A thread-safe future implementation. Used only as one-to-one pipe.</p>
+<dl class="py method">
+<dt id="src.mit_semseg.lib.nn.modules.comm.FutureResult.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.FutureResult.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.mit_semseg.lib.nn.modules.comm.FutureResult.put">
+<code class="sig-name descname">put</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">result</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.FutureResult.put" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.mit_semseg.lib.nn.modules.comm.SlavePipe">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.comm.</code><code class="sig-name descname">SlavePipe</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">identifier</span></em>, <em class="sig-param"><span class="n">queue</span></em>, <em class="sig-param"><span class="n">result</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SlavePipe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">src.mit_semseg.lib.nn.modules.comm._SlavePipeBase</span></code></p>
+<p>Pipe for master-slave communication.</p>
+<dl class="py method">
+<dt id="src.mit_semseg.lib.nn.modules.comm.SlavePipe.run_slave">
+<code class="sig-name descname">run_slave</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SlavePipe.run_slave" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.mit_semseg.lib.nn.modules.comm.SyncMaster">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.comm.</code><code class="sig-name descname">SyncMaster</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">master_callback</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SyncMaster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>An abstract <cite>SyncMaster</cite> object.</p>
+<ul class="simple">
+<li><p>During the replication, as the data parallel will trigger an callback of each module, all slave devices should</p></li>
+</ul>
+<p>call <cite>register(id)</cite> and obtain an <cite>SlavePipe</cite> to communicate with the master.
+- During the forward pass, master device invokes <cite>run_master</cite>, all messages from slave devices will be collected,
+and passed to a registered callback.
+- After receiving the messages, the master device should gather the information and determine to message passed
+back to each slave devices.</p>
+<dl class="py method">
+<dt id="src.mit_semseg.lib.nn.modules.comm.SyncMaster.nr_slaves">
+<em class="property">property </em><code class="sig-name descname">nr_slaves</code><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SyncMaster.nr_slaves" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.mit_semseg.lib.nn.modules.comm.SyncMaster.register_slave">
+<code class="sig-name descname">register_slave</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">identifier</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SyncMaster.register_slave" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register an slave device.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>identifier: an identifier, usually is the device id.</p>
+</dd>
+</dl>
+<p>Returns: a <cite>SlavePipe</cite> object which can be used to communicate with the master device.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.mit_semseg.lib.nn.modules.comm.SyncMaster.run_master">
+<code class="sig-name descname">run_master</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">master_msg</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SyncMaster.run_master" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main entry for the master device in each forward pass.
+The messages were first collected from each devices (including the master device), and then
+an callback will be invoked to compute the message to be sent back to each devices
+(including the master device).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>master_msg: the message that the master want to send to itself. This will be placed as the first
+message when calling <cite>master_callback</cite>. For detailed usage, see <cite>_SynchronizedBatchNorm</cite> for an example.</p>
+</dd>
+</dl>
+<p>Returns: the message to be sent back to the master device.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-src.mit_semseg.lib.nn.modules.replicate">
+<span id="src-mit-semseg-lib-nn-modules-replicate-module"></span><h2>src.mit_semseg.lib.nn.modules.replicate module<a class="headerlink" href="#module-src.mit_semseg.lib.nn.modules.replicate" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="src.mit_semseg.lib.nn.modules.replicate.CallbackContext">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.replicate.</code><code class="sig-name descname">CallbackContext</code><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.CallbackContext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.replicate.</code><code class="sig-name descname">DataParallelWithCallback</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">module</span></em>, <em class="sig-param"><span class="n">device_ids</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">output_device</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dim</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.parallel.data_parallel.DataParallel</span></code></p>
+<p>Data Parallel with a replication callback.</p>
+<p>An replication callback <cite>__data_parallel_replicate__</cite> of each module will be invoked after being created by
+original <cite>replicate</cite> function.
+The callback will be invoked with arguments <cite>__data_parallel_replicate__(ctx, copy_id)</cite></p>
+<dl class="simple">
+<dt>Examples:</dt><dd><p>&gt; sync_bn = SynchronizedBatchNorm1d(10, eps=1e-5, affine=False)
+&gt; sync_bn = DataParallelWithCallback(sync_bn, device_ids=[0, 1])
+# sync_bn.__data_parallel_replicate__ will be invoked.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback.replicate">
+<code class="sig-name descname">replicate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">module</span></em>, <em class="sig-param"><span class="n">device_ids</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback.replicate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback.training">
+<code class="sig-name descname">training</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.mit_semseg.lib.nn.modules.replicate.execute_replication_callbacks">
+<code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.replicate.</code><code class="sig-name descname">execute_replication_callbacks</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">modules</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.execute_replication_callbacks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute an replication callback <cite>__data_parallel_replicate__</cite> on each module created by original replication.</p>
+<p>The callback will be invoked with arguments <cite>__data_parallel_replicate__(ctx, copy_id)</cite></p>
+<p>Note that, as all modules are isomorphism, we assign each sub-module with a context
+(shared among multiple copies of this module on different devices).
+Through this context, different copies can share some information.</p>
+<p>We guarantee that the callback on the master copy (the first copy) will be called ahead of calling the callback
+of any slave copies.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.mit_semseg.lib.nn.modules.replicate.patch_replication_callback">
+<code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.replicate.</code><code class="sig-name descname">patch_replication_callback</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_parallel</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.patch_replication_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Monkey-patch an existing <cite>DataParallel</cite> object. Add the replication callback.
+Useful when you have customized <cite>DataParallel</cite> implementation.</p>
+<dl class="simple">
+<dt>Examples:</dt><dd><p>&gt; sync_bn = SynchronizedBatchNorm1d(10, eps=1e-5, affine=False)
+&gt; sync_bn = DataParallel(sync_bn, device_ids=[0, 1])
+&gt; patch_replication_callback(sync_bn)
+# this is equivalent to
+&gt; sync_bn = SynchronizedBatchNorm1d(10, eps=1e-5, affine=False)
+&gt; sync_bn = DataParallelWithCallback(sync_bn, device_ids=[0, 1])</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-src.mit_semseg.lib.nn.modules.unittest">
+<span id="src-mit-semseg-lib-nn-modules-unittest-module"></span><h2>src.mit_semseg.lib.nn.modules.unittest module<a class="headerlink" href="#module-src.mit_semseg.lib.nn.modules.unittest" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="src.mit_semseg.lib.nn.modules.unittest.TorchTestCase">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.unittest.</code><code class="sig-name descname">TorchTestCase</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">methodName</span><span class="o">=</span><span class="default_value">'runTest'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.unittest.TorchTestCase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="py method">
+<dt id="src.mit_semseg.lib.nn.modules.unittest.TorchTestCase.assertTensorClose">
+<code class="sig-name descname">assertTensorClose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">b</span></em>, <em class="sig-param"><span class="n">atol</span><span class="o">=</span><span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">rtol</span><span class="o">=</span><span class="default_value">0.001</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.unittest.TorchTestCase.assertTensorClose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.mit_semseg.lib.nn.modules.unittest.as_numpy">
+<code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.unittest.</code><code class="sig-name descname">as_numpy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">v</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.unittest.as_numpy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-src.mit_semseg.lib.nn.modules">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-src.mit_semseg.lib.nn.modules" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Noisey-Image</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Modules:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="src.html">Submodules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="src.mit_semseg.html">Mit Semseg Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="src.obj_detector.html">Object Detector Module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Vijay, Russ.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/source/src.mit_semseg.lib.nn.modules.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
