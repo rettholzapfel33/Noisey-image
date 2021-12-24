@@ -7,14 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
     <title>src.mit_semseg.lib.nn.modules package &#8212; Noisey-Image  documentation</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
    
@@ -55,8 +54,8 @@
 <section id="module-src.mit_semseg.lib.nn.modules.batchnorm">
 <span id="src-mit-semseg-lib-nn-modules-batchnorm-module"></span><h2>src.mit_semseg.lib.nn.modules.batchnorm module<a class="headerlink" href="#module-src.mit_semseg.lib.nn.modules.batchnorm" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d">
-<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.batchnorm.</code><code class="sig-name descname">SynchronizedBatchNorm1d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_features</span></em>, <em class="sig-param"><span class="n">eps</span><span class="o">=</span><span class="default_value">1e-05</span></em>, <em class="sig-param"><span class="n">momentum</span><span class="o">=</span><span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">affine</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.lib.nn.modules.batchnorm.</span></span><span class="sig-name descname"><span class="pre">SynchronizedBatchNorm1d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">momentum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">src.mit_semseg.lib.nn.modules.batchnorm._SynchronizedBatchNorm</span></code></p>
 <p>Applies Synchronized Batch Normalization over a 2d or 3d input that is seen as a
 mini-batch.</p>
@@ -108,35 +107,35 @@ on <cite>(N, L)</cite> slices, it’s common terminology to call this Temporal B
 </dd>
 </dl>
 <dl class="py attribute">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.affine">
-<code class="sig-name descname">affine</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.affine" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.affine">
+<span class="sig-name descname"><span class="pre">affine</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.affine" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.eps">
-<code class="sig-name descname">eps</code><em class="property">: float</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.eps" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.eps">
+<span class="sig-name descname"><span class="pre">eps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.eps" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.momentum">
-<code class="sig-name descname">momentum</code><em class="property">: float</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.momentum" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.momentum">
+<span class="sig-name descname"><span class="pre">momentum</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.momentum" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.num_features">
-<code class="sig-name descname">num_features</code><em class="property">: int</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.num_features" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.num_features">
+<span class="sig-name descname"><span class="pre">num_features</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.num_features" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.track_running_stats">
-<code class="sig-name descname">track_running_stats</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.track_running_stats" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.track_running_stats">
+<span class="sig-name descname"><span class="pre">track_running_stats</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm1d.track_running_stats" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d">
-<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.batchnorm.</code><code class="sig-name descname">SynchronizedBatchNorm2d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_features</span></em>, <em class="sig-param"><span class="n">eps</span><span class="o">=</span><span class="default_value">1e-05</span></em>, <em class="sig-param"><span class="n">momentum</span><span class="o">=</span><span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">affine</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.lib.nn.modules.batchnorm.</span></span><span class="sig-name descname"><span class="pre">SynchronizedBatchNorm2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">momentum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">src.mit_semseg.lib.nn.modules.batchnorm._SynchronizedBatchNorm</span></code></p>
 <p>Applies Batch Normalization over a 4d input that is seen as a mini-batch
 of 3d inputs</p>
@@ -188,35 +187,35 @@ on <cite>(N, H, W)</cite> slices, it’s common terminology to call this Spatial
 </dd>
 </dl>
 <dl class="py attribute">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.affine">
-<code class="sig-name descname">affine</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.affine" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.affine">
+<span class="sig-name descname"><span class="pre">affine</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.affine" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.eps">
-<code class="sig-name descname">eps</code><em class="property">: float</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.eps" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.eps">
+<span class="sig-name descname"><span class="pre">eps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.eps" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.momentum">
-<code class="sig-name descname">momentum</code><em class="property">: float</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.momentum" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.momentum">
+<span class="sig-name descname"><span class="pre">momentum</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.momentum" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.num_features">
-<code class="sig-name descname">num_features</code><em class="property">: int</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.num_features" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.num_features">
+<span class="sig-name descname"><span class="pre">num_features</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.num_features" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.track_running_stats">
-<code class="sig-name descname">track_running_stats</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.track_running_stats" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.track_running_stats">
+<span class="sig-name descname"><span class="pre">track_running_stats</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm2d.track_running_stats" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d">
-<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.batchnorm.</code><code class="sig-name descname">SynchronizedBatchNorm3d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_features</span></em>, <em class="sig-param"><span class="n">eps</span><span class="o">=</span><span class="default_value">1e-05</span></em>, <em class="sig-param"><span class="n">momentum</span><span class="o">=</span><span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">affine</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.lib.nn.modules.batchnorm.</span></span><span class="sig-name descname"><span class="pre">SynchronizedBatchNorm3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">momentum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">src.mit_semseg.lib.nn.modules.batchnorm._SynchronizedBatchNorm</span></code></p>
 <p>Applies Batch Normalization over a 5d input that is seen as a mini-batch
 of 4d inputs</p>
@@ -269,28 +268,28 @@ or Spatio-temporal BatchNorm</p>
 </dd>
 </dl>
 <dl class="py attribute">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.affine">
-<code class="sig-name descname">affine</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.affine" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.affine">
+<span class="sig-name descname"><span class="pre">affine</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.affine" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.eps">
-<code class="sig-name descname">eps</code><em class="property">: float</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.eps" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.eps">
+<span class="sig-name descname"><span class="pre">eps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.eps" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.momentum">
-<code class="sig-name descname">momentum</code><em class="property">: float</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.momentum" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.momentum">
+<span class="sig-name descname"><span class="pre">momentum</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.momentum" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.num_features">
-<code class="sig-name descname">num_features</code><em class="property">: int</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.num_features" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.num_features">
+<span class="sig-name descname"><span class="pre">num_features</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.num_features" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.track_running_stats">
-<code class="sig-name descname">track_running_stats</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.track_running_stats" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.track_running_stats">
+<span class="sig-name descname"><span class="pre">track_running_stats</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.batchnorm.SynchronizedBatchNorm3d.track_running_stats" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -299,37 +298,37 @@ or Spatio-temporal BatchNorm</p>
 <section id="module-src.mit_semseg.lib.nn.modules.comm">
 <span id="src-mit-semseg-lib-nn-modules-comm-module"></span><h2>src.mit_semseg.lib.nn.modules.comm module<a class="headerlink" href="#module-src.mit_semseg.lib.nn.modules.comm" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="src.mit_semseg.lib.nn.modules.comm.FutureResult">
-<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.comm.</code><code class="sig-name descname">FutureResult</code><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.FutureResult" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.comm.FutureResult">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.lib.nn.modules.comm.</span></span><span class="sig-name descname"><span class="pre">FutureResult</span></span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.FutureResult" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A thread-safe future implementation. Used only as one-to-one pipe.</p>
 <dl class="py method">
-<dt id="src.mit_semseg.lib.nn.modules.comm.FutureResult.get">
-<code class="sig-name descname">get</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.FutureResult.get" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.comm.FutureResult.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.FutureResult.get" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="src.mit_semseg.lib.nn.modules.comm.FutureResult.put">
-<code class="sig-name descname">put</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">result</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.FutureResult.put" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.comm.FutureResult.put">
+<span class="sig-name descname"><span class="pre">put</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.FutureResult.put" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="src.mit_semseg.lib.nn.modules.comm.SlavePipe">
-<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.comm.</code><code class="sig-name descname">SlavePipe</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">identifier</span></em>, <em class="sig-param"><span class="n">queue</span></em>, <em class="sig-param"><span class="n">result</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SlavePipe" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.comm.SlavePipe">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.lib.nn.modules.comm.</span></span><span class="sig-name descname"><span class="pre">SlavePipe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SlavePipe" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">src.mit_semseg.lib.nn.modules.comm._SlavePipeBase</span></code></p>
 <p>Pipe for master-slave communication.</p>
 <dl class="py method">
-<dt id="src.mit_semseg.lib.nn.modules.comm.SlavePipe.run_slave">
-<code class="sig-name descname">run_slave</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SlavePipe.run_slave" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.comm.SlavePipe.run_slave">
+<span class="sig-name descname"><span class="pre">run_slave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SlavePipe.run_slave" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="src.mit_semseg.lib.nn.modules.comm.SyncMaster">
-<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.comm.</code><code class="sig-name descname">SyncMaster</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">master_callback</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SyncMaster" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.comm.SyncMaster">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.lib.nn.modules.comm.</span></span><span class="sig-name descname"><span class="pre">SyncMaster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master_callback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SyncMaster" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>An abstract <cite>SyncMaster</cite> object.</p>
 <ul class="simple">
@@ -340,14 +339,14 @@ or Spatio-temporal BatchNorm</p>
 and passed to a registered callback.
 - After receiving the messages, the master device should gather the information and determine to message passed
 back to each slave devices.</p>
-<dl class="py method">
-<dt id="src.mit_semseg.lib.nn.modules.comm.SyncMaster.nr_slaves">
-<em class="property">property </em><code class="sig-name descname">nr_slaves</code><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SyncMaster.nr_slaves" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.comm.SyncMaster.nr_slaves">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nr_slaves</span></span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SyncMaster.nr_slaves" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="src.mit_semseg.lib.nn.modules.comm.SyncMaster.register_slave">
-<code class="sig-name descname">register_slave</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">identifier</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SyncMaster.register_slave" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.comm.SyncMaster.register_slave">
+<span class="sig-name descname"><span class="pre">register_slave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SyncMaster.register_slave" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register an slave device.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>identifier: an identifier, usually is the device id.</p>
@@ -357,8 +356,8 @@ back to each slave devices.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="src.mit_semseg.lib.nn.modules.comm.SyncMaster.run_master">
-<code class="sig-name descname">run_master</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">master_msg</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SyncMaster.run_master" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.comm.SyncMaster.run_master">
+<span class="sig-name descname"><span class="pre">run_master</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master_msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.comm.SyncMaster.run_master" title="Permalink to this definition">¶</a></dt>
 <dd><p>Main entry for the master device in each forward pass.
 The messages were first collected from each devices (including the master device), and then
 an callback will be invoked to compute the message to be sent back to each devices
@@ -377,14 +376,14 @@ message when calling <cite>master_callback</cite>. For detailed usage, see <cite
 <section id="module-src.mit_semseg.lib.nn.modules.replicate">
 <span id="src-mit-semseg-lib-nn-modules-replicate-module"></span><h2>src.mit_semseg.lib.nn.modules.replicate module<a class="headerlink" href="#module-src.mit_semseg.lib.nn.modules.replicate" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="src.mit_semseg.lib.nn.modules.replicate.CallbackContext">
-<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.replicate.</code><code class="sig-name descname">CallbackContext</code><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.CallbackContext" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.replicate.CallbackContext">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.lib.nn.modules.replicate.</span></span><span class="sig-name descname"><span class="pre">CallbackContext</span></span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.CallbackContext" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback">
-<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.replicate.</code><code class="sig-name descname">DataParallelWithCallback</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">module</span></em>, <em class="sig-param"><span class="n">device_ids</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">output_device</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dim</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.lib.nn.modules.replicate.</span></span><span class="sig-name descname"><span class="pre">DataParallelWithCallback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.parallel.data_parallel.DataParallel</span></code></p>
 <p>Data Parallel with a replication callback.</p>
 <p>An replication callback <cite>__data_parallel_replicate__</cite> of each module will be invoked after being created by
@@ -397,20 +396,20 @@ The callback will be invoked with arguments <cite>__data_parallel_replicate__(ct
 </dd>
 </dl>
 <dl class="py method">
-<dt id="src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback.replicate">
-<code class="sig-name descname">replicate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">module</span></em>, <em class="sig-param"><span class="n">device_ids</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback.replicate" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback.replicate">
+<span class="sig-name descname"><span class="pre">replicate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_ids</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback.replicate" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback.training">
-<code class="sig-name descname">training</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback.training" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.DataParallelWithCallback.training" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
-<dt id="src.mit_semseg.lib.nn.modules.replicate.execute_replication_callbacks">
-<code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.replicate.</code><code class="sig-name descname">execute_replication_callbacks</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">modules</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.execute_replication_callbacks" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.replicate.execute_replication_callbacks">
+<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.lib.nn.modules.replicate.</span></span><span class="sig-name descname"><span class="pre">execute_replication_callbacks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.execute_replication_callbacks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute an replication callback <cite>__data_parallel_replicate__</cite> on each module created by original replication.</p>
 <p>The callback will be invoked with arguments <cite>__data_parallel_replicate__(ctx, copy_id)</cite></p>
 <p>Note that, as all modules are isomorphism, we assign each sub-module with a context
@@ -421,8 +420,8 @@ of any slave copies.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="src.mit_semseg.lib.nn.modules.replicate.patch_replication_callback">
-<code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.replicate.</code><code class="sig-name descname">patch_replication_callback</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_parallel</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.patch_replication_callback" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.replicate.patch_replication_callback">
+<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.lib.nn.modules.replicate.</span></span><span class="sig-name descname"><span class="pre">patch_replication_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_parallel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.replicate.patch_replication_callback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Monkey-patch an existing <cite>DataParallel</cite> object. Add the replication callback.
 Useful when you have customized <cite>DataParallel</cite> implementation.</p>
 <dl class="simple">
@@ -440,19 +439,19 @@ Useful when you have customized <cite>DataParallel</cite> implementation.</p>
 <section id="module-src.mit_semseg.lib.nn.modules.unittest">
 <span id="src-mit-semseg-lib-nn-modules-unittest-module"></span><h2>src.mit_semseg.lib.nn.modules.unittest module<a class="headerlink" href="#module-src.mit_semseg.lib.nn.modules.unittest" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="src.mit_semseg.lib.nn.modules.unittest.TorchTestCase">
-<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.unittest.</code><code class="sig-name descname">TorchTestCase</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">methodName</span><span class="o">=</span><span class="default_value">'runTest'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.unittest.TorchTestCase" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.unittest.TorchTestCase">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.lib.nn.modules.unittest.</span></span><span class="sig-name descname"><span class="pre">TorchTestCase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.unittest.TorchTestCase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
 <dl class="py method">
-<dt id="src.mit_semseg.lib.nn.modules.unittest.TorchTestCase.assertTensorClose">
-<code class="sig-name descname">assertTensorClose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">b</span></em>, <em class="sig-param"><span class="n">atol</span><span class="o">=</span><span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">rtol</span><span class="o">=</span><span class="default_value">0.001</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.unittest.TorchTestCase.assertTensorClose" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.unittest.TorchTestCase.assertTensorClose">
+<span class="sig-name descname"><span class="pre">assertTensorClose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.unittest.TorchTestCase.assertTensorClose" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
-<dt id="src.mit_semseg.lib.nn.modules.unittest.as_numpy">
-<code class="sig-prename descclassname">src.mit_semseg.lib.nn.modules.unittest.</code><code class="sig-name descname">as_numpy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">v</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.unittest.as_numpy" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.mit_semseg.lib.nn.modules.unittest.as_numpy">
+<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.lib.nn.modules.unittest.</span></span><span class="sig-name descname"><span class="pre">as_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.lib.nn.modules.unittest.as_numpy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </section>
@@ -478,8 +477,9 @@ Useful when you have customized <cite>DataParallel</cite> implementation.</p>
 
 
 <h3>Navigation</h3>
-<p><span class="caption-text">Modules:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="main_tutorial_guide.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="src.html">Submodules</a></li>
 <li class="toctree-l1"><a class="reference internal" href="src.mit_semseg.html">Mit Semseg Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="src.obj_detector.html">Object Detector Module</a></li>
@@ -496,7 +496,7 @@ Useful when you have customized <cite>DataParallel</cite> implementation.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -518,7 +518,7 @@ Useful when you have customized <cite>DataParallel</cite> implementation.</p>
       &copy;2021, Vijay, Russ.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.3.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
