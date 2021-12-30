@@ -32,6 +32,17 @@ def letterbox_image(image, size):
 
 
 def dim_intensity(image, factor, seed=-1):
+    """
+    Dims the intensity of the image by the give factor/range of factor. 
+    
+        |Parameters: 
+            |image (numpy array): The original input image
+            |factor (float or tuple): The diming factor (if float) or the dimimg factor range (if tuple)
+            |seed (int or 1-d array_like): Seed for RandomState. Must be convertible to 32 bit unsigned integers.
+        
+        |Returns: 
+            |image (numpy array): The dimed image  
+    """
     # check if factor is int (constant) or tuple (randomized range with uniform distribution):
     hsv_img = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
     if type(factor) == float:
@@ -176,6 +187,9 @@ augDefaultParams = {
 assert len(list(augList.keys())) == len(list(augDefaultParams.keys())), "Default parameters are not the same length as augmentation list. If no default values, leave an empty list"
 
 class Augmentation:
+    """
+    Creates and Add Augmentations
+    """
     def __init__(self, aug, original_position, *args) -> None:
         self.__title__ = aug[0]
         self.__run__ = aug[1]
