@@ -122,7 +122,7 @@ class mainWindow(QtWidgets.QMainWindow):
         # Buttons
         #self.ui.pushButton.clicked.connect(self.noise_gen)
         self.ui.pushButton_2.clicked.connect(self.run_model)
-        self.ui.pushButton_3.clicked.connect(self.noise_gen_all)
+        #self.ui.pushButton_3.clicked.connect(self.noise_gen_all) # replace with new function
         self.ui.pushButton_4.clicked.connect(self.quitApp)
         self.ui.pushButton_5.clicked.connect(self.run_model_all)
         
@@ -208,6 +208,7 @@ class mainWindow(QtWidgets.QMainWindow):
             mat = aug(mat, example=True)
         qt_img = convert_cvimg_to_qimg(mat)
         self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
+        return mat
     
     def default_qaction(self, qaction, fileName):
         #self.open_file(currPath + "imgs/" + fileName)
@@ -238,7 +239,9 @@ class mainWindow(QtWidgets.QMainWindow):
         self.open_file(currPath + "imgs/" + fileName)
         default_image = self.ui.fileList.itemAt(0,0)
         _data = default_image.data(QtCore.Qt.UserRole)
-        self.updateNoisePixMap(_data["img"], mainAug)
+        noiseImg = self.updateNoisePixMap(_data["img"], mainAug)
+        _data["noiseImg"] = noiseImg
+        default_image.setData(QtCore.Qt.UserRole, _data)
 
         #print("setting original and preview")
         #self.ui.original_2.setPixmap(QtGui.QPixmap(currPath+"tmp_results/pred_color.png"))
@@ -336,47 +339,6 @@ class mainWindow(QtWidgets.QMainWindow):
         print(filePaths)
 
         return filePaths
-
-
-
-    def noise_gen(self):
-        qListItem = self.ui.fileList.currentItem()
-        originalImg = qListItem.data(QtCore.Qt.UserRole)['img']
-
-        if(originalImg is None):
-            self.ui.statusbar.showMessage("Import an image first.", 3000)
-            return
-
-        noise_level = self.ui.doubleSpinBox.value() / 100
-        print("noise probability: ", noise_level)
-        
-        cv_img = add_noise_img(originalImg, noise_level)
-
-        temp = qListItem.data(QtCore.Qt.UserRole)
-        temp['noiseImg'] = cv_img
-        qListItem.setData(QtCore.Qt.UserRole, temp)
-
-        qt_img = convert_cvimg_to_qimg(cv_img)
-
-        self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
-
-    def noise_gen_all(self):
-        lw = self.ui.fileList
-        
-        items = []
-        for x in range(lw.count()):
-            if(lw.item(x) != lw.currentItem()):
-                items.append(lw.item(x))
-
-        noise_level = self.ui.doubleSpinBox.value() / 100
-
-        for item in items:
-            temp = item.data(QtCore.Qt.UserRole)
-            cv_img = add_noise_img(temp['img'], noise_level)
-            temp['noiseImg'] = cv_img
-            item.setData(QtCore.Qt.UserRole, temp)
-
-        self.noise_gen()
 
     def run_model_all(self):
         lw = self.ui.fileList
@@ -556,7 +518,6 @@ class mainWindow(QtWidgets.QMainWindow):
             temp['items'] = names
             qListItem.setData(QtCore.Qt.UserRole, temp)
         
-
     def run_model(self):
         qListItem = self.ui.fileList.currentItem()
         img = qListItem.data(QtCore.Qt.UserRole).get('img')
