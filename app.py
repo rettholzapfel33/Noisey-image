@@ -110,7 +110,7 @@ class mainWindow(QtWidgets.QMainWindow):
         # Buttons
         #self.ui.pushButton.clicked.connect(self.noise_gen)
         self.ui.pushButton_2.clicked.connect(self.run_model)
-        self.ui.pushButton_3.clicked.connect(self.noise_gen_all)
+        #self.ui.pushButton_3.clicked.connect(self.noise_gen_all) # replace with new function
         self.ui.pushButton_4.clicked.connect(self.quitApp)
         self.ui.pushButton_5.clicked.connect(self.run_model_all)
 
@@ -125,10 +125,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.listAugs.itemChanged.connect(self.changePreviewImage)
         # access model of listwidget to detect changes
         self.addWindow.pipelineChanged.connect(self.changePreviewImage)
-        self.ui.runOnAug.stateChanged.connect(self.runAugOnImage)
-        #self.listAugsModel = self.ui.listAugs.model()
-        #self.listAugsModel.rowsInserted.connect(self.changePreviewImage) #Any time an element is added run function
-        #self.listAugsModel.rowsRemoved.connect(self.changePreviewImage) #Any time an element is removed run function
+        #self.ui.runOnAug.stateChanged.connect(self.runAugOnImage)
 
         # Menubar buttons
         self.ui.actionOpen.triggered.connect(lambda: self.open_file())
@@ -266,7 +263,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
             new_item = QtWidgets.QListWidgetItem()
             new_item.setText(fileName)
-            new_item.setData(QtCore.Qt.UserRole, {'filePath':filePath, 'img':img})
+            new_item.setData(QtCore.Qt.UserRole, {'filePath':filePath, 'img':img, 'noiseImg':img})
             self.ui.fileList.addItem(new_item)
 
 
@@ -547,21 +544,31 @@ class mainWindow(QtWidgets.QMainWindow):
             temp['items'] = names
             qListItem.setData(QtCore.Qt.UserRole, temp)
 
-
+        
     def run_model(self):
         qListItem = self.ui.fileList.currentItem()
         img = qListItem.data(QtCore.Qt.UserRole).get('img')
         noiseImg = qListItem.data(QtCore.Qt.UserRole).get('noiseImg')
+        shouldRunAug = self.ui.runOnAug.isChecked()
 
-        if(img is None):
-            self.ui.statusbar.showMessage("Import an image first!", 3000)
+        if shouldRunAug:
+            if not noiseImg is None:
+                executeImage = noiseImg
+            else:
+                self.ui.statusbar.showMessage("Add noise to the image first!", 3000)
+                executeImage = img
+        else:
+            if not img is None:
+                executeImage = img
+            else:
+                self.ui.statusbar.showMessage("Import an image first!", 3000)
+                return
+
+        if(executeImage is None):
+            self.ui.statusbar.showMessage("Image selected is none!", 3000)
             return
-        elif(noiseImg is None):
-            self.ui.statusbar.showMessage("Add noise to the image first!", 3000)
-            noiseImg = img
 
         self.ui.pushButton_2.setEnabled(False)
-
         self.ui.progressBar.show()
         self.ui.listWidget.clear()
         self.ui.original_2.clear()
@@ -573,18 +580,14 @@ class mainWindow(QtWidgets.QMainWindow):
 
         #detectedNames = {"all": [255,255,255]}
         display_sep = self.ui.checkBox_2.isChecked()
-
         comboModelType = self.ui.comboBox.currentText()
-
 
         if comboModelType == 'Semantic Segmentation':
             self.worker.setup([noiseImg], display_sep, 'segmentation', [qListItem])
         else:
             self.worker.setup([noiseImg], display_sep, 'yolov3', [qListItem])
-
-
+        
         self.worker.moveToThread(self.thread)
-
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
