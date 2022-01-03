@@ -11,3 +11,4 @@ src/jit/yolo_test/build
 src/jit/darknet_radar_cfg/
 jupyter_files/libtorch
 dev
+.vscode/
