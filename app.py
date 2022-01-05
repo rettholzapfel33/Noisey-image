@@ -110,7 +110,7 @@ class mainWindow(QtWidgets.QMainWindow):
         # Buttons
         #self.ui.pushButton.clicked.connect(self.noise_gen)
         self.ui.pushButton_2.clicked.connect(self.run_model)
-        #self.ui.pushButton_3.clicked.connect(self.noise_gen_all) # replace with new function
+        self.ui.pushButton_3.clicked.connect(self.noise_gen_all) # replace with new function
         self.ui.pushButton_4.clicked.connect(self.quitApp)
         self.ui.pushButton_5.clicked.connect(self.run_model_all)
 
@@ -137,7 +137,9 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.fileList.currentItemChanged.connect(self.change_file_selection)
 
         # Font
-        self.ui.centralwidget.setFont(QtGui.QFont('Ubuntu', 10))
+        font = self.font()
+        font.setPointSize(10)
+        self.ui.centralwidget.setFont(font)
 
         # Drag and drop
         self.ui.original.imageDropped.connect(self.open_file)
@@ -360,15 +362,18 @@ class mainWindow(QtWidgets.QMainWindow):
             if(lw.item(x) != lw.currentItem()):
                 items.append(lw.item(x))
 
-        noise_level = self.ui.doubleSpinBox.value() / 100
+        
 
         for item in items:
-            temp = item.data(QtCore.Qt.UserRole)
-            cv_img = add_noise_img(temp['img'], noise_level)
-            temp['noiseImg'] = cv_img
-            item.setData(QtCore.Qt.UserRole, temp)
+            _data = item.data(QtCore.Qt.UserRole)
+            mat = np.copy(_data['img'])
+            for aug in mainAug:
+                mat = aug(mat, example=True)
 
-        self.noise_gen()
+            _data['noiseImg'] = mat
+            item.setData(QtCore.Qt.UserRole, _data)
+
+        self.changePreviewImage()
 
     def run_model_all(self):
         lw = self.ui.fileList
@@ -452,12 +457,12 @@ class mainWindow(QtWidgets.QMainWindow):
         originalQtImg = convert_cvimg_to_qimg(originalImg)
         self.ui.original.setPixmap(QtGui.QPixmap.fromImage(originalQtImg))
 
-        # if(noiseImg is not None):
-        #     noiseQtImg = convert_cvimg_to_qimg(noiseImg)
-        #     self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(noiseQtImg))
-        # else:
-        #     self.ui.preview.clear()
-        self.changePreviewImage()
+        if(noiseImg is not None):
+            noiseQtImg = convert_cvimg_to_qimg(noiseImg)
+            self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(noiseQtImg))
+        else:
+            self.ui.preview.clear()
+        #self.changePreviewImage()
 
         if(predictedImg is not None):
             predictedQtImg = convert_cvimg_to_qimg(predictedImg)
