@@ -21,6 +21,7 @@ import yaml
 # import utilities:
 from src.utils.images import convert_cvimg_to_qimg
 from src.transforms import AugDialog, AugmentationPipeline, Augmentation, mainAug
+from src.experimentDialog import ExperimentDialog
 from src import models
 from src.utils.qt5extra import CheckState
 from src.utils.weights import Downloader
@@ -81,6 +82,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
         self.addWindow = AugDialog(self.ui.listAugs)
         self.addWindow.setModal(True)
         self.addWindow.demoAug()
@@ -109,7 +111,12 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # Buttons
         #self.ui.pushButton.clicked.connect(self.noise_gen)
-        self.ui.pushButton_2.clicked.connect(self.run_model)
+        #self.ui.pushButton_2.clicked.connect(self.run_model)
+        
+        self.experiment = ExperimentDialog()
+        self.ui.pushButton_2.clicked.connect(self.experiment.show)
+        
+        
         self.ui.pushButton_3.clicked.connect(self.noise_gen_all) # replace with new function
         self.ui.pushButton_4.clicked.connect(self.quitApp)
         self.ui.pushButton_5.clicked.connect(self.run_model_all)
