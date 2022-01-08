@@ -79,7 +79,28 @@ at::Tensor preprocess(cv::Mat image, int image_size) {
     return output;
 }
 
-void postprocess(at::Tensor pred, int image_size) {
+// TODO: Optimize converting tensor to vector
+void cvtToVector2D(at::Tensor in, std::vector<cv::Rect>& out) {
+    int* temp_arr = in.data_ptr<int>();
+    for(int i=0; i < in.sizes()[0]; i++) {
+        int temp[4] = {-1,-1,-1,-1};
+        for(int j=0; j < in.sizes()[1]; j++) {
+            temp[j] = *temp_arr++;
+        }
+        cv::Rect _tmp( cv::Point(temp[0],temp[1]) , cv::Point(temp[2], temp[3]));
+        out.push_back(_tmp);
+    }
+}
+
+void cvtToVector2D(at::Tensor in, std::vector<int>& out) {
+    for(int i=0; i < in.sizes()[0]; i++) { out.push_back(in[i].item<int>()); }
+}
+
+void cvtToVector2D(at::Tensor in, std::vector<float>& out) {
+    for(int i=0; i < in.sizes()[0]; i++) { out.push_back(in[i].item<float>()); }
+}
+
+std::vector<std::vector<float>> postprocess(at::Tensor pred, int image_size, int orig_size[]) {
     int NUM_CLASS = 1;
     int max_wh = 4096;
     int max_det = 300;
@@ -88,6 +109,12 @@ void postprocess(at::Tensor pred, int image_size) {
     float iou_thres = 0.45;
     auto predSize = pred.sizes();
     int batchSize = 1; // Forced batchsize of 1
+
+    std::vector<cv::Rect> final_boxes;
+    std::vector<int> classIds;
+    std::vector<float> confidences;
+    std::vector<int> final_idx;
+    std::vector<std::vector<float>> output;
 
     for(int i=0; i < batchSize; i++) {
         auto p = pred[i];
@@ -99,20 +126,86 @@ void postprocess(at::Tensor pred, int image_size) {
         * p.index({ torch::indexing::Slice(torch::indexing::None), torch::indexing::Slice(4,5) });
 
         at::Tensor bboxes = xywh2xyxy(p.index( {torch::indexing::Slice(torch::indexing::None), torch::indexing::Slice(torch::indexing::None, 4)} ));
-        
+
         // Assuming single class:
-        //conf, j = x[:, 5:].max(1, keepdim=True)
         auto conf_j = torch::max(p.index({torch::indexing::Slice(torch::indexing::None), torch::indexing::Slice(5, torch::indexing::None)}), 1);
-        //auto j = torch::argmax(p.index({torch::indexing::Slice(torch::indexing::None), torch::indexing::Slice(5, torch::indexing::None)}), 1);
         auto conf_bb = std::get<0>(conf_j);
-        conf_bb = conf_bb.shaped<float, 3>({A*B, C, D});
-        auto j = std::get<1>(conf_j );
-        p = torch::cat((bboxes, conf_bb, j) 1)[conf.view(-1) > conf_thres]
+        auto j = std::get<1>(conf_j);
+        conf_bb = torch::unsqueeze(conf_bb, 1);
+        j = torch::unsqueeze(j, 1);
+        p = torch::cat({bboxes, conf_bb, j}, 1);
+        p = p.index({conf_bb.view(-1) > conf_thres});
 
-        std::cout << conf_bb << j << std::endl;
+        int n = p.sizes()[0];
+        if(n > max_nms) {
+            // sort by confidence:
+            p = p.index( {torch::argsort( p.index({torch::indexing::Slice(torch::indexing::None), 4}), -1, true ).index({ torch::indexing::Slice(torch::indexing::None, max_nms) }) });
+        }
+        
+        // move to cpu:
+        p = p.cpu();
+        auto c = p.index({ torch::indexing::Slice(torch::indexing::None), torch::indexing::Slice(5,6) }) * max_wh;
+        c = c.to(torch::kInt32);
+        
+        auto boxes = p.index( {torch::indexing::Slice(torch::indexing::None), torch::indexing::Slice(torch::indexing::None, 4)} ) + c;
+        boxes /= image_size;
+        boxes.index({torch::indexing::Slice(torch::indexing::None), 0}) *= orig_size[0];
+        boxes.index({torch::indexing::Slice(torch::indexing::None), 2}) *= orig_size[0];
+        boxes.index({torch::indexing::Slice(torch::indexing::None), 1}) *= orig_size[1];
+        boxes.index({torch::indexing::Slice(torch::indexing::None), 3}) *= orig_size[1];
+        boxes = boxes.to(torch::kInt32);
+        
+        auto scores = p.index( {torch::indexing::Slice(torch::indexing::None), 4 } );
 
-        //x = torch.cat((box, conf, j.float()), 1)[conf.view(-1) > conf_thres]
+        cvtToVector2D(c, classIds);
+        cvtToVector2D(scores, confidences);
+        cvtToVector2D(boxes, final_boxes);
+
+        cv::dnn::NMSBoxes(final_boxes, confidences, 0.0f, iou_thres, final_idx);
+
+        // limit detections:
+        /*
+        // DO LATER:
+        if(final_idx.size()) > max_det {
+
+        }
+        */
+        
+        for(int j=0; j < final_idx.size(); j++) {
+            int _idx = final_idx[j];
+            std::vector<float> out = {boxes[_idx][0].item<float>(), boxes[_idx][1].item<float>(), boxes[_idx][2].item<float>(), boxes[_idx][3].item<float>(), classIds[_idx], confidences[_idx]};
+            output.push_back(out);
+        }
+
+        /*
+        bboxes /= image_size;
+        bboxes.index({torch::indexing::Slice(torch::indexing::None), 0}) *= orig_size[0];
+        bboxes.index({torch::indexing::Slice(torch::indexing::None), 2}) *= orig_size[0];
+        bboxes.index({torch::indexing::Slice(torch::indexing::None), 1}) *= orig_size[1];
+        bboxes.index({torch::indexing::Slice(torch::indexing::None), 3}) *= orig_size[1];
+        */
+        //return bboxes;
+        return output;
     }
+}
+
+void applyBoxes(cv::Mat image, std::vector<std::vector<float>> bboxes) {
+    //cv::resize(image, image, cv::Size(416,416), cv::INTER_LINEAR);
+    
+    //auto intBboxes = bboxes.to(torch::kInt32);
+    std::cout << bboxes << std::endl;
+    std::cout << image.rows << image.cols << std::endl;
+    
+    for(int i=0; i < bboxes.size(); i++) {
+        std::vector<float> bbox = bboxes[i];
+        cv::rectangle(image, cv::Point( (int)bbox[0], (int)bbox[1]), cv::Point( (int)bbox[2], (int)bbox[3]), cv::Scalar(0,0,255), 2, 8, 0 );
+    }
+
+    cv::namedWindow("test", cv::WINDOW_AUTOSIZE);
+    cv::imshow("test", image);
+    cv::waitKey(-1);
+    cv::destroyWindow("test");
+    cv::imwrite("yolov3_cpp_out.png", image);
 }
 
 int main(int argc, const char* argv[]) {
@@ -133,6 +226,7 @@ int main(int argc, const char* argv[]) {
 
     auto start = std::chrono::high_resolution_clock::now();
     cv::Mat image = cv::imread("/home/vijay/Documents/devmk4/radar-cnn/data/syn_walk/images/frame_40_40.png");
+    int orig_size[2] = {image.rows, image.cols};
 
     {
         torch::NoGradGuard no_grad;
@@ -146,7 +240,9 @@ int main(int argc, const char* argv[]) {
         inputs.push_back(input_tensor);
         
         at::Tensor output = module.forward(inputs).toTensor();
-        postprocess(output, 500);
+        std::vector<std::vector<float>> boxes = postprocess(output, 416, orig_size);
+        //boxes = boxes.cpu();
+        applyBoxes(image, boxes);
     }
 
     auto stop = std::chrono::high_resolution_clock::now();

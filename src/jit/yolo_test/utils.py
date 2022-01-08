@@ -225,8 +225,6 @@ def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=Non
             x = torch.cat((box[i], x[i, j + 5, None], j[:, None].float()), 1)
         else:  # best class only
             conf, j = x[:, 5:].max(1, keepdim=True)
-            print(conf.shape, j.shape)
-            exit()
             x = torch.cat((box, conf, j.float()), 1)[conf.view(-1) > conf_thres]
 
         # Filter by class
@@ -243,9 +241,12 @@ def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=Non
 
         # Batched NMS
         c = x[:, 5:6] * max_wh  # classes
+
         # boxes (offset by class), scores
         boxes, scores = x[:, :4] + c, x[:, 4]
+
         i = torchvision.ops.nms(boxes, scores, iou_thres)  # NMS
+        
         if i.shape[0] > max_det:  # limit detections
             i = i[:max_det]
 
@@ -255,6 +256,9 @@ def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=Non
             print(f'WARNING: NMS time limit {time_limit}s exceeded')
             break  # time limit exceeded
 
+    print(output)
+    exit()
+    
     return output
 
 def load_classes(path):
