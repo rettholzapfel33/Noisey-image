@@ -15,48 +15,14 @@ at::Tensor xywh2xyxy(at::Tensor pred) {
     return new_pred;
 }
 
-cv::Mat GetSquareImage( const cv::Mat& img, int target_width = 500 )
-{
-    int width = img.cols,
-       height = img.rows;
-
-    cv::Mat square = cv::Mat::zeros( target_width, target_width, img.type() );
-    square.setTo(cv::Scalar(125,125,125));
-
-    int max_dim = ( width >= height ) ? width : height;
-    float scale = ( ( float ) target_width ) / max_dim;
-    cv::Rect roi;
-    if ( width >= height )
-    {
-        roi.width = target_width;
-        roi.x = 0;
-        roi.height = height * scale;
-        roi.y = ( target_width - roi.height ) / 2;
-    }
-    else
-    {
-        roi.y = 0;
-        roi.height = target_width;
-        roi.width = width * scale;
-        roi.x = ( target_width - roi.width ) / 2;
-    }
-
-    cv::resize( img, square( roi ), roi.size() );
-
-    return square;
-}
-
 at::Tensor preprocess(cv::Mat image, int image_size) {
     std::cout << "Image size: " << image.rows << " x " << image.cols << std::endl;
-    /*
     int height = image.rows;
     int width = image.cols;
     auto newSize = cv::Size(0,0);
-    */
 
     // Pad image size:
     // Uncomment this to do just squared resizing:
-    /*
     if(height < width) {
         // Width is the largest side:
         newSize = cv::Size( image_size, (image_size*height)/width ); // w,h
@@ -66,13 +32,11 @@ at::Tensor preprocess(cv::Mat image, int image_size) {
         newSize = cv::Size( (image_size*width)/height , image_size);
     } 
     std::cout << "Resizing to: " << newSize << std::endl;
-    */
 
     // Comment the line below to do adjacent disabling:
-    cv::Mat resized_image = GetSquareImage(image, image_size);
-    cv::cvtColor(resized_image, resized_image, cv::COLOR_BGR2RGB);
-    //cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
+    cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
     image.convertTo(image, CV_32FC3, 1.0f/255.0f);
+
     at::Tensor output = torch::from_blob(image.data, {1, image.cols, image.rows, 3});
     output = output.permute({0, 3, 1, 2});
     output = torch::nn::functional::interpolate(output, torch::nn::functional::InterpolateFuncOptions().size(std::vector<int64_t>({image_size, image_size})).mode(torch::kNearest));
@@ -118,6 +82,8 @@ std::vector<std::vector<float>> postprocess(at::Tensor pred, int image_size, int
 
     for(int i=0; i < batchSize; i++) {
         auto p = pred[i];
+        std::cout << p.sizes() << std::endl;
+        exit(1);
         auto conf = p.index({"...", 4});
         p = p.index({conf>conf_thres});
         if (p.sizes()[0] == 0) { break; }
@@ -148,6 +114,9 @@ std::vector<std::vector<float>> postprocess(at::Tensor pred, int image_size, int
         c = c.to(torch::kInt32);
         
         auto boxes = p.index( {torch::indexing::Slice(torch::indexing::None), torch::indexing::Slice(torch::indexing::None, 4)} ) + c;
+        
+        std::cout << "box: " << boxes << std::endl;
+
         boxes /= image_size;
         boxes.index({torch::indexing::Slice(torch::indexing::None), 0}) *= orig_size[0];
         boxes.index({torch::indexing::Slice(torch::indexing::None), 2}) *= orig_size[0];
@@ -162,7 +131,6 @@ std::vector<std::vector<float>> postprocess(at::Tensor pred, int image_size, int
         cvtToVector2D(boxes, final_boxes);
 
         cv::dnn::NMSBoxes(final_boxes, confidences, 0.0f, iou_thres, final_idx);
-
         // limit detections:
         /*
         // DO LATER:
@@ -194,7 +162,7 @@ void applyBoxes(cv::Mat image, std::vector<std::vector<float>> bboxes) {
     
     //auto intBboxes = bboxes.to(torch::kInt32);
     std::cout << bboxes << std::endl;
-    std::cout << image.rows << image.cols << std::endl;
+    std::cout << image.rows << " x " << image.cols << std::endl;
     
     for(int i=0; i < bboxes.size(); i++) {
         std::vector<float> bbox = bboxes[i];
@@ -209,8 +177,8 @@ void applyBoxes(cv::Mat image, std::vector<std::vector<float>> bboxes) {
 }
 
 int main(int argc, const char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "usage: example-app <path-to-exported-script-module>\n";
+    if (argc != 3) {
+        std::cerr << "usage: example-app <path-to-exported-script-module> <path-to-image>\n";
         return -1;
     }
 
@@ -225,7 +193,13 @@ int main(int argc, const char* argv[]) {
     }
 
     auto start = std::chrono::high_resolution_clock::now();
-    cv::Mat image = cv::imread("/home/vijay/Documents/devmk4/radar-cnn/data/syn_walk/images/frame_40_40.png");
+    //cv::Mat image = cv::imread("/home/vijay/Documents/devmk4/radar-cnn/data/syn_walk/images/frame_40_40.png");
+    cv::Mat image = cv::imread(argv[2]);
+    if(image.cols == 0) {
+        std::cerr << "Invalid image path!\n";
+        return -1;
+    }
+
     int orig_size[2] = {image.rows, image.cols};
 
     {
@@ -241,11 +215,10 @@ int main(int argc, const char* argv[]) {
         
         at::Tensor output = module.forward(inputs).toTensor();
         std::vector<std::vector<float>> boxes = postprocess(output, 416, orig_size);
-        //boxes = boxes.cpu();
         applyBoxes(image, boxes);
     }
 
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);    
-    std::cout << duration.count() << std::endl;
+    std::cout << duration.count()*0.000001 << " seconds" << std::endl;
 }
