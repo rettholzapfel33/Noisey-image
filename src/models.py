@@ -136,11 +136,11 @@ class YOLOv3(Model):
         return {"dst": np_img}
 
 _registry = {
-    'segmentation': Segmentation(
+    'Semantic Segmentation': Segmentation(
         str(Path(__file__).parent.absolute()) + "/config/ade20k-hrnetv2.yaml",
         scipy.io.loadmat(str(Path(__file__).parent.absolute()) + '/data/color150.mat')['colors']
     ),
-    'yolov3': YOLOv3(
+    'Object Detection (YOLOv3)': YOLOv3(
         os.path.join(currPath, 'obj_detector/cfg', 'coco.names'),
         os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg'),
         os.path.join(currPath,'obj_detector/weights','yolov3.weights')

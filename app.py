@@ -21,7 +21,7 @@ import yaml
 # import utilities:
 from src.utils.images import convert_cvimg_to_qimg
 from src.transforms import AugDialog, AugmentationPipeline, Augmentation, mainAug
-from src.experimentDialog import ExperimentDialog
+from src.experimentDialog import ExperimentConfig, ExperimentDialog
 from src import models
 from src.utils.qt5extra import CheckState
 from src.utils.weights import Downloader
@@ -110,15 +110,9 @@ class mainWindow(QtWidgets.QMainWindow):
         self.default_img()
 
         # Buttons
-        #self.ui.pushButton.clicked.connect(self.noise_gen)
-        #self.ui.pushButton_2.clicked.connect(self.run_model)
-        
-        self.experiment = ExperimentDialog()
-        self.ui.pushButton_2.clicked.connect(self.experiment.show)
-        
-        
+        self.ui.pushButton_2.clicked.connect(self.startExperiment)
         self.ui.pushButton_3.clicked.connect(self.noise_gen_all) # replace with new function
-        self.ui.pushButton_4.clicked.connect(self.quitApp)
+        self.ui.pushButton_4.clicked.connect(quit)
         self.ui.pushButton_5.clicked.connect(self.run_model_all)
 
         # Augmentation Generator:
@@ -170,7 +164,6 @@ class mainWindow(QtWidgets.QMainWindow):
 
         right_menu.exec_(self.ui.fileList.mapToGlobal(position))
 
-
     def close(self):
         """Remoes a file from the file list widget"""
         items = self.ui.fileList.selectedItems()
@@ -187,17 +180,7 @@ class mainWindow(QtWidgets.QMainWindow):
     def decreaseFont(self):
         """Decreses the size of font across the whole application"""
         self.ui.centralwidget.setFont(QtGui.QFont('Ubuntu', self.ui.centralwidget.fontInfo().pointSize() - 1))
-
-    def quitApp(self):
-        quit()
-
-    def runAugOnImage(self, state):
-        if state == CheckState.Checked:
-            pass
-        elif state == CheckState.Unchecked:
-            pass
-
-
+    
     def updateNoisePixMap(self, image_mat, augs, list_item):
         mat = np.copy(image_mat)
         for aug in augs:
@@ -243,7 +226,6 @@ class mainWindow(QtWidgets.QMainWindow):
         # default_image = self.ui.fileList.itemAt(0,0)
         # _data = default_image.data(QtCore.Qt.UserRole)
         # self.updateNoisePixMap(_data["img"], mainAug)
-
 
     def open_file(self, filePaths = None):
         if(filePaths == None):
@@ -339,7 +321,6 @@ class mainWindow(QtWidgets.QMainWindow):
 
         return filePaths
 
-
     def noise_gen(self):
         qListItem = self.ui.fileList.currentItem()
         originalImg = qListItem.data(QtCore.Qt.UserRole)['img']
@@ -429,9 +410,7 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             self.worker.setup(imgs, display_sep, 'yolov3', qListItems)
 
-
         self.worker.moveToThread(self.thread)
-
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
@@ -555,8 +534,7 @@ class mainWindow(QtWidgets.QMainWindow):
             temp = qListItem.data(QtCore.Qt.UserRole)
             temp['items'] = names
             qListItem.setData(QtCore.Qt.UserRole, temp)
-
-        
+ 
     def run_model(self):
         qListItem = self.ui.fileList.currentItem()
         img = qListItem.data(QtCore.Qt.UserRole).get('img')
@@ -594,11 +572,7 @@ class mainWindow(QtWidgets.QMainWindow):
         display_sep = self.ui.checkBox_2.isChecked()
         comboModelType = self.ui.comboBox.currentText()
 
-        if comboModelType == 'Semantic Segmentation':
-            self.worker.setup([noiseImg], display_sep, 'segmentation', [qListItem])
-        else:
-            self.worker.setup([noiseImg], display_sep, 'yolov3', [qListItem])
-        
+        self.worker.setup([noiseImg], display_sep, comboModelType, [qListItem])
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
@@ -612,6 +586,23 @@ class mainWindow(QtWidgets.QMainWindow):
         self.thread.finished.connect(self.thread.deleteLater)
 
         self.thread.start()
+
+    def startExperiment(self):
+        # fill image paths with dummy inputs for now
+        comboModelType = self.ui.comboBox.currentText()
+        print(comboModelType)
+
+        # initialize model (temp; move to thread worker):
+        _model = models._registry[comboModelType]
+        _model.initialize()
+
+        config = ExperimentConfig(mainAug, True, [
+            './imgs/default_imgs/5b2372a8a310010f43da1d3e.jpg',
+            './imgs/default_imgs/100FACES.jpg',
+            './imgs/default_imgs/car detection.png'
+        ], _model.run)
+        self.experiment = ExperimentDialog(config)
+        self.experiment.startExperiment()
 
 
 if __name__ == '__main__':

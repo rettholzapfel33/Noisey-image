@@ -44,11 +44,11 @@
     <rect>
      <x>430</x>
      <y>370</y>
-     <width>215</width>
-     <height>46</height>
+     <width>239</width>
+     <height>48</height>
     </rect>
    </property>
-   <layout class="QGridLayout" name="gridLayout_2">
+   <layout class="QGridLayout" name="graphPreview">
     <item row="0" column="0" rowspan="3">
      <widget class="QPushButton" name="backGraph">
       <property name="text">
@@ -105,16 +105,16 @@
     <number>24</number>
    </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>70</x>
      <y>270</y>
-     <width>215</width>
-     <height>46</height>
+     <width>239</width>
+     <height>48</height>
     </rect>
    </property>
-   <layout class="QGridLayout" name="gridLayout">
+   <layout class="QGridLayout" name="picturePreview">
     <item row="0" column="0" rowspan="3">
      <widget class="QPushButton" name="previewBack">
       <property name="text">
@@ -157,6 +157,16 @@
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QTextEdit" name="textProgress">
+   <property name="geometry">
+    <rect>
+     <x>290</x>
+     <y>140</y>
+     <width>211</width>
+     <height>141</height>
+    </rect>
+   </property>
   </widget>
  </widget>
  <resources/>
