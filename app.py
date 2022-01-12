@@ -72,6 +72,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # Check status of configurations:
         weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights"}
+        self.labels = None
 
         if Downloader.check(weight_dict):
             self.downloadDialog = Downloader(weight_dict)
@@ -195,7 +196,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
 
     def default_img(self, fileName = "MISC1/car detection.png"):
-        print(CURRENT_PATH + "imgs/" + fileName)
+        #print(CURRENT_PATH + "imgs/" + fileName)
         self.open_file(CURRENT_PATH + "imgs/" + fileName)
 
         self.changePreviewImage()
@@ -210,18 +211,21 @@ class mainWindow(QtWidgets.QMainWindow):
 
         new_item = None
 
-        print(filePaths)
-
         for filePath in filePaths:
-            fileName = filePath[filePath.rfind('/') + 1:]
+            fileName = os.path.basename(filePath)
             items = self.ui.fileList.findItems(fileName, QtCore.Qt.MatchExactly)
             if len(items) > 0:
                 self.ui.statusbar.showMessage("File already opened", 3000)
                 continue
 
             if filePath.endswith(".yaml"):
+                # return_value = self.read_yaml(filePath)
+                # if(len(return_value) > 1 and type(return_value[1]) is dict):
+                #     filePaths.extend(return_value[0])
+                #     labels = return_value[1]
+                # else:
+                #     filePaths.extend(return_value)
                 filePaths.extend(self.read_yaml(filePath))
-                #self.read_yaml(filePath)
                 continue
 
             new_item = QtWidgets.QListWidgetItem()
@@ -237,7 +241,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.preview_2.clear()
 
     def read_yaml(self, filePath):
-        print(filePath[:filePath.rfind('/') + 1])
+        #print(filePath[:filePath.rfind('/') + 1])
         filePaths = []
         with open(filePath) as file:
             documents = yaml.full_load(file)
@@ -272,6 +276,8 @@ class mainWindow(QtWidgets.QMainWindow):
             for index in range(dialogUI.listWidget.count()):
                 if dialogUI.listWidget.item(index).checkState() == Qt.Checked:
                     checkedItems.append(dialogUI.listWidget.item(index).text())
+        else:
+            checkedItems = trainVT
 
         for x in checkedItems:
             if(isinstance(documents[x], list)):
@@ -282,15 +288,37 @@ class mainWindow(QtWidgets.QMainWindow):
         root = filePath[:filePath.rfind('/') + 1]
 
         if "path" in documents:
-            root = root + documents["path"]
-
-        if root[len(root) - 1] != "/":
-            root = root + "/"
+            root = os.path.join(root, documents["path"])
 
         filePaths = list(map(lambda path: root + path, filePaths))
 
-        print(filePaths)
+        for file in filePaths:
+            if(os.path.isdir(file)):
+                onlyfiles = [f for f in os.listdir(file) if os.path.isfile(os.path.join(file, f))]
+                onlyfiles = list(map(lambda path: os.path.join(file, path), onlyfiles))
+        
+                filePaths.remove(file)
+                filePaths.extend(onlyfiles)
 
+        #print(filePaths)
+
+        if "labels" in documents:
+            labels_folder = os.path.join(root, documents["labels"])
+            onlylabels = [f for f in os.listdir(labels_folder) if os.path.isfile(os.path.join(labels_folder, f))]
+            labels = list(map(lambda path: os.path.join(labels_folder, path), onlylabels))
+
+            labels_dic = {}
+            for label in labels:
+                file_content = []
+                with open(label) as f:
+                    for line in f:
+                        file_content.append(line.split())
+                #print(file_content)
+                base=os.path.basename(label)
+                labels_dic[os.path.splitext(base)[0]] = file_content
+
+            self.labels = labels_dic
+        
         return filePaths
 
 
@@ -409,7 +437,7 @@ class mainWindow(QtWidgets.QMainWindow):
         originalImg = qListItem.data(QtCore.Qt.UserRole)['img']
 
         predictedImg = qListItem.data(QtCore.Qt.UserRole).get('predictedImg')
-        print(originalImg)
+        
         if(predictedImg is None):
             return
 
