@@ -590,7 +590,6 @@ class mainWindow(QtWidgets.QMainWindow):
     def startExperiment(self):
         # fill image paths with dummy inputs for now
         comboModelType = self.ui.comboBox.currentText()
-        print(comboModelType)
 
         # initialize model (temp; move to thread worker):
         _model = models._registry[comboModelType]
@@ -600,7 +599,10 @@ class mainWindow(QtWidgets.QMainWindow):
             './imgs/default_imgs/5b2372a8a310010f43da1d3e.jpg',
             './imgs/default_imgs/100FACES.jpg',
             './imgs/default_imgs/car detection.png'
-        ], _model.run)
+        ],
+        _model,
+        shouldAug=self.ui.runOnAug.isChecked()
+        )
         self.experiment = ExperimentDialog(config)
         self.experiment.startExperiment()
 
