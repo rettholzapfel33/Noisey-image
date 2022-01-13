@@ -10,12 +10,13 @@ import time
 import numpy as np
 
 class ExperimentConfig:
-    def __init__(self, mainAug:AugmentationPipeline, isCompound:bool, imagePaths:list, model, shouldAug=True) -> None:
+    def __init__(self, mainAug:AugmentationPipeline, isCompound:bool, imagePaths:list, model, shouldAug=True, labels=[]) -> None:
         self.mainAug = mainAug
         self.isCompound = isCompound
         self.imagePaths = imagePaths
         self.model = model
         self.shouldAug = shouldAug
+        self.labels = labels
 
 class ExperimentWorker(QObject):
     finished = pyqtSignal()
