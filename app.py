@@ -21,6 +21,7 @@ import yaml
 # import utilities:
 from src.utils.images import convert_cvimg_to_qimg
 from src.transforms import AugDialog, AugmentationPipeline, Augmentation, mainAug
+from src.experimentDialog import ExperimentConfig, ExperimentDialog
 from src import models
 from src.utils.qt5extra import CheckState
 from src.utils.weights import Downloader
@@ -36,7 +37,7 @@ class Worker(QtCore.QObject):
         self.files = files
         self.ifDisplay = ifDisplay
         self.listWidgets = listWidgets
-        assert model_type == 'segmentation' or model_type == 'yolov3', "Model Type %s is not a defined term!"%(model_type)
+        #assert model_type == 'segmentation' or model_type == 'yolov3', "Model Type %s is not a defined term!"%(model_type)
         self.model_type = model_type
 
     def run(self):
@@ -66,6 +67,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
         self.addWindow = AugDialog(self.ui.listAugs)
         self.addWindow.setModal(True)
         self.addWindow.demoAug()
@@ -94,11 +96,9 @@ class mainWindow(QtWidgets.QMainWindow):
         self.default_img()
 
         # Buttons
-        self.ui.pushButton.clicked.connect(self.run_model)
-        self.ui.pushButton_2.clicked.connect(self.run_model_all)
-        #self.ui.pushButton_3.clicked.connect(self.noise_gen_all) # replace with new function
-        self.ui.pushButton_4.clicked.connect(self.quitApp)
-        #self.ui.pushButton_5.clicked.connect(self.run_model_all)
+        self.ui.pushButton.clicked.connect(self.run_model)  
+        self.ui.pushButton_2.clicked.connect(self.startExperiment)
+        self.ui.pushButton_4.clicked.connect(quit)
 
         # Augmentation Generator:
         self.ui.addAug.clicked.connect(self.addWindow.show)
@@ -149,7 +149,6 @@ class mainWindow(QtWidgets.QMainWindow):
 
         right_menu.exec_(self.ui.fileList.mapToGlobal(position))
 
-
     def close(self):
         """Remoes a file from the file list widget"""
         items = self.ui.fileList.selectedItems()
@@ -166,25 +165,13 @@ class mainWindow(QtWidgets.QMainWindow):
     def decreaseFont(self):
         """Decreses the size of font across the whole application"""
         self.ui.centralwidget.setFont(QtGui.QFont('Ubuntu', self.ui.centralwidget.fontInfo().pointSize() - 1))
-
-    def quitApp(self):
-        quit()
-
-    def runAugOnImage(self, state):
-        if state == CheckState.Checked:
-            pass
-        elif state == CheckState.Unchecked:
-            pass
-
-
+        
     def updateNoisePixMap(self, mat, augs):
         for aug in augs:
             mat = aug(mat, example=True)
         qt_img = convert_cvimg_to_qimg(mat)
         self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
-
         return mat
-
 
     def changePreviewImage(self, *kwargs):
         #print(kwargs)
@@ -200,7 +187,6 @@ class mainWindow(QtWidgets.QMainWindow):
         self.open_file(CURRENT_PATH + "imgs/" + fileName)
 
         self.changePreviewImage()
-
 
     def open_file(self, filePaths = None):
         if(filePaths == None):
@@ -321,89 +307,6 @@ class mainWindow(QtWidgets.QMainWindow):
         
         return filePaths
 
-
-    def noise_gen_all(self):
-        lw = self.ui.fileList
-
-        items = []
-        for x in range(lw.count()):
-            if(lw.item(x) != lw.currentItem()):
-                items.append(lw.item(x))
-
-        
-
-        for item in items:
-            _data = item.data(QtCore.Qt.UserRole)
-            mat = np.copy(_data['img'])
-            for aug in mainAug:
-                mat = aug(mat, example=True)
-
-            _data['noiseImg'] = mat
-            item.setData(QtCore.Qt.UserRole, _data)
-
-        self.changePreviewImage()
-
-    def run_model_all(self):
-        lw = self.ui.fileList
-
-        items = []
-        for x in range(lw.count()):
-            #if(lw.item(x) != lw.currentItem()):
-            items.append(lw.item(x))
-
-        imgs = []
-        qListItems = []
-
-        for qListItem in items:
-            file_path = qListItem.data(QtCore.Qt.UserRole).get('filePath')
-
-            if(file_path is None):
-                self.ui.statusbar.showMessage("Import an image first!", 3000)
-                return
-
-            img = cv2.imread(file_path)
-            noiseImg = self.updateNoisePixMap(img, mainAug)
-
-            imgs.append(noiseImg)
-            qListItems.append(qListItem)
-
-        self.ui.pushButton_2.setEnabled(False)
-
-        self.ui.progressBar_2.show()
-        self.ui.progressBar_2.reset()
-        self.ui.listWidget.clear()
-        self.ui.original_2.clear()
-        self.ui.preview_2.clear()
-
-        self.ui.progressBar_2.setMaximum(len(imgs))
-
-        self.thread = QtCore.QThread()
-        self.worker = Worker()
-
-        display_sep = False
-        comboModelType = self.ui.comboBox.currentText()
-
-        if comboModelType == 'Semantic Segmentation':
-            self.worker.setup(imgs, display_sep, 'segmentation', qListItems)
-        else:
-            self.worker.setup(imgs, display_sep, 'yolov3', qListItems)
-
-
-        self.worker.moveToThread(self.thread)
-
-        self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.worker.finished.connect(self.ui.progressBar_2.hide)
-        self.worker.finished.connect(self.display_result)
-        if(comboModelType == "Semantic Segmentation"):
-            self.worker.finished.connect(self.display_items)
-        self.worker.finished.connect(lambda: self.ui.pushButton_2.setEnabled(True))
-        self.worker.progress.connect(self.reportProgress2)
-        self.thread.finished.connect(self.thread.deleteLater)
-
-        self.thread.start()
-
     def reportProgress2(self, n):
         if(n == 3):
             self.ui.progressBar_2.setValue(self.ui.progressBar_2.value() + 1)
@@ -493,8 +396,7 @@ class mainWindow(QtWidgets.QMainWindow):
             temp = qListItem.data(QtCore.Qt.UserRole)
             temp['items'] = names
             qListItem.setData(QtCore.Qt.UserRole, temp)
-
-        
+ 
     def run_model(self):
         qListItem = self.ui.fileList.currentItem()
         img = cv2.imread(qListItem.data(QtCore.Qt.UserRole).get('filePath'))
@@ -518,11 +420,7 @@ class mainWindow(QtWidgets.QMainWindow):
         display_sep = self.ui.checkBox_2.isChecked()
         comboModelType = self.ui.comboBox.currentText()
 
-        if comboModelType == 'Semantic Segmentation':
-            self.worker.setup([noiseImg], display_sep, 'segmentation', [qListItem])
-        else:
-            self.worker.setup([noiseImg], display_sep, 'yolov3', [qListItem])
-        
+        self.worker.setup([noiseImg], display_sep, comboModelType, [qListItem])
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
@@ -536,6 +434,25 @@ class mainWindow(QtWidgets.QMainWindow):
         self.thread.finished.connect(self.thread.deleteLater)
 
         self.thread.start()
+
+    def startExperiment(self):
+        # fill image paths with dummy inputs for now
+        comboModelType = self.ui.comboBox.currentText()
+
+        # initialize model (temp; move to thread worker):
+        _model = models._registry[comboModelType]
+        _model.initialize()
+
+        config = ExperimentConfig(mainAug, True, [
+            './imgs/default_imgs/5b2372a8a310010f43da1d3e.jpg',
+            './imgs/default_imgs/100FACES.jpg',
+            './imgs/default_imgs/car detection.png'
+        ],
+        _model,
+        shouldAug=self.ui.runOnAug.isChecked()
+        )
+        self.experiment = ExperimentDialog(config)
+        self.experiment.startExperiment()
 
 
 if __name__ == '__main__':
