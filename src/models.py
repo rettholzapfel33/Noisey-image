@@ -19,8 +19,7 @@ class Model(abc.ABC):
     Requirment: The network needs to be fitted in four main funtions: run, initialize, deinitialize, and draw.   
     """
     def __init__(self, *network_config) -> None:
-        self.__network_config__ = network_config
-        self.initialize(*network_config)
+        self.complexOutput = False
     
     @abc.abstractclassmethod
     def run(self, input):
@@ -38,6 +37,10 @@ class Model(abc.ABC):
     def draw(pred):
         raise NotImplementedError
 
+    @abc.abstractproperty
+    def outputFormat(self):
+        raise NotImplementedError
+
     def __call__(self):
         pred = self.run()
         return pred
@@ -48,11 +51,16 @@ class Segmentation(Model):
     It specifies its four main functions: run, initialize, deinitialize, and draw. 
     """
     def __init__(self, *network_config) -> None:
+        super().__init__(network_config)
+        
+        self.complexOutput = True
         self.cfg, self.colors = network_config
         #self.cfg = str(Path(__file__).parent.absolute()) + "/config/ade20k-hrnetv2.yaml"
         # colors
         #self.colors = scipy.io.loadmat(str(Path(__file__).parent.absolute()) + '/data/color150.mat')['colors']
         self.names = {}
+        self.complexOutput = True # output is a large matrix. Saving output is a little different than object detector
+
         with open(str(Path(__file__).parent.absolute()) + '/data/object150_info.csv') as f:
             reader = csv.reader(f)
             next(reader)
@@ -106,26 +114,30 @@ class Segmentation(Model):
         "listOfNames":detectedNames
                 }
 
+    def outputFormat(self):
+        return "{}" # hex based output?
+
 class YOLOv3(Model):
     """
     YOLO Model that inhertes the Model class
     It specifies its four main functions: run, initialize, deinitialize, and draw. 
     """
     def __init__(self, *network_config) -> None:
+        super(YOLOv3, self).__init__()
         # network_config: CLASSES, CFG, WEIGHTS
         self.CLASSES, self.CFG, self.WEIGHTS = network_config
         # self.CLASSES = os.path.join(currPath, 'obj_detector/cfg', 'coco.names')
         # self.CFG = os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg')
         # self.WEIGHTS = os.path.join(currPath,'obj_detector/weights','yolov3.weights')
         print(self.CLASSES, self.CFG, self.WEIGHTS)
+        self.classes = load_classes(self.CLASSES)
 
     def run(self, input):
         pred = detect.detect_image(self.yolo, input)
-        return pred
+        return pred #[x1,y1,x2,y2,conf,class] <--- box
 
     def initialize(self, *kwargs):
         self.yolo = load_model(self.CFG, self.WEIGHTS)
-        self.classes = load_classes(self.CLASSES)
         return 0
     
     def deinitialize(self):
@@ -135,12 +147,15 @@ class YOLOv3(Model):
         np_img = detect._draw_and_return_output_image(img, pred, 416, self.classes)
         return {"dst": np_img}
 
+    def outputFormat(self):
+        return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
+
 _registry = {
-    'segmentation': Segmentation(
+    'Semantic Segmentation': Segmentation(
         str(Path(__file__).parent.absolute()) + "/config/ade20k-hrnetv2.yaml",
         scipy.io.loadmat(str(Path(__file__).parent.absolute()) + '/data/color150.mat')['colors']
     ),
-    'yolov3': YOLOv3(
+    'Object Detection (YOLOv3)': YOLOv3(
         os.path.join(currPath, 'obj_detector/cfg', 'coco.names'),
         os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg'),
         os.path.join(currPath,'obj_detector/weights','yolov3.weights')
