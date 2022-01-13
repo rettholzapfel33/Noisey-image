@@ -281,7 +281,7 @@ def _draw_and_return_output_image(image, detections, img_size, classes):
                     thickness=tf, lineType=cv2.LINE_AA)
         
         # create class box:
-        cv2.putText(org_img, classes[int(cls_pred)], (int(x1), int(y1)-10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (36,255,12), 2)
+        #cv2.putText(org_img, classes[int(cls_pred)], (int(x1), int(y1)-10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (36,255,12), 2)
         
         # Create a Rectangle patch
         #bbox = patches.Rectangle((x1, y1), box_w, box_h, linewidth=2, edgecolor=color, facecolor="none")

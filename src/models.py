@@ -130,14 +130,14 @@ class YOLOv3(Model):
         # self.CFG = os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg')
         # self.WEIGHTS = os.path.join(currPath,'obj_detector/weights','yolov3.weights')
         print(self.CLASSES, self.CFG, self.WEIGHTS)
+        self.classes = load_classes(self.CLASSES)
 
     def run(self, input):
         pred = detect.detect_image(self.yolo, input)
-        return pred
+        return pred #[x1,y1,x2,y2,conf,class] <--- box
 
     def initialize(self, *kwargs):
         self.yolo = load_model(self.CFG, self.WEIGHTS)
-        self.classes = load_classes(self.CLASSES)
         return 0
     
     def deinitialize(self):

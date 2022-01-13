@@ -449,7 +449,7 @@ class mainWindow(QtWidgets.QMainWindow):
             './imgs/default_imgs/car detection.png'
         ],
         _model,
-        shouldAug=self.ui.runOnAug.isChecked()
+        shouldAug=True
         )
         self.experiment = ExperimentDialog(config)
         self.experiment.startExperiment()

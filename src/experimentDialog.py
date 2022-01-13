@@ -75,7 +75,8 @@ class ExperimentWorker(QObject):
                 for i, imgPath in enumerate(self.config.imagePaths):
                     _img = cv2.imread(imgPath)
                     for aug in self.config.mainAug:
-                        _img = aug(_img)
+                        pass
+                        #_img = aug(_img)
                     dets = self.config.model.run(_img)
                     self.writeDets(dets, os.path.join(self.savePath, exp_path), imgPath)
                     #self.insertLog('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
@@ -92,6 +93,7 @@ class ExperimentWorker(QObject):
                     for i, imgPath in enumerate(self.config.imagePaths):
                         _img = cv2.imread(imgPath)
                         # apply aug to _img here
+                        # _img = aug(_img)
                         dets = self.config.model.run(_img)
                         self.writeDets(dets, os.path.join(self.savePath, new_sub_dir), imgPath)
                         #self.insertLog('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
