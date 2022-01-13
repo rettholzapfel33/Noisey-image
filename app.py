@@ -95,7 +95,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # Buttons
         self.ui.pushButton.clicked.connect(self.run_model)
-        #self.ui.pushButton_2.clicked.connect(self.run_model)
+        self.ui.pushButton_2.clicked.connect(self.run_model_all)
         #self.ui.pushButton_3.clicked.connect(self.noise_gen_all) # replace with new function
         self.ui.pushButton_4.clicked.connect(self.quitApp)
         #self.ui.pushButton_5.clicked.connect(self.run_model_all)
@@ -355,21 +355,19 @@ class mainWindow(QtWidgets.QMainWindow):
         qListItems = []
 
         for qListItem in items:
-            img = qListItem.data(QtCore.Qt.UserRole).get('img')
-            noiseImg = qListItem.data(QtCore.Qt.UserRole).get('noiseImg')
+            file_path = qListItem.data(QtCore.Qt.UserRole).get('filePath')
 
-            if(img is None):
+            if(file_path is None):
                 self.ui.statusbar.showMessage("Import an image first!", 3000)
                 return
-            elif(noiseImg is None):
-                # self.ui.statusbar.showMessage("Add noise to the image first!", 3000)
-                # return
-                noiseImg = img
+
+            img = cv2.imread(file_path)
+            noiseImg = self.updateNoisePixMap(img, mainAug)
 
             imgs.append(noiseImg)
             qListItems.append(qListItem)
 
-        self.ui.pushButton_5.setEnabled(False)
+        self.ui.pushButton_2.setEnabled(False)
 
         self.ui.progressBar_2.show()
         self.ui.progressBar_2.reset()
@@ -400,7 +398,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.worker.finished.connect(self.display_result)
         if(comboModelType == "Semantic Segmentation"):
             self.worker.finished.connect(self.display_items)
-        self.worker.finished.connect(lambda: self.ui.pushButton_5.setEnabled(True))
+        self.worker.finished.connect(lambda: self.ui.pushButton_2.setEnabled(True))
         self.worker.progress.connect(self.reportProgress2)
         self.thread.finished.connect(self.thread.deleteLater)
 
