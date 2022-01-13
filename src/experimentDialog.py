@@ -109,7 +109,7 @@ class ExperimentResultWorker(QObject):
         if self.config.isCompound:
             for aug in self.config.mainAug:
                 _img = aug(_img)
-        return 0
+        return _img
 
 class ExperimentDialog(QDialog):
     def __init__(self, config:ExperimentConfig) -> None:

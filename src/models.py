@@ -123,6 +123,7 @@ class YOLOv3(Model):
     It specifies its four main functions: run, initialize, deinitialize, and draw. 
     """
     def __init__(self, *network_config) -> None:
+        super(YOLOv3, self).__init__()
         # network_config: CLASSES, CFG, WEIGHTS
         self.CLASSES, self.CFG, self.WEIGHTS = network_config
         # self.CLASSES = os.path.join(currPath, 'obj_detector/cfg', 'coco.names')
