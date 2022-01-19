@@ -168,6 +168,7 @@ class mainWindow(QtWidgets.QMainWindow):
         
     def updateNoisePixMap(self, mat, augs):
         for aug in augs:
+            print(aug)
             mat = aug(mat, example=True)
         qt_img = convert_cvimg_to_qimg(mat)
         self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
@@ -449,7 +450,6 @@ class mainWindow(QtWidgets.QMainWindow):
             './imgs/default_imgs/car detection.png'
         ],
         _model,
-        shouldAug=self.ui.runOnAug.isChecked()
         )
         self.experiment = ExperimentDialog(config)
         self.experiment.startExperiment()

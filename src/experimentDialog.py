@@ -2,12 +2,15 @@ from PyQt5.QtWidgets import QDialog
 from PyQt5.uic.uiparser import QtCore
 from PyQt5 import uic
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
+from PyQt5.QtGui import QPixmap
 
 from src.transforms import AugmentationPipeline, Augmentation
 import cv2
 import os
 import time
 import numpy as np
+
+from src.utils.images import convertCV2QT
 
 class ExperimentConfig:
     def __init__(self, mainAug:AugmentationPipeline, isCompound:bool, imagePaths:list, model, shouldAug=True, labels=[]) -> None:
@@ -100,17 +103,48 @@ class ExperimentWorker(QObject):
         self.finished.emit()
 
 class ExperimentResultWorker(QObject):
-    def __init__(self, imagePath, config) -> None:
+    finishedImage = pyqtSignal(QPixmap)
+    finishedGraph = pyqtSignal(np.ndarray)
+
+    def __init__(self, imagePath, config, expName) -> None:
         super(ExperimentResultWorker, self).__init__()
         self.imagePath = imagePath # a single image
         self.config = config
+        self.expName = expName
 
+    #@QtCore.pyqtSlot()
     def run(self):
         _img = cv2.imread(self.imagePath)
         if self.config.isCompound:
             for aug in self.config.mainAug:
                 _img = aug(_img)
-        return _img
+        
+        # read in detection:
+        _imgRoot = self.imagePath.split('/')[-1].split('.')[0]
+        txt_file = os.path.join(self.expName, "%s.txt"%(_imgRoot))
+        assert os.path.exists(txt_file)
+        
+        if self.config.model.complexOutput:
+            with open(txt_file, 'rb') as f:
+                _bytes = f.read()
+                _complex = np.frombuffer(_bytes)
+            print(_complex)
+            exit()
+        else:
+            # detectors (non-complex data)
+            with open(txt_file, 'r' ) as f:
+                _dets = list(map(str.strip, f.readlines()))
+            dets = []
+            for d in _dets:
+                _d = d.split(' ')
+                dets.append([ int(_d[0]), float(_d[1]), int(_d[2]), int(_d[2]) ])
+
+        return convertCV2QT(_img)
+
+    #@QtCore.pyqtSlot()
+    def runGraph(self):
+        # Priya code here
+        return 0
 
 class ExperimentDialog(QDialog):
     def __init__(self, config:ExperimentConfig) -> None:
@@ -174,8 +208,8 @@ class ExperimentDialog(QDialog):
         self.thread.quit()
 
         # update metadata on the labels:
-        self.label_6.setText(str(len(self.config.imagePaths)))
-        self.label_3.setText(str(self.totalGraphs))
+        self.label_3.setText(str(len(self.config.imagePaths)))
+        self.label_6.setText(str(self.totalGraphs))
         self.label.setText(str(self.currentIdx))
         self.label_4.setText(str(self.currentIdx))
 

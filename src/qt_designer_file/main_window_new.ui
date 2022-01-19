@@ -212,6 +212,13 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="compoundAug">
+            <property name="text">
+             <string>Compound Augmentations</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QProgressBar" name="progressBar">
             <property name="enabled">
              <bool>true</bool>
@@ -434,7 +441,7 @@
      <x>0</x>
      <y>0</y>
      <width>1195</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
