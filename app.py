@@ -287,8 +287,6 @@ class mainWindow(QtWidgets.QMainWindow):
                 filePaths.remove(file)
                 filePaths.extend(onlyfiles)
 
-        #print(filePaths)
-
         if "labels" in documents:
             labels_folder = os.path.join(root, documents["labels"])
             onlylabels = [f for f in os.listdir(labels_folder) if os.path.isfile(os.path.join(labels_folder, f))]
@@ -299,7 +297,10 @@ class mainWindow(QtWidgets.QMainWindow):
                 file_content = []
                 with open(label) as f:
                     for line in f:
-                        file_content.append(line.split())
+                        _list = line.split()
+                        if type(_list) == list:
+                            _list = list(map(float, _list))
+                        file_content.append(_list)
                 #print(file_content)
                 base=os.path.basename(label)
                 labels_dic[os.path.splitext(base)[0]] = file_content
@@ -456,13 +457,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 return -1
             imgPaths.append(file_path)
 
-        config = ExperimentConfig(mainAug, True, [
-            './imgs/default_imgs/5b2372a8a310010f43da1d3e.jpg',
-            './imgs/default_imgs/100FACES.jpg',
-            './imgs/default_imgs/car detection.png'
-        ],
-        _model,
-        )
+        config = ExperimentConfig(mainAug, self.ui.compoundAug.isChecked(), imgPaths, _model, labels=self.labels)
         self.experiment = ExperimentDialog(config)
         self.experiment.startExperiment()
 
