@@ -320,15 +320,12 @@ class mainWindow(QtWidgets.QMainWindow):
         originalImg = cv2.imread(qListItem.data(QtCore.Qt.UserRole)['filePath'])
 
         self.ui.listWidget.clear()
+        self.ui.original_2.clear()
+        self.ui.preview_2.clear()
 
         originalQtImg = convert_cvimg_to_qimg(originalImg)
         self.ui.original.setPixmap(QtGui.QPixmap.fromImage(originalQtImg))
 
-        # if(noiseImg is not None):
-        #     noiseQtImg = convert_cvimg_to_qimg(noiseImg)
-        #     self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(noiseQtImg))
-        # else:
-        #     self.ui.preview.clear()
         self.changePreviewImage()
 
 
