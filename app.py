@@ -444,6 +444,18 @@ class mainWindow(QtWidgets.QMainWindow):
         _model = models._registry[comboModelType]
         _model.initialize()
 
+        # replace preset list with variable list:
+        # assemble active image path list:
+        lw = self.ui.fileList
+        items = [lw.item(x) for x in range(lw.count())]
+        imgPaths = []
+        for qListItem in items:
+            file_path = qListItem.data(QtCore.Qt.UserRole).get('filePath')
+            if(file_path is None):
+                self.ui.statusbar.showMessage("Import an image first!", 3000)
+                return -1
+            imgPaths.append(file_path)
+
         config = ExperimentConfig(mainAug, True, [
             './imgs/default_imgs/5b2372a8a310010f43da1d3e.jpg',
             './imgs/default_imgs/100FACES.jpg',

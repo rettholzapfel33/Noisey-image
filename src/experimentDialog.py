@@ -12,6 +12,18 @@ import numpy as np
 
 from src.utils.images import convertCV2QT
 
+def createExperimentName(savePath):
+    _root_name = 'exp'
+    _folders = os.listdir(savePath)
+    if len(_folders) == 0:
+        return "%s_%i"%(_root_name, 1)
+    else:
+        _max_index = 1
+        for folder in _folders:
+            _index = int(folder.split('_')[-1])
+            if _index > _max_index: _max_index = _index
+        return "%s_%i"%(_root_name, _max_index+1)
+
 class ExperimentConfig:
     def __init__(self, mainAug:AugmentationPipeline, isCompound:bool, imagePaths:list, model, shouldAug=True, labels=[]) -> None:
         self.mainAug = mainAug
@@ -20,6 +32,8 @@ class ExperimentConfig:
         self.model = model
         self.shouldAug = shouldAug
         self.labels = labels
+        self.expName = ''
+        self.savePath = './src/data/tmp/runs'
 
 class ExperimentWorker(QObject):
     finished = pyqtSignal()
@@ -30,18 +44,6 @@ class ExperimentWorker(QObject):
         super(ExperimentWorker, self).__init__()
         self.config = config
         self.savePath = savePath
-
-    def createExperimentName(self):
-        _root_name = 'exp'
-        _folders = os.listdir(self.savePath)
-        if len(_folders) == 0:
-            return "%s_%i"%(_root_name, 1)
-        else:
-            _max_index = 1
-            for folder in _folders:
-                _index = int(folder.split('_')[-1])
-                if _index > _max_index: _max_index = _index
-            return "%s_%i"%(_root_name, _max_index+1)
 
     def writeDets(self, detections, exp_path, filename):
         _file = filename.split('/')[-1]
@@ -59,7 +61,8 @@ class ExperimentWorker(QObject):
 
     def run(self):
         # create experiment name automatically:
-        exp_path = self.createExperimentName()
+        #exp_path = self.createExperimentName()
+        exp_path = self.config.expName
         os.mkdir( os.path.join(self.savePath, exp_path) )
         #self.insertLog('Saving detections at: %s'%(exp_path))
         self.logProgress.emit("Saving detections at: %s"%(exp_path))
@@ -103,6 +106,7 @@ class ExperimentWorker(QObject):
         self.finished.emit()
 
 class ExperimentResultWorker(QObject):
+    finished = pyqtSignal()
     finishedImage = pyqtSignal(QPixmap)
     finishedGraph = pyqtSignal(np.ndarray)
 
@@ -115,15 +119,16 @@ class ExperimentResultWorker(QObject):
     #@QtCore.pyqtSlot()
     def run(self):
         _img = cv2.imread(self.imagePath)
+
         if self.config.isCompound:
             for aug in self.config.mainAug:
                 _img = aug(_img)
         
         # read in detection:
         _imgRoot = self.imagePath.split('/')[-1].split('.')[0]
-        txt_file = os.path.join(self.expName, "%s.txt"%(_imgRoot))
-        assert os.path.exists(txt_file)
-        
+        txt_file = os.path.join(self.config.savePath, self.expName, "%s.txt"%(_imgRoot))
+        assert os.path.exists(txt_file), txt_file
+
         if self.config.model.complexOutput:
             with open(txt_file, 'rb') as f:
                 _bytes = f.read()
@@ -137,9 +142,14 @@ class ExperimentResultWorker(QObject):
             dets = []
             for d in _dets:
                 _d = d.split(' ')
-                dets.append([ int(_d[0]), float(_d[1]), int(_d[2]), int(_d[2]) ])
+                dets.append([ int(_d[0]), float(_d[1]), int(_d[2]), int(_d[3]), int(_d[4]), int(_d[5]) ])
+            
+            # apply bbox:
+            for d in dets:
+                _img = cv2.rectangle(_img, (d[2], d[3]), (d[4], d[5]), (0,0,255), thickness=3)
 
-        return convertCV2QT(_img)
+        self.finishedImage.emit(convertCV2QT(_img, 301, 211))
+        self.finished.emit()
 
     #@QtCore.pyqtSlot()
     def runGraph(self):
@@ -155,12 +165,23 @@ class ExperimentDialog(QDialog):
         self.textProgress.setEnabled(False)
         self.config = config
         self._progressMove = 1/len(self.config.imagePaths)
-        self.savePath = './src/data/tmp/runs'
-        self.currentIdx = 1
+        self.config.expName = createExperimentName(self.config.savePath)
+
+        # image gui controls:
+        self.currentIdx = 0
+        self.currentGraphIdx = 0
         self.totalGraphs = 1
+
+        # buttons:
+        self.previewBack.clicked.connect(lambda: self.changeOnImageButton(-1)) # substract one from currentIdx
+        self.previewForward.clicked.connect( lambda: self.changeOnImageButton(1) ) # increase index by one
+
+        # multithreading stuff for updates after experiment:
+        self.afterExpThread = QThread()
+
         # check if experiment folder exists:
-        if not os.path.exists(self.savePath):
-            os.mkdir(self.savePath)
+        if not os.path.exists(self.config.savePath):
+            os.mkdir(self.config.savePath)
         self.show()
 
     def __setPreviews__(self, state:bool):
@@ -189,7 +210,7 @@ class ExperimentDialog(QDialog):
         self.textProgress.clear()
 
         self.thread = QThread()
-        self.worker = ExperimentWorker(self.config, self.savePath)
+        self.worker = ExperimentWorker(self.config, self.config.savePath)
         if not self.config.isCompound:
             self.totalGraphs = len(self.config.mainAug)
 
@@ -210,7 +231,44 @@ class ExperimentDialog(QDialog):
         # update metadata on the labels:
         self.label_3.setText(str(len(self.config.imagePaths)))
         self.label_6.setText(str(self.totalGraphs))
-        self.label.setText(str(self.currentIdx))
-        self.label_4.setText(str(self.currentIdx))
+        self.label.setText(str(self.currentIdx+1))
+        self.label_4.setText(str(self.currentGraphIdx+1))
 
         self.__setPreviews__(True)
+        self.refreshImageResults(0)
+        self.refreshGraphResults(0)
+
+    def refreshImageResults(self,i):
+        self.worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName)
+        self.worker.moveToThread(self.afterExpThread)
+        self.afterExpThread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.afterExpThread.quit)
+        self.worker.finished.connect(self.afterExpThread.wait)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.finishedImage.connect(self.updateImage)
+        #self.afterExpThread.finished.connect(self.afterExpThread.deleteLater)
+        #worker.progress.connect()
+        self.afterExpThread.start()
+    
+    def updateImage(self, img):
+        self.previewImage.setPixmap(img)
+
+    def updateGraph(self,):
+        return 
+
+    def refreshGraphResults(self,i):
+        return i
+        worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName)
+    
+    def changeOnImageButton(self, i):
+        if self.currentIdx+i < len(self.config.imagePaths) and self.currentIdx+i >= 0:
+            self.currentIdx += i
+            self.label.setText(str(self.currentIdx+1))
+            self.refreshImageResults(self.currentIdx)
+
+    def changeOnGraphButton(self, i):
+        if self.currentGraphIdx+i < len(self.config.imagePaths) and self.currentGraphIdx+i >= 0:
+            self.currentGraphIdx += i
+            self.label.setText(str(self.currentGraphIdx+1))
+            self.refreshGraphResults(self.currentGraphIdx)
+            return 0
