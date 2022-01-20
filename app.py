@@ -168,12 +168,10 @@ class mainWindow(QtWidgets.QMainWindow):
         """Decreses the size of font across the whole application"""
         self.ui.centralwidget.setFont(QtGui.QFont('Ubuntu', self.ui.centralwidget.fontInfo().pointSize() - 1))
         
-    def updateNoisePixMap(self, mat, augs):
-        for aug in augs:
-            mat = aug(mat, example=True)
-        qt_img = convert_cvimg_to_qimg(mat)
-        self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
-        return mat
+    def apply_augmentations(self, img):
+        for aug in mainAug:
+            img = aug(img, example=True)
+        return img
 
     def changePreviewImage(self, *kwargs):
         #print(kwargs)
@@ -181,7 +179,9 @@ class mainWindow(QtWidgets.QMainWindow):
         current_item = self.ui.fileList.currentItem()
         image = cv2.imread(current_item.data(QtCore.Qt.UserRole)['filePath'])
         #if image is not None:
-        self.updateNoisePixMap(image, mainAug)
+        image = self.apply_augmentations(image)
+        qt_img = convert_cvimg_to_qimg(image)
+        self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
 
 
     def default_img(self, fileName = "MISC1/car detection.png"):
@@ -337,7 +337,7 @@ class mainWindow(QtWidgets.QMainWindow):
             return
 
         qListItem = self.ui.fileList.currentItem()
-        originalImg = qListItem.data(QtCore.Qt.UserRole)['img']
+        originalImg = cv2.imread(qListItem.data(QtCore.Qt.UserRole)['filePath'])
 
         predictedImg = qListItem.data(QtCore.Qt.UserRole).get('predictedImg')
         
@@ -407,7 +407,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.statusbar.showMessage("Import an image first!", 3000)
             return
 
-        noiseImg = self.updateNoisePixMap(img, mainAug)
+        noiseImg = self.apply_augmentations(img)
 
         self.ui.pushButton_2.setEnabled(False)
         self.ui.progressBar.show()
