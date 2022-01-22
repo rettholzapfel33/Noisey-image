@@ -1,36 +1,72 @@
-
 <!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-    <title>src.mit_semseg.models package &#8212; Noisey-Image  documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.mit_semseg.models package &mdash; Noisey-Image  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-   
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
 
-  </head><body>
-  
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Noisey-Image
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p><span class="caption-text">Modules:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="main_tutorial_guide.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="src.html">Submodules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="src.mit_semseg.html">Mit Semseg Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="src.obj_detector.html">Object Detector Module</a></li>
+</ul>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          
+        </div>
+      </div>
+    </nav>
 
-          <div class="body" role="main">
-            
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Noisey-Image</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>src.mit_semseg.models package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/src.mit_semseg.models.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
   <section id="src-mit-semseg-models-package">
 <h1>src.mit_semseg.models package<a class="headerlink" href="#src-mit-semseg-models-package" title="Permalink to this headline">¶</a></h1>
 <section id="submodules">
@@ -41,8 +77,8 @@
 <p>This HRNet implementation is modified from the following repository:
 <a class="reference external" href="https://github.com/HRNet/HRNet-Semantic-Segmentation">https://github.com/HRNet/HRNet-Semantic-Segmentation</a></p>
 <dl class="py function">
-<dt class="sig sig-object py" id="src.mit_semseg.models.hrnet.hrnetv2">
-<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.hrnet.</span></span><span class="sig-name descname"><span class="pre">hrnetv2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.hrnet.hrnetv2" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.hrnet.hrnetv2">
+<code class="sig-prename descclassname">src.mit_semseg.models.hrnet.</code><code class="sig-name descname">hrnetv2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.hrnet.hrnetv2" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </section>
@@ -51,8 +87,8 @@
 <p>This MobileNetV2 implementation is modified from the following repository:
 <a class="reference external" href="https://github.com/tonylins/pytorch-mobilenet-v2">https://github.com/tonylins/pytorch-mobilenet-v2</a></p>
 <dl class="py function">
-<dt class="sig sig-object py" id="src.mit_semseg.models.mobilenet.mobilenetv2">
-<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.mobilenet.</span></span><span class="sig-name descname"><span class="pre">mobilenetv2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.mobilenet.mobilenetv2" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.mobilenet.mobilenetv2">
+<code class="sig-prename descclassname">src.mit_semseg.models.mobilenet.</code><code class="sig-name descname">mobilenetv2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.mobilenet.mobilenetv2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructs a MobileNet_V2 model.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>pretrained (bool): If True, returns a model pre-trained on ImageNet</p>
@@ -64,12 +100,12 @@
 <section id="module-src.mit_semseg.models.models">
 <span id="src-mit-semseg-models-models-module"></span><h2>src.mit_semseg.models.models module<a class="headerlink" href="#module-src.mit_semseg.models.models" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.C1">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.models.</span></span><span class="sig-name descname"><span class="pre">C1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fc_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2048</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_softmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.C1" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.C1">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.models.models.</code><code class="sig-name descname">C1</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_class</span><span class="o">=</span><span class="default_value">150</span></em>, <em class="sig-param"><span class="n">fc_dim</span><span class="o">=</span><span class="default_value">2048</span></em>, <em class="sig-param"><span class="n">use_softmax</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.C1" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.C1.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conv_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.C1.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.C1.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conv_out</span></em>, <em class="sig-param"><span class="n">segSize</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.C1.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -82,19 +118,19 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.C1.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.models.models.C1.training" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.C1.training">
+<code class="sig-name descname">training</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.models.models.C1.training" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.C1DeepSup">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.models.</span></span><span class="sig-name descname"><span class="pre">C1DeepSup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fc_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2048</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_softmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.C1DeepSup" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.C1DeepSup">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.models.models.</code><code class="sig-name descname">C1DeepSup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_class</span><span class="o">=</span><span class="default_value">150</span></em>, <em class="sig-param"><span class="n">fc_dim</span><span class="o">=</span><span class="default_value">2048</span></em>, <em class="sig-param"><span class="n">use_softmax</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.C1DeepSup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.C1DeepSup.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conv_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.C1DeepSup.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.C1DeepSup.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conv_out</span></em>, <em class="sig-param"><span class="n">segSize</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.C1DeepSup.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -107,19 +143,19 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.C1DeepSup.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.models.models.C1DeepSup.training" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.C1DeepSup.training">
+<code class="sig-name descname">training</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.models.models.C1DeepSup.training" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.MobileNetV2Dilated">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.models.</span></span><span class="sig-name descname"><span class="pre">MobileNetV2Dilated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orig_net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dilate_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.MobileNetV2Dilated" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.MobileNetV2Dilated">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.models.models.</code><code class="sig-name descname">MobileNetV2Dilated</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">orig_net</span></em>, <em class="sig-param"><span class="n">dilate_scale</span><span class="o">=</span><span class="default_value">8</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.MobileNetV2Dilated" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.MobileNetV2Dilated.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_feature_maps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.MobileNetV2Dilated.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.MobileNetV2Dilated.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">return_feature_maps</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.MobileNetV2Dilated.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -132,40 +168,40 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.MobileNetV2Dilated.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.models.models.MobileNetV2Dilated.training" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.MobileNetV2Dilated.training">
+<code class="sig-name descname">training</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.models.models.MobileNetV2Dilated.training" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.ModelBuilder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.models.</span></span><span class="sig-name descname"><span class="pre">ModelBuilder</span></span><a class="headerlink" href="#src.mit_semseg.models.models.ModelBuilder" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.ModelBuilder">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.models.models.</code><code class="sig-name descname">ModelBuilder</code><a class="headerlink" href="#src.mit_semseg.models.models.ModelBuilder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.ModelBuilder.build_decoder">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">build_decoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ppm_deepsup'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fc_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_softmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.ModelBuilder.build_decoder" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.ModelBuilder.build_decoder">
+<em class="property">static </em><code class="sig-name descname">build_decoder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arch</span><span class="o">=</span><span class="default_value">'ppm_deepsup'</span></em>, <em class="sig-param"><span class="n">fc_dim</span><span class="o">=</span><span class="default_value">512</span></em>, <em class="sig-param"><span class="n">num_class</span><span class="o">=</span><span class="default_value">150</span></em>, <em class="sig-param"><span class="n">weights</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">use_softmax</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.ModelBuilder.build_decoder" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.ModelBuilder.build_encoder">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">build_encoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'resnet50dilated'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fc_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.ModelBuilder.build_encoder" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.ModelBuilder.build_encoder">
+<em class="property">static </em><code class="sig-name descname">build_encoder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arch</span><span class="o">=</span><span class="default_value">'resnet50dilated'</span></em>, <em class="sig-param"><span class="n">fc_dim</span><span class="o">=</span><span class="default_value">512</span></em>, <em class="sig-param"><span class="n">weights</span><span class="o">=</span><span class="default_value">''</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.ModelBuilder.build_encoder" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.ModelBuilder.weights_init">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">weights_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.ModelBuilder.weights_init" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.ModelBuilder.weights_init">
+<em class="property">static </em><code class="sig-name descname">weights_init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">m</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.ModelBuilder.weights_init" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.PPM">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.models.</span></span><span class="sig-name descname"><span class="pre">PPM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fc_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_softmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool_scales</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">6)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.PPM" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.PPM">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.models.models.</code><code class="sig-name descname">PPM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_class</span><span class="o">=</span><span class="default_value">150</span></em>, <em class="sig-param"><span class="n">fc_dim</span><span class="o">=</span><span class="default_value">4096</span></em>, <em class="sig-param"><span class="n">use_softmax</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">pool_scales</span><span class="o">=</span><span class="default_value">1, 2, 3, 6</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.PPM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.PPM.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conv_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.PPM.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.PPM.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conv_out</span></em>, <em class="sig-param"><span class="n">segSize</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.PPM.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -178,19 +214,19 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.PPM.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.models.models.PPM.training" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.PPM.training">
+<code class="sig-name descname">training</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.models.models.PPM.training" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.PPMDeepsup">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.models.</span></span><span class="sig-name descname"><span class="pre">PPMDeepsup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fc_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_softmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool_scales</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">6)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.PPMDeepsup" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.PPMDeepsup">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.models.models.</code><code class="sig-name descname">PPMDeepsup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_class</span><span class="o">=</span><span class="default_value">150</span></em>, <em class="sig-param"><span class="n">fc_dim</span><span class="o">=</span><span class="default_value">4096</span></em>, <em class="sig-param"><span class="n">use_softmax</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">pool_scales</span><span class="o">=</span><span class="default_value">1, 2, 3, 6</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.PPMDeepsup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.PPMDeepsup.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conv_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.PPMDeepsup.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.PPMDeepsup.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conv_out</span></em>, <em class="sig-param"><span class="n">segSize</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.PPMDeepsup.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -203,19 +239,19 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.PPMDeepsup.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.models.models.PPMDeepsup.training" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.PPMDeepsup.training">
+<code class="sig-name descname">training</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.models.models.PPMDeepsup.training" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.Resnet">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.models.</span></span><span class="sig-name descname"><span class="pre">Resnet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orig_resnet</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.Resnet" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.Resnet">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.models.models.</code><code class="sig-name descname">Resnet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">orig_resnet</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.Resnet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.Resnet.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_feature_maps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.Resnet.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.Resnet.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">return_feature_maps</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.Resnet.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -228,19 +264,19 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.Resnet.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.models.models.Resnet.training" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.Resnet.training">
+<code class="sig-name descname">training</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.models.models.Resnet.training" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.ResnetDilated">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.models.</span></span><span class="sig-name descname"><span class="pre">ResnetDilated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orig_resnet</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dilate_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.ResnetDilated" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.ResnetDilated">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.models.models.</code><code class="sig-name descname">ResnetDilated</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">orig_resnet</span></em>, <em class="sig-param"><span class="n">dilate_scale</span><span class="o">=</span><span class="default_value">8</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.ResnetDilated" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.ResnetDilated.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_feature_maps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.ResnetDilated.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.ResnetDilated.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">return_feature_maps</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.ResnetDilated.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -253,19 +289,19 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.ResnetDilated.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.models.models.ResnetDilated.training" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.ResnetDilated.training">
+<code class="sig-name descname">training</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.models.models.ResnetDilated.training" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.SegmentationModule">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.models.</span></span><span class="sig-name descname"><span class="pre">SegmentationModule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net_enc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net_dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deep_sup_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.SegmentationModule" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.SegmentationModule">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.models.models.</code><code class="sig-name descname">SegmentationModule</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">net_enc</span></em>, <em class="sig-param"><span class="n">net_dec</span></em>, <em class="sig-param"><span class="n">crit</span></em>, <em class="sig-param"><span class="n">deep_sup_scale</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.SegmentationModule" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#src.mit_semseg.models.models.SegmentationModuleBase" title="src.mit_semseg.models.models.SegmentationModuleBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">src.mit_semseg.models.models.SegmentationModuleBase</span></code></a></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.SegmentationModule.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feed_dict</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.SegmentationModule.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.SegmentationModule.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">feed_dict</span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">segSize</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.SegmentationModule.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -278,35 +314,35 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.SegmentationModule.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.models.models.SegmentationModule.training" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.SegmentationModule.training">
+<code class="sig-name descname">training</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.models.models.SegmentationModule.training" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.SegmentationModuleBase">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.models.</span></span><span class="sig-name descname"><span class="pre">SegmentationModuleBase</span></span><a class="headerlink" href="#src.mit_semseg.models.models.SegmentationModuleBase" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.SegmentationModuleBase">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.models.models.</code><code class="sig-name descname">SegmentationModuleBase</code><a class="headerlink" href="#src.mit_semseg.models.models.SegmentationModuleBase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.SegmentationModuleBase.pixel_acc">
-<span class="sig-name descname"><span class="pre">pixel_acc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.SegmentationModuleBase.pixel_acc" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.SegmentationModuleBase.pixel_acc">
+<code class="sig-name descname">pixel_acc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pred</span></em>, <em class="sig-param"><span class="n">label</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.SegmentationModuleBase.pixel_acc" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.SegmentationModuleBase.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.models.models.SegmentationModuleBase.training" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.SegmentationModuleBase.training">
+<code class="sig-name descname">training</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.models.models.SegmentationModuleBase.training" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.UPerNet">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.models.</span></span><span class="sig-name descname"><span class="pre">UPerNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fc_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_softmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool_scales</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">6)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fpn_inplanes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(256,</span> <span class="pre">512,</span> <span class="pre">1024,</span> <span class="pre">2048)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fpn_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.UPerNet" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.UPerNet">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.models.models.</code><code class="sig-name descname">UPerNet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_class</span><span class="o">=</span><span class="default_value">150</span></em>, <em class="sig-param"><span class="n">fc_dim</span><span class="o">=</span><span class="default_value">4096</span></em>, <em class="sig-param"><span class="n">use_softmax</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">pool_scales</span><span class="o">=</span><span class="default_value">1, 2, 3, 6</span></em>, <em class="sig-param"><span class="n">fpn_inplanes</span><span class="o">=</span><span class="default_value">256, 512, 1024, 2048</span></em>, <em class="sig-param"><span class="n">fpn_dim</span><span class="o">=</span><span class="default_value">256</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.UPerNet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.UPerNet.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conv_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.UPerNet.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.UPerNet.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conv_out</span></em>, <em class="sig-param"><span class="n">segSize</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.UPerNet.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -319,15 +355,15 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.UPerNet.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.models.models.UPerNet.training" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.UPerNet.training">
+<code class="sig-name descname">training</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.models.models.UPerNet.training" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="src.mit_semseg.models.models.conv3x3_bn_relu">
-<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.models.</span></span><span class="sig-name descname"><span class="pre">conv3x3_bn_relu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_planes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_planes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stride</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.conv3x3_bn_relu" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.models.conv3x3_bn_relu">
+<code class="sig-prename descclassname">src.mit_semseg.models.models.</code><code class="sig-name descname">conv3x3_bn_relu</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">in_planes</span></em>, <em class="sig-param"><span class="n">out_planes</span></em>, <em class="sig-param"><span class="n">stride</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.models.conv3x3_bn_relu" title="Permalink to this definition">¶</a></dt>
 <dd><p>3x3 convolution + BN + relu</p>
 </dd></dl>
 
@@ -335,12 +371,12 @@ registered hooks while the latter silently ignores them.</p>
 <section id="module-src.mit_semseg.models.resnet">
 <span id="src-mit-semseg-models-resnet-module"></span><h2>src.mit_semseg.models.resnet module<a class="headerlink" href="#module-src.mit_semseg.models.resnet" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.models.resnet.ResNet">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.resnet.</span></span><span class="sig-name descname"><span class="pre">ResNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.resnet.ResNet" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.resnet.ResNet">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.models.resnet.</code><code class="sig-name descname">ResNet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">block</span></em>, <em class="sig-param"><span class="n">layers</span></em>, <em class="sig-param"><span class="n">num_classes</span><span class="o">=</span><span class="default_value">1000</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.resnet.ResNet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.models.resnet.ResNet.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.resnet.ResNet.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.resnet.ResNet.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.resnet.ResNet.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -353,15 +389,15 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="src.mit_semseg.models.resnet.ResNet.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.models.resnet.ResNet.training" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.resnet.ResNet.training">
+<code class="sig-name descname">training</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.models.resnet.ResNet.training" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="src.mit_semseg.models.resnet.resnet101">
-<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.resnet.</span></span><span class="sig-name descname"><span class="pre">resnet101</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.resnet.resnet101" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.resnet.resnet101">
+<code class="sig-prename descclassname">src.mit_semseg.models.resnet.</code><code class="sig-name descname">resnet101</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.resnet.resnet101" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructs a ResNet-101 model.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>pretrained (bool): If True, returns a model pre-trained on ImageNet</p>
@@ -370,8 +406,8 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="src.mit_semseg.models.resnet.resnet18">
-<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.resnet.</span></span><span class="sig-name descname"><span class="pre">resnet18</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.resnet.resnet18" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.resnet.resnet18">
+<code class="sig-prename descclassname">src.mit_semseg.models.resnet.</code><code class="sig-name descname">resnet18</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.resnet.resnet18" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructs a ResNet-18 model.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>pretrained (bool): If True, returns a model pre-trained on ImageNet</p>
@@ -380,8 +416,8 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="src.mit_semseg.models.resnet.resnet50">
-<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.resnet.</span></span><span class="sig-name descname"><span class="pre">resnet50</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.resnet.resnet50" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.resnet.resnet50">
+<code class="sig-prename descclassname">src.mit_semseg.models.resnet.</code><code class="sig-name descname">resnet50</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.resnet.resnet50" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructs a ResNet-50 model.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>pretrained (bool): If True, returns a model pre-trained on ImageNet</p>
@@ -393,12 +429,12 @@ registered hooks while the latter silently ignores them.</p>
 <section id="module-src.mit_semseg.models.resnext">
 <span id="src-mit-semseg-models-resnext-module"></span><h2>src.mit_semseg.models.resnext module<a class="headerlink" href="#module-src.mit_semseg.models.resnext" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.models.resnext.ResNeXt">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.resnext.</span></span><span class="sig-name descname"><span class="pre">ResNeXt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.resnext.ResNeXt" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.resnext.ResNeXt">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.models.resnext.</code><code class="sig-name descname">ResNeXt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">block</span></em>, <em class="sig-param"><span class="n">layers</span></em>, <em class="sig-param"><span class="n">groups</span><span class="o">=</span><span class="default_value">32</span></em>, <em class="sig-param"><span class="n">num_classes</span><span class="o">=</span><span class="default_value">1000</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.resnext.ResNeXt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.models.resnext.ResNeXt.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.resnext.ResNeXt.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.resnext.ResNeXt.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.resnext.ResNeXt.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -411,15 +447,15 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="src.mit_semseg.models.resnext.ResNeXt.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.mit_semseg.models.resnext.ResNeXt.training" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.resnext.ResNeXt.training">
+<code class="sig-name descname">training</code><em class="property">: bool</em><a class="headerlink" href="#src.mit_semseg.models.resnext.ResNeXt.training" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="src.mit_semseg.models.resnext.resnext101">
-<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.resnext.</span></span><span class="sig-name descname"><span class="pre">resnext101</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.resnext.resnext101" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.resnext.resnext101">
+<code class="sig-prename descclassname">src.mit_semseg.models.resnext.</code><code class="sig-name descname">resnext101</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.resnext.resnext101" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructs a ResNet-101 model.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>pretrained (bool): If True, returns a model pre-trained on Places</p>
@@ -431,8 +467,8 @@ registered hooks while the latter silently ignores them.</p>
 <section id="module-src.mit_semseg.models.utils">
 <span id="src-mit-semseg-models-utils-module"></span><h2>src.mit_semseg.models.utils module<a class="headerlink" href="#module-src.mit_semseg.models.utils" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="src.mit_semseg.models.utils.load_url">
-<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.models.utils.</span></span><span class="sig-name descname"><span class="pre">load_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./pretrained'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.utils.load_url" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.models.utils.load_url">
+<code class="sig-prename descclassname">src.mit_semseg.models.utils.</code><code class="sig-name descname">load_url</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em>, <em class="sig-param"><span class="n">model_dir</span><span class="o">=</span><span class="default_value">'./pretrained'</span></em>, <em class="sig-param"><span class="n">map_location</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.models.utils.load_url" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </section>
@@ -442,72 +478,31 @@ registered hooks while the latter silently ignores them.</p>
 </section>
 
 
+           </div>
           </div>
-          
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Vijay, Rus.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../index.html">Noisey-Image</a></h1>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
 
-
-
-
-
-
-
-
-<h3>Navigation</h3>
-<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="src.html">Submodules</a></li>
-<li class="toctree-l1"><a class="reference internal" href="src.mit_semseg.html">Mit Semseg Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="src.obj_detector.html">Object Detector Module</a></li>
-</ul>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>$('#searchbox').show(0);</script>
-
-
-
-
-
-
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2021, Vijay, Russ.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.3.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-      
-      |
-      <a href="../_sources/source/src.mit_semseg.models.rst.txt"
-          rel="nofollow">Page source</a>
-    </div>
-
-    
-
-    
-  </body>
+</body>
 </html>
