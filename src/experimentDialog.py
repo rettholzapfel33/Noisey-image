@@ -3,6 +3,7 @@ from PyQt5.uic.uiparser import QtCore
 from PyQt5 import uic
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 from PyQt5.QtGui import QPixmap
+from charset_normalizer import detect
 
 from src.transforms import AugmentationPipeline, Augmentation
 import cv2
@@ -61,48 +62,54 @@ class ExperimentWorker(QObject):
 
     def run(self):
         # create experiment name automatically:
-        #exp_path = self.createExperimentName()
         exp_path = self.config.expName
         os.mkdir( os.path.join(self.savePath, exp_path) )
-        #self.insertLog('Saving detections at: %s'%(exp_path))
         self.logProgress.emit("Saving detections at: %s"%(exp_path))
 
-        if not self.config.shouldAug:
+        if len(self.config.mainAug) == 0:
             for i, imgPath in enumerate(self.config.imagePaths):
                 _img = cv2.imread(imgPath)
                 dets = self.config.model.run(_img)
                 self.writeDets(dets, os.path.join(self.savePath, exp_path), imgPath)
-                #self.progressBar.setValue( ((i+1)*_progressMove)*100 )
+                self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
                 self.progress.emit(i)
-                self.logProgress.emit('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
         else:
-            if self.config.isCompound:
-                # apply sequentially:
+            if not self.config.shouldAug:
                 for i, imgPath in enumerate(self.config.imagePaths):
                     _img = cv2.imread(imgPath)
-                    for aug in self.config.mainAug:
-                        _img = aug(_img)
                     dets = self.config.model.run(_img)
                     self.writeDets(dets, os.path.join(self.savePath, exp_path), imgPath)
-                    #self.insertLog('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
-                    self.logProgress.emit('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
                     #self.progressBar.setValue( ((i+1)*_progressMove)*100 )
                     self.progress.emit(i)
+                    self.logProgress.emit('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
             else:
-                for aug in self.config.mainAug:
-                    # create sub folders:
-                    new_sub_dir = os.path.join(exp_path, "_".join(aug.title.split(' ')) )
-                    os.mkdir(new_sub_dir)
-                    self.logProgress.emit('Augmentation: %s'%(aug.title))
-
+                if self.config.isCompound:
+                    # apply sequentially:
                     for i, imgPath in enumerate(self.config.imagePaths):
                         _img = cv2.imread(imgPath)
-                        # apply aug to _img here
+                        for aug in self.config.mainAug:
+                            _img = aug(_img)
                         dets = self.config.model.run(_img)
-                        self.writeDets(dets, os.path.join(self.savePath, new_sub_dir), imgPath)
+                        self.writeDets(dets, os.path.join(self.savePath, exp_path), imgPath)
                         #self.insertLog('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
-                        self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
+                        self.logProgress.emit('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
+                        #self.progressBar.setValue( ((i+1)*_progressMove)*100 )
                         self.progress.emit(i)
+                else:
+                    for aug in self.config.mainAug:
+                        # create subdirectory here for each augmentation
+                        new_sub_dir = os.path.join(self.config.savePath, exp_path, "_".join(aug.title.split(' ')) )
+                        os.mkdir(new_sub_dir)
+                        self.logProgress.emit('Augmentation: %s'%(aug.title))
+
+                        for i, imgPath in enumerate(self.config.imagePaths):
+                            _img = cv2.imread(imgPath)
+                            dets = self.config.model.run(_img)
+                            self.writeDets(dets, os.path.join(self.savePath, new_sub_dir), imgPath)
+                            #self.insertLog('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
+                            self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
+                            self.progress.emit(i)
+
         self.finished.emit()
 
 class ExperimentResultWorker(QObject):
@@ -110,18 +117,23 @@ class ExperimentResultWorker(QObject):
     finishedImage = pyqtSignal(QPixmap)
     finishedGraph = pyqtSignal(np.ndarray)
 
-    def __init__(self, imagePath, config, expName) -> None:
+    def __init__(self, imagePath, config, expName, augPosition=None) -> None:
         super(ExperimentResultWorker, self).__init__()
         self.imagePath = imagePath # a single image
         self.config = config
         self.expName = expName
+        self.augPosition = augPosition # only used when augmentations are not compounded, need 2 know position of wanted aug
 
     #@QtCore.pyqtSlot()
     def run(self):
         _img = cv2.imread(self.imagePath)
 
-        if self.config.isCompound:
-            for aug in self.config.mainAug:
+        if len(self.config.mainAug) > 0:
+            if self.config.isCompound:
+                for aug in self.config.mainAug:
+                    _img = aug(_img)
+            else:
+                aug = self.config.mainAug[self.augPosition]
                 _img = aug(_img)
         
         # read in detection:
@@ -132,9 +144,10 @@ class ExperimentResultWorker(QObject):
         if self.config.model.complexOutput:
             with open(txt_file, 'rb') as f:
                 _bytes = f.read()
-                _complex = np.frombuffer(_bytes)
-            print(_complex)
-            exit()
+                _complex = np.frombuffer(_bytes, dtype=np.int64)
+            _complex = _complex.reshape(_img.shape[:2])
+            _img_dict = self.config.model.draw(_complex, _img)
+            _img = _img_dict['dst']
         else:
             # detectors (non-complex data)
             with open(txt_file, 'r' ) as f:
@@ -195,7 +208,7 @@ class ExperimentDialog(QDialog):
         self.previewForward.setVisible(state)
         self.backGraph.setVisible(state)
         self.forwardGraph.setVisible(state)
-        self.graphImage.setVisible(state)
+        #self.graphImage.setVisible(state)
         self.previewImage.setVisible(state)
         
         # Opposite:

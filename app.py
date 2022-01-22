@@ -99,6 +99,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.pushButton.clicked.connect(self.run_model)  
         self.ui.pushButton_2.clicked.connect(self.startExperiment)
         self.ui.pushButton_4.clicked.connect(quit)
+        self.ui.compoundAug.setChecked(True)
 
         # Augmentation Generator:
         self.ui.addAug.clicked.connect(self.addWindow.show)
