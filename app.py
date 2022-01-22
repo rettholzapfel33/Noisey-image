@@ -169,7 +169,6 @@ class mainWindow(QtWidgets.QMainWindow):
         
     def updateNoisePixMap(self, mat, augs):
         for aug in augs:
-            print(aug)
             mat = aug(mat, example=True)
         qt_img = convert_cvimg_to_qimg(mat)
         self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
@@ -441,6 +440,12 @@ class mainWindow(QtWidgets.QMainWindow):
     def startExperiment(self):
         # fill image paths with dummy inputs for now
         comboModelType = self.ui.comboBox.currentText()
+
+        # check augmentation setup:
+        ret, msg = mainAug.checkArgs()
+        if not ret:
+            print(msg) # create dialog box saying something is wrong 
+            return -1
 
         # initialize model (temp; move to thread worker):
         _model = models._registry[comboModelType]

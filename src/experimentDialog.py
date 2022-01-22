@@ -104,12 +104,15 @@ class ExperimentWorker(QObject):
 
                         for i, imgPath in enumerate(self.config.imagePaths):
                             _img = cv2.imread(imgPath)
+                            _img = aug(_img, request_param=aug.args[0])
                             dets = self.config.model.run(_img)
                             self.writeDets(dets, os.path.join(self.savePath, new_sub_dir), imgPath)
                             #self.insertLog('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
                             self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
                             self.progress.emit(i)
-
+        
+        # clean up model
+        self.config.model.deinitialize()
         self.finished.emit()
 
 class ExperimentResultWorker(QObject):
@@ -198,6 +201,14 @@ class ExperimentDialog(QDialog):
         self.show()
 
     def __setPreviews__(self, state:bool):
+        self.degrade_label.setVisible(state)
+        self.image_label.setVisible(state)
+        self.label_7.setVisible(state)
+        self.label_11.setVisible(state)
+        self.label_12.setVisible(state)
+        self.label_13.setVisible(state)
+        self.previewBack_3.setVisible(state)
+        self.previewForward_3.setVisible(state)
         self.label_6.setVisible(state)
         self.label_5.setVisible(state)
         self.label_4.setVisible(state)

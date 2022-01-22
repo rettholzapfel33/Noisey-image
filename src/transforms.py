@@ -1,12 +1,11 @@
 import random
 from urllib import request
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, Qt
 
-from PyQt5.uic.uiparser import QtCore
 from numpy.lib.function_base import select
 from src.utils.qt5extra import CheckState
 import PyQt5
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QListWidgetItem
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QListWidgetItem, QMessageBox, QWidget
 from PyQt5 import uic
 import cv2
 import numpy as np
@@ -202,7 +201,6 @@ class Augmentation:
     def exampleParam(self):
         return self.__example__
 
-    @property
     def setExampleParam(self, value):
         self.__example__ = value
 
@@ -220,10 +218,10 @@ class Augmentation:
                         print("WARNING: Requested params not in set arguments. Set verbose to false to dismiss")
             else:
                 if self.__verbose__: print("WARNING: No request given. Example is false, so returning example value")
-                _param = [self.__example__]    
+                _param = [self.__example__] 
         return self.__run__(image, *_param)
 
-    def setParam(self, *args):
+    def setParam(self, args):
         self.__args__ = args
 
 class AugmentationPipeline():
@@ -264,14 +262,23 @@ class AugmentationPipeline():
         return _out
 
     def exists(self, title):
+        # make more efficient later:
         for item in self.__pipeline__:
             if title == item.title:
                 return True
         return False
 
-    def append(self, aug_title):
+    def index(self, title):
+        for i, item in enumerate(self.__pipeline__):
+            if title == item.title:
+                return i
+        return -1
+
+    def append(self, aug_title, param=None, example=None):
         augIndex = self.__keys__.index(aug_title)
         augItem = self.__augList__[augIndex]
+        if not param is None: augItem.args = param
+        if not example is None: augItem.setExampleParam(example)
         self.__pipeline__.append(augItem)
 
     def remove(self, aug_title):
@@ -325,6 +332,9 @@ class AugmentationPipeline():
                 str_out = "%s,%i,%s,1,%f\n"%(aug_title, para_length, para_out,aug.exampleParam)
                 f.write(str_out)
 
+    def checkArgs(self):
+        return True, ""
+
     next = __next__ # python 2
 
 class AugDialog(QDialog):
@@ -334,6 +344,7 @@ class AugDialog(QDialog):
         # Config tells what noises are active, what the parameters are
         super(AugDialog, self).__init__()
         self.__viewer__ = listViewer # outside of the Augmentation Dialog UI
+        self.lastRow = 0
         uic.loadUi('./src/qt_designer_file/dialogAug.ui', self)
         self.__loadAugs__()
         self.__loadEvents__()
@@ -344,6 +355,7 @@ class AugDialog(QDialog):
         self.__applyConfig__()
         _btn1, _btn2 = self.buttonBox.buttons() # ok, cancel
         _btn1.clicked.connect(self.__applySelection__)
+        _btn2.clicked.connect(self.close)
 
     def __loadEvents__(self):
         self.listWidget.itemClicked.connect(self.__loadAugSelection__)
@@ -353,6 +365,7 @@ class AugDialog(QDialog):
             _item = QListWidgetItem()
             _item.setText(aug.title)
             _item.setCheckState(CheckState.Unchecked)
+            _item.setData(Qt.UserRole, [aug, "", ""]) # aug, parameters, example
             self.listWidget.addItem(_item)
     
     def __loadInitialImage__(self):
@@ -368,15 +381,29 @@ class AugDialog(QDialog):
         qtImage = images.convertCV2QT(_copy, 1000, 500)
         self.previewImage.setPixmap(qtImage)
         self.__loadAugSelection__(self.listWidget.itemAt(0,0))
+        self.listWidget.setCurrentItem(self.listWidget.itemAt(0,0))
 
     def __loadAugSelection__(self, aug):
+        # update old active aug:
+        _payload = self.listWidget.item(self.lastRow).data(Qt.UserRole)
+        _payload[1] = self.noiseRange.text()
+        _payload[2] = self.exampleLine.text()
+        self.listWidget.item(self.lastRow).setData(Qt.UserRole, _payload)
+        
         # change GUI when item is clicked
         currentItem = aug.text()
+        _payload = aug.data(Qt.UserRole)
         augIndex = mainAug.__keys__.index(currentItem)
         augItem = mainAug.__augList__[augIndex]
-        strArgs = [ str(i) for i in augItem.args]
-        parameters = ",".join(strArgs)
-        example = augItem.exampleParam
+        
+        if _payload[1] == '': 
+            strArgs = [ str(i) for i in augItem.args]
+            parameters = ",".join(strArgs)
+        else: parameters = _payload[1]
+        
+        if _payload[2] == '':
+            example = augItem.exampleParam
+        else: example = _payload[2]
 
         # GUI range controls:
         self.noiseRange.setText(parameters)
@@ -386,24 +413,7 @@ class AugDialog(QDialog):
         _copy = augItem(_copy, example=True)
         qtImage = images.convertCV2QT(_copy, 1000, 500)
         self.previewImage.setPixmap(qtImage)
-
-    def __changeNoiseSelection__(self, target:Augmentation):
-        # Legacy controls:
-        #_low = self.lowLine.text()
-        #_high = self.highLine.text()
-        _noiseRange = self.noiseRange.text()
-        try:
-            _entry = [float(i) for i in _noiseRange.split(',')]
-        except Exception as e:
-            print(e)
-            print("Failed to convert string to array of floats")
-            # probably do a signal here to update the UI
-        
-        _example = self.exampleLine.text()
-        if _example != '':
-            _example_value = float(_example)
-            target.setExampleParam(_example_value)
-        target.setParam(_entry)
+        self.lastRow = augIndex
 
     # change GUI to match mainAug
     def __applyConfig__(self):
@@ -421,18 +431,57 @@ class AugDialog(QDialog):
         self.__applyConfig__()
         return super().show()
 
+    def closeEvent(self, event):
+        for i in range(self.listWidget.count()):
+            listItem = self.listWidget.item(i)
+            payload = listItem.data(Qt.UserRole)
+            payload[1] = ''; payload[2] = ''
+            self.listWidget.item(i).setData(Qt.UserRole, payload)
+        event.accept()
+
     # change mainAug to match selected items from GUI:
     def __applySelection__(self):
+        # update the active item:
+        cr = self.listWidget.currentRow()
+        _payload = self.listWidget.item(cr).data(Qt.UserRole)
+        _payload[1] = self.noiseRange.text()
+        _payload[2] = self.exampleLine.text()
+        self.listWidget.item(cr).setData(Qt.UserRole, _payload)
+
         # get checks from listWidget:
         for i in range(self.listWidget.count()):
             listItem = self.listWidget.item(i)
-            if(listItem.checkState() and not mainAug.exists(listItem.text())):
-                mainAug.append(listItem.text())
+
+            # parse the list items:
+            _payload = listItem.data(Qt.UserRole)
+            _noiseRange = _payload[1]
+            _example = _payload[2]
+
+            if _noiseRange != '':
+                try: _param = [float(i) for i in _noiseRange.split(',')]
+                except Exception as e: print("Failed to convert string to array of floats")
+                # probably do a signal here to update the UI
+            else: _param = None
+
+            if _example != '': 
+                try:
+                    _example = float(_payload[-1])
+                except Exception as e: print("Failed to convert example to number")
+            else: _example = None
+
+            itemIndex = mainAug.index(listItem.text())
+
+            if listItem.checkState() and itemIndex == -1:
+                mainAug.append(listItem.text(param=_param, example=_example))
+            elif listItem.checkState() and itemIndex != -1:
+                if not _param is None: mainAug.__pipeline__[itemIndex].setParam(_param)
+                if not _example is None: mainAug.__pipeline__[itemIndex].setExampleParam(_example)
             elif not listItem.checkState(): # make more efficient later
                 for item in mainAug.__pipeline__:
                     if item.title == listItem.text():
                         mainAug.remove(listItem.text())
                         break
+
         self.__updateViewer__()
     
     def __updateViewer__(self):
