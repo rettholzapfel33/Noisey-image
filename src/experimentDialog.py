@@ -11,6 +11,7 @@ import cv2
 import os
 import time
 import numpy as np
+import yaml
 
 from src.utils.images import convertCV2QT
 import matplotlib.pyplot as plt
@@ -62,11 +63,29 @@ class ExperimentWorker(QObject):
                 for det in detections:
                     f.write(_format.format(*det))
 
+    def writeMeta(self, outPath):
+        with open(os.path.join(outPath, 'meta.yaml'), 'w') as f:
+            _out = {}
+            for aug in self.config.mainAug:
+                _out[aug.title] = aug.args
+            yaml.dump(_out, f)
+
+    def writeGraph(self, inData, outPath):
+        with open( os.path.join(outPath, 'graphing.yaml'), 'w') as f:
+            for _data in inData:
+                yaml.dump(_data,f)
+        return 0
+
     def run(self):
         # create experiment name automatically:
         exp_path = self.config.expName
         os.mkdir( os.path.join(self.savePath, exp_path) )
         self.logProgress.emit("Saving detections at: %s"%(exp_path))
+        
+        # write meta out for later loading and reference
+        self.writeMeta(os.path.join(self.savePath, exp_path))
+        # create variables for simple counting rather than mAP calculation:
+        counter = []
 
         if len(self.config.mainAug) == 0:
             for i, imgPath in enumerate(self.config.imagePaths):
@@ -79,14 +98,14 @@ class ExperimentWorker(QObject):
             if self.config.isCompound:
                 # apply sequentially (all args must be of the same length):
                 maxArgLen = len(self.config.mainAug.__pipeline__[0].args)
-                for i, imgPath in enumerate(self.config.imagePaths):
-                    for j in range(maxArgLen):
+                for j in range(maxArgLen):
+                    _count = 0
+                    for i, imgPath in enumerate(self.config.imagePaths):
                         self.logProgress.emit("Running column %i of Augmentations"%(j))
                         j_subFolder = '_'.join(["_".join(aug.title.split(" ")) for aug in self.config.mainAug])
                         j_subFolder += '_'+str(j)
 
-                        try:
-                            os.mkdir( os.path.join(self.savePath, exp_path, j_subFolder) )
+                        try: os.mkdir( os.path.join(self.savePath, exp_path, j_subFolder) )
                         except FileExistsError: print("Folder path already exists...")
 
                         _img = cv2.imread(imgPath)
@@ -95,9 +114,16 @@ class ExperimentWorker(QObject):
                             _img = aug(_img, _args[j])
                         
                         dets = self.config.model.run(_img)
+
+                        if not self.config.model.complexOutput: _count += len(dets)
+                        else: pass
+
                         self.writeDets(dets, os.path.join(self.savePath, exp_path, j_subFolder), imgPath)
                         self.logProgress.emit('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
                         self.progress.emit(i)
+                    _count /= len(self.config.imagePaths)
+                
+                if self.config.isCompound: counter.append(_count)
             else:
                 for aug in self.config.mainAug:
                     self.logProgress.emit('Augmentation: %s'%(aug.title))
@@ -118,6 +144,12 @@ class ExperimentWorker(QObject):
                             #self.insertLog('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
                             self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
                             self.progress.emit(i)
+
+        if len(self.config.labels) == 0:
+            self.writeGraph(counter, os.path.join(self.savePath, exp_path))
+        else:
+            self.writeGraph(counter, os.path.join(self.savePath, exp_path))
+            #self.writeGraph()
 
         # clean up model
         self.config.model.deinitialize()

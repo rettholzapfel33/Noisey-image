@@ -74,7 +74,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # Check status of configurations:
         weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights"}
-        self.labels = None
+        self.labels = []
 
         if Downloader.check(weight_dict):
             self.downloadDialog = Downloader(weight_dict)
@@ -442,10 +442,11 @@ class mainWindow(QtWidgets.QMainWindow):
         comboModelType = self.ui.comboBox.currentText()
 
         # check augmentation setup:
-        ret, msg = mainAug.checkArgs()
-        if not ret:
-            print(msg) # create dialog box saying something is wrong 
-            return -1
+        if self.ui.compoundAug.isChecked():
+            ret, msg = mainAug.checkArgs()
+            if not ret:
+                print(msg) # create dialog box saying something is wrong 
+                return -1
 
         # initialize model (temp; move to thread worker):
         _model = models._registry[comboModelType]
