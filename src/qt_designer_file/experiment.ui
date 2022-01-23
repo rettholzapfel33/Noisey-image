@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>777</width>
-    <height>487</height>
+    <width>967</width>
+    <height>485</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,7 +29,7 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>450</x>
+     <x>520</x>
      <y>360</y>
      <width>239</width>
      <height>48</height>
@@ -82,7 +82,7 @@
   <widget class="QProgressBar" name="progressBar">
    <property name="geometry">
     <rect>
-     <x>70</x>
+     <x>170</x>
      <y>100</y>
      <width>651</width>
      <height>31</height>
@@ -148,10 +148,10 @@
   <widget class="QTextEdit" name="textProgress">
    <property name="geometry">
     <rect>
-     <x>290</x>
+     <x>325</x>
      <y>140</y>
-     <width>211</width>
-     <height>141</height>
+     <width>371</width>
+     <height>241</height>
     </rect>
    </property>
   </widget>
@@ -257,6 +257,28 @@
     </rect>
    </property>
   </widget>
+  <widget class="QWidget" name="gridLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>20</y>
+     <width>511</width>
+     <height>341</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="graphGrid"/>
+  </widget>
+  <zorder>previewImage</zorder>
+  <zorder>layoutWidget</zorder>
+  <zorder>layoutWidget</zorder>
+  <zorder>label_7</zorder>
+  <zorder>layoutWidget_2</zorder>
+  <zorder>image_label</zorder>
+  <zorder>degrade_label</zorder>
+  <zorder>augComboBox</zorder>
+  <zorder>gridLayoutWidget</zorder>
+  <zorder>textProgress</zorder>
+  <zorder>progressBar</zorder>
  </widget>
  <resources/>
  <connections/>

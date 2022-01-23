@@ -4,6 +4,7 @@ from PyQt5 import uic
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, Qt
 from PyQt5.QtGui import QPixmap
 from charset_normalizer import detect
+from src.mplwidget import MplWidget
 
 from src.transforms import AugmentationPipeline, Augmentation
 import cv2
@@ -12,6 +13,7 @@ import time
 import numpy as np
 
 from src.utils.images import convertCV2QT
+import matplotlib.pyplot as plt
 
 def createExperimentName(savePath):
     _root_name = 'exp'
@@ -192,6 +194,13 @@ class ExperimentDialog(QDialog):
     def __init__(self, config:ExperimentConfig) -> None:
         super(ExperimentDialog, self).__init__()
         uic.loadUi('./src/qt_designer_file/experiment.ui', self)
+       
+        # create graph widget in here:
+        self.graphWidget = MplWidget()
+        self.graphWidget.resize(481, 301)
+        self.graphWidget.move(390,50)
+        self.graphGrid.addWidget(self.graphWidget)
+
         self.progressBar.setValue(0)
         self.textProgress.setEnabled(False)
         self.config = config
@@ -253,6 +262,7 @@ class ExperimentDialog(QDialog):
         self.forwardGraph.setVisible(state)
         #self.graphImage.setVisible(state)
         self.previewImage.setVisible(state)
+        self.graphWidget.setVisible(state)
         
         # Opposite:
         self.progressBar.setVisible(not state)
@@ -319,13 +329,20 @@ class ExperimentDialog(QDialog):
     def updateImage(self, img):
         self.previewImage.setPixmap(img)
 
-    def updateGraph(self,):
-        return 
+    def updateGraph(self, ax):
+        line = ax.lines[0]
+        x_data = line.get_xdata()
+        y_data = line.get_ydata()
+        self.graphWidget.canvas.axes.clear()
+        self.graphWidget.canvas.axes.plot(x_data, y_data)
+        self.graphWidget.canvas.draw()
 
     def refreshGraphResults(self,i):
-        return i
-        worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName)
-    
+        #worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName)
+        fig, ax = plt.subplots(1,1)
+        ax.plot([1,2,3],[1,2,3])
+        self.updateGraph(ax)
+
     def changeOnImageButton(self, i):
         if self.currentIdx+i < len(self.config.imagePaths) and self.currentIdx+i >= 0:
             self.currentIdx += i
