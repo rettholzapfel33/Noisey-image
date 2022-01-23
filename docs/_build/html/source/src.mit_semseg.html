@@ -1,171 +1,207 @@
-
 <!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-    <title>Mit Semseg Module &#8212; Noisey-Image  documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mit Semseg Module &mdash; Noisey-Image  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Object Detector Module" href="src.obj_detector.html" />
-    <link rel="prev" title="Submodules" href="src.html" />
-   
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+    <link rel="prev" title="Submodules" href="src.html" /> 
+</head>
 
-  </head><body>
-  
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Noisey-Image
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p><span class="caption-text">Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="main_tutorial_guide.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="src.html">Submodules</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Mit Semseg Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="src.obj_detector.html">Object Detector Module</a></li>
+</ul>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          
+        </div>
+      </div>
+    </nav>
 
-          <div class="body" role="main">
-            
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Noisey-Image</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Mit Semseg Module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/src.mit_semseg.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
   <section id="mit-semseg-module">
 <h1>Mit Semseg Module<a class="headerlink" href="#mit-semseg-module" title="Permalink to this headline">¶</a></h1>
 <p class="rubric">Subpackages</p>
 <p class="rubric">Submodules</p>
 <p class="rubric">src.mit_semseg.dataset module</p>
 <span class="target" id="module-src.mit_semseg.dataset"></span><dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.dataset.BaseDataset">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.dataset.</span></span><span class="sig-name descname"><span class="pre">BaseDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">odgt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opt</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.BaseDataset" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.dataset.BaseDataset">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.dataset.</code><code class="sig-name descname">BaseDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwds</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.BaseDataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.dataset.Dataset</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.dataset.BaseDataset.img_transform">
-<span class="sig-name descname"><span class="pre">img_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.BaseDataset.img_transform" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.dataset.BaseDataset.img_transform">
+<code class="sig-name descname">img_transform</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.BaseDataset.img_transform" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.dataset.BaseDataset.parse_input_list">
-<span class="sig-name descname"><span class="pre">parse_input_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">odgt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_sample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.BaseDataset.parse_input_list" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.dataset.BaseDataset.parse_input_list">
+<code class="sig-name descname">parse_input_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">odgt</span></em>, <em class="sig-param"><span class="n">max_sample</span><span class="o">=</span><span class="default_value">- 1</span></em>, <em class="sig-param"><span class="n">start_idx</span><span class="o">=</span><span class="default_value">- 1</span></em>, <em class="sig-param"><span class="n">end_idx</span><span class="o">=</span><span class="default_value">- 1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.BaseDataset.parse_input_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.dataset.BaseDataset.round2nearest_multiple">
-<span class="sig-name descname"><span class="pre">round2nearest_multiple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.BaseDataset.round2nearest_multiple" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.dataset.BaseDataset.round2nearest_multiple">
+<code class="sig-name descname">round2nearest_multiple</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">p</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.BaseDataset.round2nearest_multiple" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.dataset.BaseDataset.segm_transform">
-<span class="sig-name descname"><span class="pre">segm_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">segm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.BaseDataset.segm_transform" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.dataset.BaseDataset.segm_transform">
+<code class="sig-name descname">segm_transform</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">segm</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.BaseDataset.segm_transform" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.dataset.TestDataset">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.dataset.</span></span><span class="sig-name descname"><span class="pre">TestDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">odgt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opt</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.TestDataset" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.dataset.TestDataset">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.dataset.</code><code class="sig-name descname">TestDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwds</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.TestDataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#src.mit_semseg.dataset.BaseDataset" title="src.mit_semseg.dataset.BaseDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">src.mit_semseg.dataset.BaseDataset</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.dataset.TrainDataset">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.dataset.</span></span><span class="sig-name descname"><span class="pre">TrainDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">odgt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_per_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.TrainDataset" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.dataset.TrainDataset">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.dataset.</code><code class="sig-name descname">TrainDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwds</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.TrainDataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#src.mit_semseg.dataset.BaseDataset" title="src.mit_semseg.dataset.BaseDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">src.mit_semseg.dataset.BaseDataset</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.dataset.ValDataset">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.dataset.</span></span><span class="sig-name descname"><span class="pre">ValDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">odgt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opt</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.ValDataset" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.dataset.ValDataset">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.dataset.</code><code class="sig-name descname">ValDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwds</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.ValDataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#src.mit_semseg.dataset.BaseDataset" title="src.mit_semseg.dataset.BaseDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">src.mit_semseg.dataset.BaseDataset</span></code></a></p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="src.mit_semseg.dataset.imresize">
-<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.dataset.</span></span><span class="sig-name descname"><span class="pre">imresize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bilinear'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.imresize" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.dataset.imresize">
+<code class="sig-prename descclassname">src.mit_semseg.dataset.</code><code class="sig-name descname">imresize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">im</span></em>, <em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">interp</span><span class="o">=</span><span class="default_value">'bilinear'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.dataset.imresize" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">src.mit_semseg.utils module</p>
 <span class="target" id="module-src.mit_semseg.utils"></span><dl class="py class">
-<dt class="sig sig-object py" id="src.mit_semseg.utils.AverageMeter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.utils.</span></span><span class="sig-name descname"><span class="pre">AverageMeter</span></span><a class="headerlink" href="#src.mit_semseg.utils.AverageMeter" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.utils.AverageMeter">
+<em class="property">class </em><code class="sig-prename descclassname">src.mit_semseg.utils.</code><code class="sig-name descname">AverageMeter</code><a class="headerlink" href="#src.mit_semseg.utils.AverageMeter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Computes and stores the average and current value</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.utils.AverageMeter.add">
-<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.AverageMeter.add" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.utils.AverageMeter.add">
+<code class="sig-name descname">add</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span></em>, <em class="sig-param"><span class="n">weight</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.AverageMeter.add" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.utils.AverageMeter.average">
-<span class="sig-name descname"><span class="pre">average</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.AverageMeter.average" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.utils.AverageMeter.average">
+<code class="sig-name descname">average</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.AverageMeter.average" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.utils.AverageMeter.initialize">
-<span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.AverageMeter.initialize" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.utils.AverageMeter.initialize">
+<code class="sig-name descname">initialize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span></em>, <em class="sig-param"><span class="n">weight</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.AverageMeter.initialize" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.utils.AverageMeter.update">
-<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.AverageMeter.update" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.utils.AverageMeter.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span></em>, <em class="sig-param"><span class="n">weight</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.AverageMeter.update" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="src.mit_semseg.utils.AverageMeter.value">
-<span class="sig-name descname"><span class="pre">value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.AverageMeter.value" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.utils.AverageMeter.value">
+<code class="sig-name descname">value</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.AverageMeter.value" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py exception">
-<dt class="sig sig-object py" id="src.mit_semseg.utils.NotSupportedCliException">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.mit_semseg.utils.</span></span><span class="sig-name descname"><span class="pre">NotSupportedCliException</span></span><a class="headerlink" href="#src.mit_semseg.utils.NotSupportedCliException" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.utils.NotSupportedCliException">
+<em class="property">exception </em><code class="sig-prename descclassname">src.mit_semseg.utils.</code><code class="sig-name descname">NotSupportedCliException</code><a class="headerlink" href="#src.mit_semseg.utils.NotSupportedCliException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="src.mit_semseg.utils.accuracy">
-<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.utils.</span></span><span class="sig-name descname"><span class="pre">accuracy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.accuracy" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.utils.accuracy">
+<code class="sig-prename descclassname">src.mit_semseg.utils.</code><code class="sig-name descname">accuracy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">preds</span></em>, <em class="sig-param"><span class="n">label</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.accuracy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="src.mit_semseg.utils.colorEncode">
-<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.utils.</span></span><span class="sig-name descname"><span class="pre">colorEncode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labelmap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RGB'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.colorEncode" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.utils.colorEncode">
+<code class="sig-prename descclassname">src.mit_semseg.utils.</code><code class="sig-name descname">colorEncode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">labelmap</span></em>, <em class="sig-param"><span class="n">colors</span></em>, <em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">'RGB'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.colorEncode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="src.mit_semseg.utils.find_recursive">
-<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.utils.</span></span><span class="sig-name descname"><span class="pre">find_recursive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.jpg'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.find_recursive" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.utils.find_recursive">
+<code class="sig-prename descclassname">src.mit_semseg.utils.</code><code class="sig-name descname">find_recursive</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root_dir</span></em>, <em class="sig-param"><span class="n">ext</span><span class="o">=</span><span class="default_value">'.jpg'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.find_recursive" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="src.mit_semseg.utils.intersectionAndUnion">
-<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.utils.</span></span><span class="sig-name descname"><span class="pre">intersectionAndUnion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imPred</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imLab</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numClass</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.intersectionAndUnion" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.utils.intersectionAndUnion">
+<code class="sig-prename descclassname">src.mit_semseg.utils.</code><code class="sig-name descname">intersectionAndUnion</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">imPred</span></em>, <em class="sig-param"><span class="n">imLab</span></em>, <em class="sig-param"><span class="n">numClass</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.intersectionAndUnion" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="src.mit_semseg.utils.parse_devices">
-<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.utils.</span></span><span class="sig-name descname"><span class="pre">parse_devices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_devices</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.parse_devices" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.utils.parse_devices">
+<code class="sig-prename descclassname">src.mit_semseg.utils.</code><code class="sig-name descname">parse_devices</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_devices</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.parse_devices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse user’s devices input str to standard format.
 e.g. [gpu0, gpu1, …]</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="src.mit_semseg.utils.process_range">
-<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.utils.</span></span><span class="sig-name descname"><span class="pre">process_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xpu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.process_range" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.utils.process_range">
+<code class="sig-prename descclassname">src.mit_semseg.utils.</code><code class="sig-name descname">process_range</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xpu</span></em>, <em class="sig-param"><span class="n">inp</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.process_range" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="src.mit_semseg.utils.setup_logger">
-<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.utils.</span></span><span class="sig-name descname"><span class="pre">setup_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distributed_rank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log.txt'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.setup_logger" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.utils.setup_logger">
+<code class="sig-prename descclassname">src.mit_semseg.utils.</code><code class="sig-name descname">setup_logger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">distributed_rank</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">'log.txt'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.setup_logger" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="src.mit_semseg.utils.unique">
-<span class="sig-prename descclassname"><span class="pre">src.mit_semseg.utils.</span></span><span class="sig-name descname"><span class="pre">unique</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ar</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_counts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.unique" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mit_semseg.utils.unique">
+<code class="sig-prename descclassname">src.mit_semseg.utils.</code><code class="sig-name descname">unique</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ar</span></em>, <em class="sig-param"><span class="n">return_index</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">return_inverse</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">return_counts</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.mit_semseg.utils.unique" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Module contents</p>
@@ -173,74 +209,34 @@ e.g. [gpu0, gpu1, …]</p>
 </section>
 
 
+           </div>
           </div>
-          
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="src.html" class="btn btn-neutral float-left" title="Submodules" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="src.obj_detector.html" class="btn btn-neutral float-right" title="Object Detector Module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Vijay, Rus.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../index.html">Noisey-Image</a></h1>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
 
-
-
-
-
-
-
-
-<h3>Navigation</h3>
-<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="src.html">Submodules</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Mit Semseg Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="src.obj_detector.html">Object Detector Module</a></li>
-</ul>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="src.html" title="previous chapter">Submodules</a></li>
-      <li>Next: <a href="src.obj_detector.html" title="next chapter">Object Detector Module</a></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>$('#searchbox').show(0);</script>
-
-
-
-
-
-
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2021, Vijay, Russ.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.3.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-      
-      |
-      <a href="../_sources/source/src.mit_semseg.rst.txt"
-          rel="nofollow">Page source</a>
-    </div>
-
-    
-
-    
-  </body>
+</body>
 </html>
