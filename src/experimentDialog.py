@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QDialog
 from PyQt5.uic.uiparser import QtCore
 from PyQt5 import uic
-from PyQt5.QtCore import QObject, QThread, pyqtSignal
+from PyQt5.QtCore import QObject, QThread, pyqtSignal, Qt
 from PyQt5.QtGui import QPixmap
 from charset_normalizer import detect
 
@@ -80,7 +80,7 @@ class ExperimentWorker(QObject):
                 for i, imgPath in enumerate(self.config.imagePaths):
                     for j in range(maxArgLen):
                         self.logProgress.emit("Running column %i of Augmentations"%(j))
-                        j_subFolder = '_'.join([aug.title.strip() for aug in self.config.mainAug])
+                        j_subFolder = '_'.join(["_".join(aug.title.split(" ")) for aug in self.config.mainAug])
                         j_subFolder += '_'+str(j)
 
                         try:
@@ -98,20 +98,25 @@ class ExperimentWorker(QObject):
                         self.progress.emit(i)
             else:
                 for aug in self.config.mainAug:
-                    # create subdirectory here for each augmentation
-                    new_sub_dir = os.path.join(self.config.savePath, exp_path, "_".join(aug.title.split(' ')) )
-                    os.mkdir(new_sub_dir)
                     self.logProgress.emit('Augmentation: %s'%(aug.title))
 
-                    for i, imgPath in enumerate(self.config.imagePaths):
-                        _img = cv2.imread(imgPath)
-                        _img = aug(_img, request_param=aug.args[0])
-                        dets = self.config.model.run(_img)
-                        self.writeDets(dets, os.path.join(self.savePath, new_sub_dir), imgPath)
-                        #self.insertLog('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
-                        self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
-                        self.progress.emit(i)
-        
+                    for j in range(len(aug.args)):
+                        # create subdirectory here for each augmentation
+                        new_sub_dir = os.path.join(self.config.savePath, exp_path, "%s_%i"%(
+                            "_".join(aug.title.split(' ')), j)
+                        )
+                        try: os.mkdir(new_sub_dir)
+                        except FileExistsError: print("Folder already exists...")
+
+                        for i, imgPath in enumerate(self.config.imagePaths):
+                            _img = cv2.imread(imgPath)
+                            _img = aug(_img, request_param=aug.args[j])
+                            dets = self.config.model.run(_img)
+                            self.writeDets(dets, new_sub_dir, imgPath)
+                            #self.insertLog('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
+                            self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
+                            self.progress.emit(i)
+
         # clean up model
         self.config.model.deinitialize()
         self.finished.emit()
@@ -132,9 +137,13 @@ class ExperimentResultWorker(QObject):
         self.folders = next(os.walk(self.parentPath))[1]
     
     def run(self):
-        if not self.augPosition is None: _folder_path = os.path.join(self.parentPath, self.folders[self.augPosition])
-        elif not self.argPosition is None: _folder_path = os.path.join(self.parentPath, self.folders[self.argPosition])
-        else: _folder_path = self.parentPath
+        if self.config.isCompound:
+            _folder_path = os.path.join(self.parentPath, self.folders[self.argPosition])
+        elif not self.config.isCompound:
+            _title = "_".join(self.config.mainAug.__pipeline__[self.augPosition].title.split(" "))
+            _folder_path = os.path.join(self.parentPath, "%s_%i"%(_title, self.argPosition))
+        elif len(self.config.mainAug.__pipeline__) == 0:
+            _folder_path = self.parentPath
 
         _img = cv2.imread(self.imagePath)
 
@@ -143,7 +152,7 @@ class ExperimentResultWorker(QObject):
                 for aug in self.config.mainAug:
                     _img = aug(_img, aug.args[self.argPosition])
             else:
-                aug = self.config.mainAug[self.augPosition]
+                aug = self.config.mainAug.__pipeline__[self.augPosition]
                 _img = aug(_img, aug.args[0])
         
         # read in detection:
@@ -197,12 +206,13 @@ class ExperimentDialog(QDialog):
         self.totalArgIdx = 0
 
         # fill in combobox:
+        self.totalArgIdx = len(self.config.mainAug.__pipeline__[0].args)
         if self.config.isCompound: 
             self.augComboBox.setVisible(False)
-            self.totalArgIdx = len(self.config.mainAug.__pipeline__[0].args)
         else:
             for i, aug in enumerate(self.config.mainAug):
                 self.augComboBox.addItem(aug.title)
+            self.augComboBox.currentIndexChanged.connect(lambda: self.refreshImageResults(self.currentIdx))
 
         # buttons:
         self.previewBack.clicked.connect(lambda: self.changeOnImageButton(-1) ) # substract one from currentIdx
@@ -290,8 +300,12 @@ class ExperimentDialog(QDialog):
         if self.config.isCompound:
             self.worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName, argPosition=self.currentArgIdx)
         else:
-            self.worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName, argPosition=self.currentArgIdx, augPosition=0)
-         
+            #augPosition = self.augComboBox.currentData(Qt.UserRole)
+            augPosition = self.augComboBox.currentIndex()
+            self.worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName, argPosition=self.currentArgIdx, augPosition=augPosition)
+            self.totalArgIdx = len(self.config.mainAug.__pipeline__[self.currentArgIdx].args)
+            self.label_13.setText(str(self.totalArgIdx))
+
         self.worker.moveToThread(self.afterExpThread)
         self.afterExpThread.started.connect(self.worker.run)
         self.worker.finished.connect(self.afterExpThread.quit)

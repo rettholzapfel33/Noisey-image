@@ -43,45 +43,13 @@
    <property name="geometry">
     <rect>
      <x>140</x>
-     <y>176</y>
+     <y>193</y>
      <width>191</width>
      <height>24</height>
     </rect>
    </property>
    <property name="text">
     <string>Click to Download Weights</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="detailExplain">
-   <property name="geometry">
-    <rect>
-     <x>90</x>
-     <y>75</y>
-     <width>291</width>
-     <height>101</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>The pre-trained weights for YOLOv3 and MIT Segmentation are not detected. To proceed with the inferencing on the software, you must download these weights. Please click the button below to start autodownloading.</string>
-   </property>
-   <property name="wordWrap">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QLabel" name="titleExplain">
-   <property name="geometry">
-    <rect>
-     <x>90</x>
-     <y>40</y>
-     <width>291</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string># Weight Files Missing</string>
-   </property>
-   <property name="textFormat">
-    <enum>Qt::MarkdownText</enum>
    </property>
   </widget>
   <widget class="QPushButton" name="afterDownload">
@@ -95,6 +63,32 @@
    </property>
    <property name="text">
     <string>Continue</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="titleExplain">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>40</y>
+     <width>341</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:20pt; font-weight:600;&quot;&gt;Weight Files Missing&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="detailExplain">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>86</y>
+     <width>291</width>
+     <height>91</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The pre-trained weights for YOLOv3 and MIT &lt;br&gt; Segmentation are not detected. To proceed &lt;br&gt; with the inferencing on the software, you &lt;br&gt; must download these weights. Please click &lt;br&gt; the button below to start autodownloading.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
  </widget>
