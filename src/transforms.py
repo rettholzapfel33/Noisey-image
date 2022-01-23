@@ -333,6 +333,12 @@ class AugmentationPipeline():
                 f.write(str_out)
 
     def checkArgs(self):
+        maxLen = 0
+        for aug in self.__pipeline__:
+            if maxLen == 0:
+                maxLen = len(aug.args)
+            if maxLen != len(aug.args):
+                return False, "Compounding augmentations require equal number of parameters for each active parameter. %s has mismatch of %i parameters"%(aug.title, len(aug.args))
         return True, ""
 
     next = __next__ # python 2

@@ -74,42 +74,42 @@ class ExperimentWorker(QObject):
                 self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
                 self.progress.emit(i)
         else:
-            if not self.config.shouldAug:
+            if self.config.isCompound:
+                # apply sequentially (all args must be of the same length):
+                maxArgLen = len(self.config.mainAug.__pipeline__[0].args)
+
                 for i, imgPath in enumerate(self.config.imagePaths):
-                    _img = cv2.imread(imgPath)
-                    dets = self.config.model.run(_img)
-                    self.writeDets(dets, os.path.join(self.savePath, exp_path), imgPath)
-                    #self.progressBar.setValue( ((i+1)*_progressMove)*100 )
-                    self.progress.emit(i)
-                    self.logProgress.emit('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
-            else:
-                if self.config.isCompound:
-                    # apply sequentially:
-                    for i, imgPath in enumerate(self.config.imagePaths):
+                    for j in range(maxArgLen):
+                        self.logProgress.emit("Running column %i of Augmentations"%(j))
+                        j_subFolder = '_'.join([aug.title.strip() for aug in self.config.mainAug])
+                        j_subFolder += '_'+str(j)
+                        os.mkdir( os.path.join(self.savePath, exp_path, j_subFolder) )
+            
                         _img = cv2.imread(imgPath)
                         for aug in self.config.mainAug:
-                            _img = aug(_img)
+                            _args = aug.args
+                            _img = aug(_img, _args[j])
+                        
                         dets = self.config.model.run(_img)
-                        self.writeDets(dets, os.path.join(self.savePath, exp_path), imgPath)
-                        #self.insertLog('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
+                        self.writeDets(dets, os.path.join(self.savePath, exp_path, j_subFolder), imgPath)
                         self.logProgress.emit('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
-                        #self.progressBar.setValue( ((i+1)*_progressMove)*100 )
                         self.progress.emit(i)
-                else:
-                    for aug in self.config.mainAug:
-                        # create subdirectory here for each augmentation
-                        new_sub_dir = os.path.join(self.config.savePath, exp_path, "_".join(aug.title.split(' ')) )
-                        os.mkdir(new_sub_dir)
-                        self.logProgress.emit('Augmentation: %s'%(aug.title))
 
-                        for i, imgPath in enumerate(self.config.imagePaths):
-                            _img = cv2.imread(imgPath)
-                            _img = aug(_img, request_param=aug.args[0])
-                            dets = self.config.model.run(_img)
-                            self.writeDets(dets, os.path.join(self.savePath, new_sub_dir), imgPath)
-                            #self.insertLog('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
-                            self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
-                            self.progress.emit(i)
+            else:
+                for aug in self.config.mainAug:
+                    # create subdirectory here for each augmentation
+                    new_sub_dir = os.path.join(self.config.savePath, exp_path, "_".join(aug.title.split(' ')) )
+                    os.mkdir(new_sub_dir)
+                    self.logProgress.emit('Augmentation: %s'%(aug.title))
+
+                    for i, imgPath in enumerate(self.config.imagePaths):
+                        _img = cv2.imread(imgPath)
+                        _img = aug(_img, request_param=aug.args[0])
+                        dets = self.config.model.run(_img)
+                        self.writeDets(dets, os.path.join(self.savePath, new_sub_dir), imgPath)
+                        #self.insertLog('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
+                        self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
+                        self.progress.emit(i)
         
         # clean up model
         self.config.model.deinitialize()
@@ -120,28 +120,34 @@ class ExperimentResultWorker(QObject):
     finishedImage = pyqtSignal(QPixmap)
     finishedGraph = pyqtSignal(np.ndarray)
 
-    def __init__(self, imagePath, config, expName, augPosition=None) -> None:
+    def __init__(self, imagePath, config, expName, augPosition=None, argPosition=None) -> None:
         super(ExperimentResultWorker, self).__init__()
         self.imagePath = imagePath # a single image
         self.config = config
         self.expName = expName
         self.augPosition = augPosition # only used when augmentations are not compounded, need 2 know position of wanted aug
-
-    #@QtCore.pyqtSlot()
+        self.argPosition = argPosition # only used when aug's compounded
+        self.parentPath = os.path.join(self.config.savePath, self.expName)
+        self.folders = next(os.walk(self.parentPath))[1]
+    
     def run(self):
+        if not self.augPosition is None: _folder_path = os.path.join(self.parentPath, self.folders[self.augPosition])
+        elif not self.argPosition is None: _folder_path = os.path.join(self.parentPath, self.folders[self.argPosition])
+        else: _folder_path = self.parentPath
+
         _img = cv2.imread(self.imagePath)
 
         if len(self.config.mainAug) > 0:
             if self.config.isCompound:
                 for aug in self.config.mainAug:
-                    _img = aug(_img)
+                    _img = aug(_img, aug.args[0])
             else:
                 aug = self.config.mainAug[self.augPosition]
-                _img = aug(_img)
+                _img = aug(_img, aug.args[0])
         
         # read in detection:
         _imgRoot = self.imagePath.split('/')[-1].split('.')[0]
-        txt_file = os.path.join(self.config.savePath, self.expName, "%s.txt"%(_imgRoot))
+        txt_file = os.path.join(_folder_path, "%s.txt"%(_imgRoot))
         assert os.path.exists(txt_file), txt_file
 
         if self.config.model.complexOutput:
@@ -183,6 +189,10 @@ class ExperimentDialog(QDialog):
         self._progressMove = 1/len(self.config.imagePaths)
         self.config.expName = createExperimentName(self.config.savePath)
 
+        # fill in combobox:
+        for i, aug in enumerate(self.config.mainAug):
+            self.augComboBox.addItem(aug.title)
+
         # image gui controls:
         self.currentIdx = 0
         self.currentGraphIdx = 0
@@ -201,6 +211,7 @@ class ExperimentDialog(QDialog):
         self.show()
 
     def __setPreviews__(self, state:bool):
+        self.augComboBox.setVisible(state)
         self.degrade_label.setVisible(state)
         self.image_label.setVisible(state)
         self.label_7.setVisible(state)
@@ -263,7 +274,11 @@ class ExperimentDialog(QDialog):
         self.refreshGraphResults(0)
 
     def refreshImageResults(self,i):
-        self.worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName)
+        if self.config.isCompound:
+            self.worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName, argPosition=0)
+        else:
+            self.worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName, augPosition=0)
+         
         self.worker.moveToThread(self.afterExpThread)
         self.afterExpThread.started.connect(self.worker.run)
         self.worker.finished.connect(self.afterExpThread.quit)
