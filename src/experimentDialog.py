@@ -77,14 +77,16 @@ class ExperimentWorker(QObject):
             if self.config.isCompound:
                 # apply sequentially (all args must be of the same length):
                 maxArgLen = len(self.config.mainAug.__pipeline__[0].args)
-
                 for i, imgPath in enumerate(self.config.imagePaths):
                     for j in range(maxArgLen):
                         self.logProgress.emit("Running column %i of Augmentations"%(j))
                         j_subFolder = '_'.join([aug.title.strip() for aug in self.config.mainAug])
                         j_subFolder += '_'+str(j)
-                        os.mkdir( os.path.join(self.savePath, exp_path, j_subFolder) )
-            
+
+                        try:
+                            os.mkdir( os.path.join(self.savePath, exp_path, j_subFolder) )
+                        except FileExistsError: print("Folder path already exists...")
+
                         _img = cv2.imread(imgPath)
                         for aug in self.config.mainAug:
                             _args = aug.args
@@ -94,7 +96,6 @@ class ExperimentWorker(QObject):
                         self.writeDets(dets, os.path.join(self.savePath, exp_path, j_subFolder), imgPath)
                         self.logProgress.emit('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
                         self.progress.emit(i)
-
             else:
                 for aug in self.config.mainAug:
                     # create subdirectory here for each augmentation
@@ -140,7 +141,7 @@ class ExperimentResultWorker(QObject):
         if len(self.config.mainAug) > 0:
             if self.config.isCompound:
                 for aug in self.config.mainAug:
-                    _img = aug(_img, aug.args[0])
+                    _img = aug(_img, aug.args[self.argPosition])
             else:
                 aug = self.config.mainAug[self.augPosition]
                 _img = aug(_img, aug.args[0])
@@ -182,25 +183,32 @@ class ExperimentDialog(QDialog):
     def __init__(self, config:ExperimentConfig) -> None:
         super(ExperimentDialog, self).__init__()
         uic.loadUi('./src/qt_designer_file/experiment.ui', self)
-        self.__setPreviews__(False)
         self.progressBar.setValue(0)
         self.textProgress.setEnabled(False)
         self.config = config
         self._progressMove = 1/len(self.config.imagePaths)
         self.config.expName = createExperimentName(self.config.savePath)
 
-        # fill in combobox:
-        for i, aug in enumerate(self.config.mainAug):
-            self.augComboBox.addItem(aug.title)
-
         # image gui controls:
         self.currentIdx = 0
+        self.currentArgIdx = 0
         self.currentGraphIdx = 0
         self.totalGraphs = 1
+        self.totalArgIdx = 0
+
+        # fill in combobox:
+        if self.config.isCompound: 
+            self.augComboBox.setVisible(False)
+            self.totalArgIdx = len(self.config.mainAug.__pipeline__[0].args)
+        else:
+            for i, aug in enumerate(self.config.mainAug):
+                self.augComboBox.addItem(aug.title)
 
         # buttons:
-        self.previewBack.clicked.connect(lambda: self.changeOnImageButton(-1)) # substract one from currentIdx
+        self.previewBack.clicked.connect(lambda: self.changeOnImageButton(-1) ) # substract one from currentIdx
         self.previewForward.clicked.connect( lambda: self.changeOnImageButton(1) ) # increase index by one
+        self.previewBack_3.clicked.connect(lambda: self.changeOnImageAugButton(-1) )
+        self.previewForward_3.clicked.connect(lambda: self.changeOnImageAugButton(1) )
 
         # multithreading stuff for updates after experiment:
         self.afterExpThread = QThread()
@@ -208,10 +216,13 @@ class ExperimentDialog(QDialog):
         # check if experiment folder exists:
         if not os.path.exists(self.config.savePath):
             os.mkdir(self.config.savePath)
+
+        self.__setPreviews__(False)
         self.show()
 
     def __setPreviews__(self, state:bool):
-        self.augComboBox.setVisible(state)
+        if self.config.isCompound: self.augComboBox.setVisible(False)
+        else: self.augComboBox.setVisible(state)
         self.degrade_label.setVisible(state)
         self.image_label.setVisible(state)
         self.label_7.setVisible(state)
@@ -268,6 +279,8 @@ class ExperimentDialog(QDialog):
         self.label_6.setText(str(self.totalGraphs))
         self.label.setText(str(self.currentIdx+1))
         self.label_4.setText(str(self.currentGraphIdx+1))
+        self.label_13.setText(str(self.totalArgIdx))
+        self.label_11.setText(str(self.currentArgIdx+1))
 
         self.__setPreviews__(True)
         self.refreshImageResults(0)
@@ -275,9 +288,9 @@ class ExperimentDialog(QDialog):
 
     def refreshImageResults(self,i):
         if self.config.isCompound:
-            self.worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName, argPosition=0)
+            self.worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName, argPosition=self.currentArgIdx)
         else:
-            self.worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName, augPosition=0)
+            self.worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName, argPosition=self.currentArgIdx, augPosition=0)
          
         self.worker.moveToThread(self.afterExpThread)
         self.afterExpThread.started.connect(self.worker.run)
@@ -305,9 +318,14 @@ class ExperimentDialog(QDialog):
             self.label.setText(str(self.currentIdx+1))
             self.refreshImageResults(self.currentIdx)
 
+    def changeOnImageAugButton(self, i):
+        if self.currentArgIdx+i < self.totalArgIdx and self.currentArgIdx+i >= 0:
+            self.currentArgIdx += i
+            self.label_11.setText(str(self.currentArgIdx+1))
+            self.refreshImageResults(self.currentIdx)
+
     def changeOnGraphButton(self, i):
         if self.currentGraphIdx+i < len(self.config.imagePaths) and self.currentGraphIdx+i >= 0:
             self.currentGraphIdx += i
             self.label.setText(str(self.currentGraphIdx+1))
             self.refreshGraphResults(self.currentGraphIdx)
-            return 0
