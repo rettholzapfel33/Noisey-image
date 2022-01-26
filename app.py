@@ -337,22 +337,33 @@ class mainWindow(QtWidgets.QMainWindow):
         originalImg = cv2.imread(qListItem.data(QtCore.Qt.UserRole)['filePath'])
 
         predictedImg = qListItem.data(QtCore.Qt.UserRole).get('predictedImg')
+        predictedColor = qListItem.data(QtCore.Qt.UserRole).get('predictedColor')
         
         if(predictedImg is None):
             return
 
         predictedQtImg = convert_cvimg_to_qimg(predictedImg)
-        predictedQtColor = convert_cvimg_to_qimg(qListItem.data(QtCore.Qt.UserRole)['predictedColor'])
+
+        if(predictedColor is not None):
+            predictedQtColor = convert_cvimg_to_qimg(predictedColor)
 
         if(current.text() == "all"):
-            self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtColor))
             self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
+
+            if(predictedColor is not None):
+                self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtColor))
+
         else:
-            img = new_visualize_result(qListItem.data(QtCore.Qt.UserRole)['pred'], originalImg, current.text())
-            qImg_color = convert_cvimg_to_qimg(img[0])
-            qImg_overlay = convert_cvimg_to_qimg(img[1])
-            self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(qImg_color))
+            pred = qListItem.data(QtCore.Qt.UserRole)['pred']
+            model = models._registry[self.ui.comboBox.currentText()]
+            img = model.draw_single_class(pred, originalImg, current.text())
+            qImg_overlay = convert_cvimg_to_qimg(img)
             self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(qImg_overlay))
+            # img = new_visualize_result(qListItem.data(QtCore.Qt.UserRole)['pred'], originalImg, current.text())
+            # qImg_color = convert_cvimg_to_qimg(img[0])
+            # qImg_overlay = convert_cvimg_to_qimg(img[1])
+            # self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(qImg_color))
+            # self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(qImg_overlay))
 
     def display_result(self, result):
         comboModelType = self.ui.comboBox.currentText()
@@ -426,8 +437,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.worker.finished.connect(self.worker.deleteLater)
         self.worker.finished.connect(self.ui.progressBar.hide)
         self.worker.finished.connect(self.display_result)
-        if(comboModelType == "Semantic Segmentation"):
-            self.worker.finished.connect(self.display_items)
+        #if(comboModelType == "Semantic Segmentation"):
+        self.worker.finished.connect(self.display_items)
         self.worker.finished.connect(lambda: self.ui.pushButton_2.setEnabled(True))
         self.worker.progress.connect(self.reportProgress)
         self.thread.finished.connect(self.thread.deleteLater)

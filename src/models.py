@@ -34,7 +34,11 @@ class Model(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractclassmethod
-    def draw(pred):
+    def draw(self, pred):
+        raise NotImplementedError
+
+    @abc.abstractclassmethod
+    def draw_single_class(self, pred):
         raise NotImplementedError
 
     @abc.abstractproperty
@@ -114,6 +118,9 @@ class Segmentation(Model):
         "listOfNames":detectedNames
                 }
 
+    def draw_single_class(self, pred):
+        return 
+
     def outputFormat(self):
         return "{}" # hex based output?
 
@@ -144,8 +151,13 @@ class YOLOv3(Model):
         return -1
     
     def draw(self, pred, img):
-        np_img = detect._draw_and_return_output_image(img, pred, 416, self.classes)
-        return {"dst": np_img}
+        np_img, detectedNames = detect._draw_and_return_output_image(img, pred, 416, self.classes)
+        return {"dst": np_img,
+                "listOfNames":detectedNames}
+
+    def draw_single_class(self, pred, img, selected_class):
+        np_img = detect._draw_and_return_output_image_single_class(img, pred, selected_class, self.classes)
+        return np_img
 
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
