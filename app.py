@@ -76,7 +76,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         # Check status of configurations:
         weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights"}
-        self.labels = None
+        self.labels = []
 
         if Downloader.check(weight_dict):
             self.downloadDialog = Downloader(weight_dict)
@@ -101,6 +101,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.pushButton.clicked.connect(self.run_model)  
         self.ui.pushButton_2.clicked.connect(self.startExperiment)
         self.ui.pushButton_4.clicked.connect(quit)
+        self.ui.compoundAug.setChecked(True)
 
         # Augmentation Generator:
         self.ui.addAug.clicked.connect(self.addWindow.show)
@@ -288,8 +289,6 @@ class mainWindow(QtWidgets.QMainWindow):
                 filePaths.remove(file)
                 filePaths.extend(onlyfiles)
 
-        #print(filePaths)
-
         if "labels" in documents:
             labels_folder = os.path.join(root, documents["labels"])
             onlylabels = [f for f in os.listdir(labels_folder) if os.path.isfile(os.path.join(labels_folder, f))]
@@ -300,7 +299,10 @@ class mainWindow(QtWidgets.QMainWindow):
                 file_content = []
                 with open(label) as f:
                     for line in f:
-                        file_content.append(line.split())
+                        _list = line.split()
+                        if type(_list) == list:
+                            _list = list(map(float, _list))
+                        file_content.append(_list)
                 #print(file_content)
                 base=os.path.basename(label)
                 labels_dic[os.path.splitext(base)[0]] = file_content
@@ -449,18 +451,30 @@ class mainWindow(QtWidgets.QMainWindow):
         # fill image paths with dummy inputs for now
         comboModelType = self.ui.comboBox.currentText()
 
+        # check augmentation setup:
+        if self.ui.compoundAug.isChecked():
+            ret, msg = mainAug.checkArgs()
+            if not ret:
+                print(msg) # create dialog box saying something is wrong 
+                return -1
+
         # initialize model (temp; move to thread worker):
         _model = models._registry[comboModelType]
         _model.initialize()
+        
+        # replace preset list with variable list:
+        # assemble active image path list:
+        lw = self.ui.fileList
+        items = [lw.item(x) for x in range(lw.count())]
+        imgPaths = []
+        for qListItem in items:
+            file_path = qListItem.data(QtCore.Qt.UserRole).get('filePath')
+            if(file_path is None):
+                self.ui.statusbar.showMessage("Import an image first!", 3000)
+                return -1
+            imgPaths.append(file_path)
 
-        config = ExperimentConfig(mainAug, True, [
-            './imgs/default_imgs/5b2372a8a310010f43da1d3e.jpg',
-            './imgs/default_imgs/100FACES.jpg',
-            './imgs/default_imgs/car detection.png'
-        ],
-        _model,
-        shouldAug=True
-        )
+        config = ExperimentConfig(mainAug, self.ui.compoundAug.isChecked(), imgPaths, _model, labels=self.labels)
         self.experiment = ExperimentDialog(config)
         self.experiment.startExperiment()
 
