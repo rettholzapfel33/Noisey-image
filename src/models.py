@@ -4,7 +4,7 @@ from pathlib import Path
 from PyQt5.QtCore import QObject
 import os, csv, torch, scipy.io
 
-from src.predict_img import process_img, predict_img, load_model_from_cfg, visualize_result, transparent_overlays, get_color_palette
+from src.predict_img import new_visualize_result, process_img, predict_img, load_model_from_cfg, visualize_result, transparent_overlays, get_color_palette
 
 # import yolov3 stuff:
 import src.obj_detector.detect as detect
@@ -34,7 +34,11 @@ class Model(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractclassmethod
-    def draw(pred):
+    def draw(self, pred):
+        raise NotImplementedError
+
+    @abc.abstractclassmethod
+    def draw_single_class(self, pred):
         raise NotImplementedError
 
     @abc.abstractproperty
@@ -114,6 +118,10 @@ class Segmentation(Model):
         "listOfNames":detectedNames
                 }
 
+    def draw_single_class(self, pred, img, selected_class):
+        imgs = new_visualize_result(pred, img, selected_class)
+        return {"segmentation": imgs[0], "overlay": imgs[1]}
+
     def outputFormat(self):
         return "{}" # hex based output?
 
@@ -130,22 +138,27 @@ class YOLOv3(Model):
         # self.CFG = os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg')
         # self.WEIGHTS = os.path.join(currPath,'obj_detector/weights','yolov3.weights')
         print(self.CLASSES, self.CFG, self.WEIGHTS)
+        self.classes = load_classes(self.CLASSES)
 
     def run(self, input):
         pred = detect.detect_image(self.yolo, input)
-        return pred
+        return pred #[x1,y1,x2,y2,conf,class] <--- box
 
     def initialize(self, *kwargs):
         self.yolo = load_model(self.CFG, self.WEIGHTS)
-        self.classes = load_classes(self.CLASSES)
         return 0
     
     def deinitialize(self):
         return -1
     
     def draw(self, pred, img):
-        np_img = detect._draw_and_return_output_image(img, pred, 416, self.classes)
-        return {"dst": np_img}
+        np_img, detectedNames = detect._draw_and_return_output_image(img, pred, 416, self.classes)
+        return {"dst": np_img,
+                "listOfNames":detectedNames}
+
+    def draw_single_class(self, pred, img, selected_class):
+        np_img = detect._draw_and_return_output_image_single_class(img, pred, selected_class, self.classes)
+        return {"overlay": np_img}
 
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"

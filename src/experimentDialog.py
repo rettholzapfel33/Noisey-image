@@ -109,10 +109,11 @@ class ExperimentWorker(QObject):
                         except FileExistsError: print("Folder path already exists...")
 
                         _img = cv2.imread(imgPath)
+                        
                         for aug in self.config.mainAug:
                             _args = aug.args
                             _img = aug(_img, _args[j])
-                        
+        
                         dets = self.config.model.run(_img)
 
                         if not self.config.model.complexOutput: _count += len(dets)

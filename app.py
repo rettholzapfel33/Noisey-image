@@ -49,6 +49,8 @@ class Worker(QtCore.QObject):
 
         result = []
         for img in self.files:
+
+            
             pred = model.run(img)
             temp = model.draw(pred, img)
             temp["pred"] = pred
@@ -167,12 +169,10 @@ class mainWindow(QtWidgets.QMainWindow):
         """Decreses the size of font across the whole application"""
         self.ui.centralwidget.setFont(QtGui.QFont('Ubuntu', self.ui.centralwidget.fontInfo().pointSize() - 1))
         
-    def updateNoisePixMap(self, mat, augs):
-        for aug in augs:
-            mat = aug(mat, example=True)
-        qt_img = convert_cvimg_to_qimg(mat)
-        self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
-        return mat
+    def apply_augmentations(self, img):
+        for aug in mainAug:
+            img = aug(img, example=True)
+        return img
 
     def changePreviewImage(self, *kwargs):
         #print(kwargs)
@@ -180,7 +180,9 @@ class mainWindow(QtWidgets.QMainWindow):
         current_item = self.ui.fileList.currentItem()
         image = cv2.imread(current_item.data(QtCore.Qt.UserRole)['filePath'])
         #if image is not None:
-        self.updateNoisePixMap(image, mainAug)
+        image = self.apply_augmentations(image)
+        qt_img = convert_cvimg_to_qimg(image)
+        self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
 
 
     def default_img(self, fileName = "MISC1/car detection.png"):
@@ -320,15 +322,12 @@ class mainWindow(QtWidgets.QMainWindow):
         originalImg = cv2.imread(qListItem.data(QtCore.Qt.UserRole)['filePath'])
 
         self.ui.listWidget.clear()
+        self.ui.original_2.clear()
+        self.ui.preview_2.clear()
 
         originalQtImg = convert_cvimg_to_qimg(originalImg)
         self.ui.original.setPixmap(QtGui.QPixmap.fromImage(originalQtImg))
 
-        # if(noiseImg is not None):
-        #     noiseQtImg = convert_cvimg_to_qimg(noiseImg)
-        #     self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(noiseQtImg))
-        # else:
-        #     self.ui.preview.clear()
         self.changePreviewImage()
 
 
@@ -337,25 +336,40 @@ class mainWindow(QtWidgets.QMainWindow):
             return
 
         qListItem = self.ui.fileList.currentItem()
-        originalImg = qListItem.data(QtCore.Qt.UserRole)['img']
+        originalImg = cv2.imread(qListItem.data(QtCore.Qt.UserRole)['filePath'])
 
         predictedImg = qListItem.data(QtCore.Qt.UserRole).get('predictedImg')
+        predictedColor = qListItem.data(QtCore.Qt.UserRole).get('predictedColor')
         
         if(predictedImg is None):
             return
 
         predictedQtImg = convert_cvimg_to_qimg(predictedImg)
-        predictedQtColor = convert_cvimg_to_qimg(qListItem.data(QtCore.Qt.UserRole)['predictedColor'])
+
+        if(predictedColor is not None):
+            predictedQtColor = convert_cvimg_to_qimg(predictedColor)
 
         if(current.text() == "all"):
-            self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtColor))
             self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtImg))
+
+            if(predictedColor is not None):
+                self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(predictedQtColor))
+
         else:
-            img = new_visualize_result(qListItem.data(QtCore.Qt.UserRole)['pred'], originalImg, current.text())
-            qImg_color = convert_cvimg_to_qimg(img[0])
-            qImg_overlay = convert_cvimg_to_qimg(img[1])
-            self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(qImg_color))
+            pred = qListItem.data(QtCore.Qt.UserRole)['pred']
+            model = models._registry[self.ui.comboBox.currentText()]
+            imgs = model.draw_single_class(pred, originalImg, current.text())
+            qImg_overlay = convert_cvimg_to_qimg(imgs["overlay"])
             self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(qImg_overlay))
+
+            if "segmentation" in imgs:
+                qImg_segmentation= convert_cvimg_to_qimg(imgs["segmentation"])
+                self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(qImg_segmentation))
+            # img = new_visualize_result(qListItem.data(QtCore.Qt.UserRole)['pred'], originalImg, current.text())
+            # qImg_color = convert_cvimg_to_qimg(img[0])
+            # qImg_overlay = convert_cvimg_to_qimg(img[1])
+            # self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(qImg_color))
+            # self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(qImg_overlay))
 
     def display_result(self, result):
         comboModelType = self.ui.comboBox.currentText()
@@ -407,7 +421,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.statusbar.showMessage("Import an image first!", 3000)
             return
 
-        noiseImg = self.updateNoisePixMap(img, mainAug)
+        noiseImg = self.apply_augmentations(img)
 
         self.ui.pushButton_2.setEnabled(False)
         self.ui.progressBar.show()
@@ -429,8 +443,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.worker.finished.connect(self.worker.deleteLater)
         self.worker.finished.connect(self.ui.progressBar.hide)
         self.worker.finished.connect(self.display_result)
-        if(comboModelType == "Semantic Segmentation"):
-            self.worker.finished.connect(self.display_items)
+        #if(comboModelType == "Semantic Segmentation"):
+        self.worker.finished.connect(self.display_items)
         self.worker.finished.connect(lambda: self.ui.pushButton_2.setEnabled(True))
         self.worker.progress.connect(self.reportProgress)
         self.thread.finished.connect(self.thread.deleteLater)
@@ -451,7 +465,7 @@ class mainWindow(QtWidgets.QMainWindow):
         # initialize model (temp; move to thread worker):
         _model = models._registry[comboModelType]
         _model.initialize()
-
+        
         # replace preset list with variable list:
         # assemble active image path list:
         lw = self.ui.fileList
