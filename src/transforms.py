@@ -478,7 +478,7 @@ class AugDialog(QDialog):
             itemIndex = mainAug.index(listItem.text())
 
             if listItem.checkState() and itemIndex == -1:
-                mainAug.append(listItem.text(param=_param, example=_example))
+                mainAug.append(listItem.text(), param=_param, example=_example)
             elif listItem.checkState() and itemIndex != -1:
                 if not _param is None: mainAug.__pipeline__[itemIndex].setParam(_param)
                 if not _example is None: mainAug.__pipeline__[itemIndex].setExampleParam(_example)
