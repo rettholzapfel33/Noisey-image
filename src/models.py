@@ -4,7 +4,7 @@ from pathlib import Path
 from PyQt5.QtCore import QObject
 import os, csv, torch, scipy.io
 
-from src.predict_img import process_img, predict_img, load_model_from_cfg, visualize_result, transparent_overlays, get_color_palette
+from src.predict_img import new_visualize_result, process_img, predict_img, load_model_from_cfg, visualize_result, transparent_overlays, get_color_palette
 
 # import yolov3 stuff:
 import src.obj_detector.detect as detect
@@ -118,8 +118,9 @@ class Segmentation(Model):
         "listOfNames":detectedNames
                 }
 
-    def draw_single_class(self, pred):
-        return 
+    def draw_single_class(self, pred, img, selected_class):
+        imgs = new_visualize_result(pred, img, selected_class)
+        return {"segmentation": imgs[0], "overlay": imgs[1]}
 
     def outputFormat(self):
         return "{}" # hex based output?
@@ -157,7 +158,7 @@ class YOLOv3(Model):
 
     def draw_single_class(self, pred, img, selected_class):
         np_img = detect._draw_and_return_output_image_single_class(img, pred, selected_class, self.classes)
-        return np_img
+        return {"overlay": np_img}
 
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"

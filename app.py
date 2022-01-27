@@ -356,9 +356,13 @@ class mainWindow(QtWidgets.QMainWindow):
         else:
             pred = qListItem.data(QtCore.Qt.UserRole)['pred']
             model = models._registry[self.ui.comboBox.currentText()]
-            img = model.draw_single_class(pred, originalImg, current.text())
-            qImg_overlay = convert_cvimg_to_qimg(img)
+            imgs = model.draw_single_class(pred, originalImg, current.text())
+            qImg_overlay = convert_cvimg_to_qimg(imgs["overlay"])
             self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(qImg_overlay))
+
+            if "segmentation" in imgs:
+                qImg_segmentation= convert_cvimg_to_qimg(imgs["segmentation"])
+                self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(qImg_segmentation))
             # img = new_visualize_result(qListItem.data(QtCore.Qt.UserRole)['pred'], originalImg, current.text())
             # qImg_color = convert_cvimg_to_qimg(img[0])
             # qImg_overlay = convert_cvimg_to_qimg(img[1])
