@@ -363,11 +363,7 @@ class mainWindow(QtWidgets.QMainWindow):
             if "segmentation" in imgs:
                 qImg_segmentation= convert_cvimg_to_qimg(imgs["segmentation"])
                 self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(qImg_segmentation))
-            # img = new_visualize_result(qListItem.data(QtCore.Qt.UserRole)['pred'], originalImg, current.text())
-            # qImg_color = convert_cvimg_to_qimg(img[0])
-            # qImg_overlay = convert_cvimg_to_qimg(img[1])
-            # self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(qImg_color))
-            # self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(qImg_overlay))
+        
 
     def display_result(self, result):
         comboModelType = self.ui.comboBox.currentText()
