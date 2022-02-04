@@ -244,6 +244,7 @@ class ExperimentDialog(QDialog):
         self.currentIdx = 0
         self.currentArgIdx = 0
         self.currentGraphIdx = 0
+        # total amount of garphs, arguments, augmentations
         self.totalGraphs = 1
         self.totalArgIdx = 0
 
@@ -343,10 +344,13 @@ class ExperimentDialog(QDialog):
         if self.config.isCompound:
             self.worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName, argPosition=self.currentArgIdx)
         else:
-            #augPosition = self.augComboBox.currentData(Qt.UserRole)
             augPosition = self.augComboBox.currentIndex()
+            self.totalArgIdx = len(self.config.mainAug.__pipeline__[augPosition].args)
+            if self.currentArgIdx >= self.totalArgIdx:
+                self.currentArgIdx = self.totalArgIdx-1
+                #i = self.currentIdx
+                self.label_11.setText(str(self.currentArgIdx+1))
             self.worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName, argPosition=self.currentArgIdx, augPosition=augPosition)
-            self.totalArgIdx = len(self.config.mainAug.__pipeline__[self.currentArgIdx].args)
             self.label_13.setText(str(self.totalArgIdx))
 
         self.worker.moveToThread(self.afterExpThread)
