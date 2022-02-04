@@ -277,7 +277,8 @@ class AugmentationPipeline():
     def append(self, aug_title, param=None, example=None):
         augIndex = self.__keys__.index(aug_title)
         augItem = self.__augList__[augIndex]
-        if not param is None: augItem.args = param
+        if not param is None: 
+            augItem.setParam(param)
         if not example is None: augItem.setExampleParam(example)
         self.__pipeline__.append(augItem)
 
@@ -478,7 +479,7 @@ class AugDialog(QDialog):
             itemIndex = mainAug.index(listItem.text())
 
             if listItem.checkState() and itemIndex == -1:
-                mainAug.append(listItem.text(param=_param, example=_example))
+                mainAug.append(listItem.text(), param=_param, example=_example)
             elif listItem.checkState() and itemIndex != -1:
                 if not _param is None: mainAug.__pipeline__[itemIndex].setParam(_param)
                 if not _example is None: mainAug.__pipeline__[itemIndex].setExampleParam(_example)
