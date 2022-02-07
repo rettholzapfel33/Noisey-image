@@ -159,11 +159,11 @@ def speckle_noise(image):
 
 augList = {
     "Intensity": {"function": dim_intensity, "default": [0.5], "example":0.5},
-    "Gaussian Noise": {"function": gaussian_noise, "default": [50], "example":25},
+    "Gaussian Noise": {"function": gaussian_noise, "default": [1,25,50], "example":25},
     "Gaussian Blur": {"function": gaussian_blur, "default": [30], "example":30},
-    "JPEG Compression": {"function": jpeg_comp, "default": [5], "example":20},
+    "JPEG Compression": {"function": jpeg_comp, "default": [100,75,50], "example":20},
     "Normal Compression": {"function": normal_comp, "default": [20], "example":30},
-    "Salt and Pepper": {"function": saltAndPapper_noise, "default": [0.3], "example":0.25},
+    "Salt and Pepper": {"function": saltAndPapper_noise, "default": [0.01, 0.2, 0.3], "example":0.25},
     #"Poisson Noise": poisson_noise,
     #"Speckle Noise": speckle_noise,
 }

@@ -5,6 +5,7 @@ from PyQt5.QtCore import QObject, QThread, pyqtSignal, Qt
 from PyQt5.QtGui import QPixmap
 #from charset_normalizer import detect
 from src.mplwidget import MplWidget
+import matplotlib.pyplot as plt
 
 from src.transforms import AugmentationPipeline, Augmentation
 import cv2
@@ -15,6 +16,9 @@ import yaml
 
 from src.utils.images import convertCV2QT
 import matplotlib.pyplot as plt
+
+# calculating stats:
+from src.evaluators.map_metric import driver
 
 def createExperimentName(savePath):
     _root_name = 'exp'
@@ -29,11 +33,12 @@ def createExperimentName(savePath):
         return "%s_%i"%(_root_name, _max_index+1)
 
 class ExperimentConfig:
-    def __init__(self, mainAug:AugmentationPipeline, isCompound:bool, imagePaths:list, model, shouldAug=True, labels=[]) -> None:
+    def __init__(self, mainAug:AugmentationPipeline, isCompound:bool, imagePaths:list, model, modelName, shouldAug=True, labels=[]) -> None:
         self.mainAug = mainAug
         self.isCompound = isCompound
         self.imagePaths = imagePaths
         self.model = model
+        self.modelName = modelName
         self.shouldAug = shouldAug
         self.labels = labels
         self.expName = ''
@@ -71,10 +76,29 @@ class ExperimentWorker(QObject):
             yaml.dump(_out, f)
 
     def writeGraph(self, inData, outPath):
-        with open( os.path.join(outPath, 'graphing.yaml'), 'w') as f:
-            for _data in inData:
-                yaml.dump(_data,f)
-        return 0
+       #np.savetxt(os.path.join(outPath, 'graphing.csv'),inData,)
+       np.save(os.path.join(outPath, 'graphing.npy'), inData)
+
+    def calculateStat(self, dets, assembler, i):
+        if self.config.modelName == 'Object Detection (YOLOv3)':
+            if len(self.config.labels) == 0:
+                if assembler is None: assembler = 0
+                assembler += len(dets)
+            else:
+                # do mAP calculation here
+                pass
+        elif self.config.modelName == 'Semantic Segmentation':
+            if len(self.config.labels) == 0:
+                if assembler is None: assembler = []
+                ratios = self.config.model.calculateRatios(dets)
+                total_pixels = np.sum(ratios)
+                print(total_pixels)
+                ratios = (ratios / total_pixels)*100
+                assembler.append(ratios)
+            else:
+                pass # do whatever segmentation needs for eval LOL IDK
+        else: raise Exception('model name is not recognized in _registry'%(self.config.modelName))
+        return assembler
 
     def run(self):
         # create experiment name automatically:
@@ -84,8 +108,6 @@ class ExperimentWorker(QObject):
         
         # write meta out for later loading and reference
         self.writeMeta(os.path.join(self.savePath, exp_path))
-        # create variables for simple counting rather than mAP calculation:
-        counter = []
 
         if len(self.config.mainAug) == 0:
             for i, imgPath in enumerate(self.config.imagePaths):
@@ -98,8 +120,10 @@ class ExperimentWorker(QObject):
             if self.config.isCompound:
                 # apply sequentially (all args must be of the same length):
                 maxArgLen = len(self.config.mainAug.__pipeline__[0].args)
+                # create variables for simple counting rather than mAP calculation:
+                counter = []
                 for j in range(maxArgLen):
-                    _count = 0
+                    _count = None
                     for i, imgPath in enumerate(self.config.imagePaths):
                         self.logProgress.emit("Running column %i of Augmentations"%(j))
                         j_subFolder = '_'.join(["_".join(aug.title.split(" ")) for aug in self.config.mainAug])
@@ -115,21 +139,25 @@ class ExperimentWorker(QObject):
                             _img = aug(_img, _args[j])
         
                         dets = self.config.model.run(_img)
-
-                        if not self.config.model.complexOutput: _count += len(dets)
-                        else: pass
+                        _count = self.calculateStat(dets, _count, i)
 
                         self.writeDets(dets, os.path.join(self.savePath, exp_path, j_subFolder), imgPath)
                         self.logProgress.emit('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
                         self.progress.emit(i)
-                    _count /= len(self.config.imagePaths)
-                
-                if self.config.isCompound: counter.append(_count)
-            else:
-                for aug in self.config.mainAug:
-                    self.logProgress.emit('Augmentation: %s'%(aug.title))
 
+                    print(_count)
+                    if type(_count) == int: _count /= len(self.config.imagePaths)
+                    counter.append(_count)
+                counter = [counter]
+            else:
+                # create variables for simple counting rather than mAP calculation:
+                counter = []
+                for aug in self.config.mainAug:
+                    count_temp = []
+                    self.logProgress.emit('Augmentation: %s'%(aug.title))
+                    
                     for j in range(len(aug.args)):
+                        _count = None
                         # create subdirectory here for each augmentation
                         new_sub_dir = os.path.join(self.config.savePath, exp_path, "%s_%i"%(
                             "_".join(aug.title.split(' ')), j)
@@ -145,13 +173,14 @@ class ExperimentWorker(QObject):
                             #self.insertLog('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
                             self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
                             self.progress.emit(i)
+                            _count = self.calculateStat(dets, _count, i)
 
-        if len(self.config.labels) == 0:
-            self.writeGraph(counter, os.path.join(self.savePath, exp_path))
-        else:
-            self.writeGraph(counter, os.path.join(self.savePath, exp_path))
-            #self.writeGraph()
+                        if type(_count) == int: _count /= len(self.config.imagePaths)
+                        count_temp.append(_count)
+                    counter.append(count_temp)
 
+        print(counter)  
+        self.writeGraph(counter, os.path.join(self.savePath, exp_path))
         # clean up model
         self.config.model.deinitialize()
         self.finished.emit()
@@ -159,7 +188,7 @@ class ExperimentWorker(QObject):
 class ExperimentResultWorker(QObject):
     finished = pyqtSignal()
     finishedImage = pyqtSignal(QPixmap)
-    finishedGraph = pyqtSignal(np.ndarray)
+    finishedGraph = pyqtSignal(list)
 
     def __init__(self, imagePath, config, expName, augPosition=None, argPosition=None) -> None:
         super(ExperimentResultWorker, self).__init__()
@@ -188,7 +217,7 @@ class ExperimentResultWorker(QObject):
                     _img = aug(_img, aug.args[self.argPosition])
             else:
                 aug = self.config.mainAug.__pipeline__[self.augPosition]
-                _img = aug(_img, aug.args[0])
+                _img = aug(_img, aug.args[self.argPosition])
         
         # read in detection:
         _imgRoot = self.imagePath.split('/')[-1].split('.')[0]
@@ -215,13 +244,40 @@ class ExperimentResultWorker(QObject):
             for d in dets:
                 _img = cv2.rectangle(_img, (d[2], d[3]), (d[4], d[5]), (0,0,255), thickness=3)
 
-        self.finishedImage.emit(convertCV2QT(_img, 301, 211))
+        self.finishedImage.emit(convertCV2QT(_img, 391, 231))
         self.finished.emit()
 
-    #@QtCore.pyqtSlot()
     def runGraph(self):
-        # Priya code here
-        return 0
+        fig, ax = plt.subplots(1,1)
+        with open( os.path.join(self.parentPath, 'meta.yaml') ) as stream:
+            try:
+                graphContent = yaml.safe_load(stream)
+            except yaml.YAMLError as exc:
+                print(exc)
+
+        _graphs = np.load(os.path.join(self.parentPath, 'graphing.npy'), allow_pickle=True)
+        print("graphs:", _graphs)
+
+        if self.config.isCompound:
+            _title = ", ".join(list(graphContent.keys()))
+            _items = np.array(list(graphContent.values()))
+            argLen = len(_items[0])
+            _g = _graphs[self.argPosition]
+            _x = [i for i in range(argLen)]
+            #_x = [",".join(_items[:, i]) for i in range(argLen)] # might be slow
+            ax.set_title(_title)
+            ax.plot(_x, _g, 'o-')
+        else:
+            _g = _graphs[self.augPosition]
+            _keys = list(graphContent.keys())
+            _items = np.array(list(graphContent.values()))
+            _title = _keys[self.augPosition]
+            #_x = [i for i in range(len(_items[self.argPosition]))]
+            _x = _items[self.argPosition]
+            ax.set_title(_title)
+            ax.plot(_x,_g,'-o')
+        self.finishedGraph.emit([fig, ax])
+        self.finished.emit()
 
 class ExperimentDialog(QDialog):
     def __init__(self, config:ExperimentConfig) -> None:
@@ -256,15 +312,19 @@ class ExperimentDialog(QDialog):
             for i, aug in enumerate(self.config.mainAug):
                 self.augComboBox.addItem(aug.title)
             self.augComboBox.currentIndexChanged.connect(lambda: self.refreshImageResults(self.currentIdx))
+            self.augComboBox.currentIndexChanged.connect(lambda: self.refreshGraphResults(self.currentIdx))
 
         # buttons:
         self.previewBack.clicked.connect(lambda: self.changeOnImageButton(-1) ) # substract one from currentIdx
         self.previewForward.clicked.connect( lambda: self.changeOnImageButton(1) ) # increase index by one
         self.previewBack_3.clicked.connect(lambda: self.changeOnImageAugButton(-1) )
         self.previewForward_3.clicked.connect(lambda: self.changeOnImageAugButton(1) )
+        self.forwardGraph.clicked.connect(lambda: self.changeOnGraphButton(1))
+        self.backGraph.clicked.connect(lambda: self.changeOnGraphButton(-1))
 
         # multithreading stuff for updates after experiment:
         self.afterExpThread = QThread()
+        self.afterGraphExpThread = QThread()
 
         # check if experiment folder exists:
         if not os.path.exists(self.config.savePath):
@@ -341,10 +401,10 @@ class ExperimentDialog(QDialog):
         self.refreshGraphResults(0)
 
     def refreshImageResults(self,i):
+        augPosition = self.augComboBox.currentIndex()
         if self.config.isCompound:
             self.worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName, argPosition=self.currentArgIdx)
         else:
-            augPosition = self.augComboBox.currentIndex()
             self.totalArgIdx = len(self.config.mainAug.__pipeline__[augPosition].args)
             if self.currentArgIdx >= self.totalArgIdx:
                 self.currentArgIdx = self.totalArgIdx-1
@@ -362,23 +422,36 @@ class ExperimentDialog(QDialog):
         #self.afterExpThread.finished.connect(self.afterExpThread.deleteLater)
         #worker.progress.connect()
         self.afterExpThread.start()
-    
+
     def updateImage(self, img):
         self.previewImage.setPixmap(img)
 
-    def updateGraph(self, ax):
+    def updateGraph(self, ax_list):
+        fig, ax = ax_list
         line = ax.lines[0]
         x_data = line.get_xdata()
         y_data = line.get_ydata()
         self.graphWidget.canvas.axes.clear()
-        self.graphWidget.canvas.axes.plot(x_data, y_data)
+        self.graphWidget.canvas.axes.plot(x_data, y_data, 'o-')
+        self.graphWidget.canvas.axes.set_title(ax.get_title())
+        self.graphWidget.canvas.axes.set_xlabel(ax.xaxis.get_label())
+        self.graphWidget.canvas.axes.set_ylabel(ax.yaxis.get_label())
         self.graphWidget.canvas.draw()
 
     def refreshGraphResults(self,i):
+        augPosition = self.augComboBox.currentIndex()
         #worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName)
-        fig, ax = plt.subplots(1,1)
-        ax.plot([1,2,3],[1,2,3])
-        self.updateGraph(ax)
+        # graphing:
+        self.workerGraph = ExperimentResultWorker(None, self.config, self.config.expName, argPosition=self.currentArgIdx, augPosition=augPosition)
+        self.afterGraphExpThread.started.connect(self.workerGraph.runGraph)
+        self.workerGraph.finished.connect(self.afterGraphExpThread.quit)
+        self.workerGraph.finished.connect(self.afterGraphExpThread.wait)
+        self.workerGraph.finished.connect(self.workerGraph.deleteLater)
+        self.workerGraph.finishedGraph.connect(self.updateGraph)
+        #self.worker.finishedImage.connect(self.updateImage)
+        #self.afterExpThread.finished.connect(self.afterExpThread.deleteLater)
+        #worker.progress.connect()
+        self.afterGraphExpThread.start()
 
     def changeOnImageButton(self, i):
         if self.currentIdx+i < len(self.config.imagePaths) and self.currentIdx+i >= 0:
@@ -393,7 +466,7 @@ class ExperimentDialog(QDialog):
             self.refreshImageResults(self.currentIdx)
 
     def changeOnGraphButton(self, i):
-        if self.currentGraphIdx+i < len(self.config.imagePaths) and self.currentGraphIdx+i >= 0:
+        if self.currentGraphIdx+i < self.totalGraphs and self.currentGraphIdx+i >= 0:
             self.currentGraphIdx += i
-            self.label.setText(str(self.currentGraphIdx+1))
-            self.refreshGraphResults(self.currentGraphIdx)
+            self.label_4.setText(str(self.currentGraphIdx+1))
+            #self.refreshGraphResults(self.currentGraphIdx)
