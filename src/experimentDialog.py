@@ -92,12 +92,13 @@ class ExperimentWorker(QObject):
                 if assembler is None: assembler = []
                 ratios = self.config.model.calculateRatios(dets)
                 total_pixels = np.sum(ratios)
-                print(total_pixels)
                 ratios = (ratios / total_pixels)*100
                 assembler.append(ratios)
             else:
                 pass # do whatever segmentation needs for eval LOL IDK
         else: raise Exception('model name is not recognized in _registry'%(self.config.modelName))
+        
+        print(assembler)
         return assembler
 
     def run(self):
@@ -179,7 +180,8 @@ class ExperimentWorker(QObject):
                         count_temp.append(_count)
                     counter.append(count_temp)
 
-        print(counter)  
+        print(counter)
+        #exit() 
         self.writeGraph(counter, os.path.join(self.savePath, exp_path))
         # clean up model
         self.config.model.deinitialize()
@@ -256,17 +258,30 @@ class ExperimentResultWorker(QObject):
                 print(exc)
 
         _graphs = np.load(os.path.join(self.parentPath, 'graphing.npy'), allow_pickle=True)
-        print("graphs:", _graphs)
+        print(_graphs)
+        #exit()
+
+        if self.config.modelName == 'Semantic Segmentation':
+            _graphs = _graphs.squeeze(2)
 
         if self.config.isCompound:
+            # segmentation specific stuff:
+            if self.config.modelName == 'Semantic Segmentation':
+                _graphs = _graphs.squeeze(0)
+                _graphs = np.transpose(_graphs, (1,0))
+
             _title = ", ".join(list(graphContent.keys()))
+            print(_title)
             _items = np.array(list(graphContent.values()))
             argLen = len(_items[0])
-            _g = _graphs[self.argPosition]
+            #_g = _graphs[self.argPosition]
             _x = [i for i in range(argLen)]
             #_x = [",".join(_items[:, i]) for i in range(argLen)] # might be slow
             ax.set_title(_title)
-            ax.plot(_x, _g, 'o-')
+
+            for _g in _graphs:
+                print(_x, _g, argLen)
+                ax.plot(_x, _g, 'o-')
         else:
             _g = _graphs[self.augPosition]
             _keys = list(graphContent.keys())
@@ -275,7 +290,7 @@ class ExperimentResultWorker(QObject):
             #_x = [i for i in range(len(_items[self.argPosition]))]
             _x = _items[self.argPosition]
             ax.set_title(_title)
-            ax.plot(_x,_g,'-o')
+            ax.plot(_x, _g, '-o')
         self.finishedGraph.emit([fig, ax])
         self.finished.emit()
 
@@ -319,8 +334,8 @@ class ExperimentDialog(QDialog):
         self.previewForward.clicked.connect( lambda: self.changeOnImageButton(1) ) # increase index by one
         self.previewBack_3.clicked.connect(lambda: self.changeOnImageAugButton(-1) )
         self.previewForward_3.clicked.connect(lambda: self.changeOnImageAugButton(1) )
-        self.forwardGraph.clicked.connect(lambda: self.changeOnGraphButton(1))
-        self.backGraph.clicked.connect(lambda: self.changeOnGraphButton(-1))
+        #self.forwardGraph.clicked.connect(lambda: self.changeOnGraphButton(1))
+        #self.backGraph.clicked.connect(lambda: self.changeOnGraphButton(-1))
 
         # multithreading stuff for updates after experiment:
         self.afterExpThread = QThread()
@@ -344,16 +359,16 @@ class ExperimentDialog(QDialog):
         self.label_13.setVisible(state)
         self.previewBack_3.setVisible(state)
         self.previewForward_3.setVisible(state)
-        self.label_6.setVisible(state)
-        self.label_5.setVisible(state)
-        self.label_4.setVisible(state)
+        #self.label_6.setVisible(state)
+        #self.label_5.setVisible(state)
+        #self.label_4.setVisible(state)
         self.label_3.setVisible(state)
         self.label_2.setVisible(state)
         self.label.setVisible(state)
         self.previewBack.setVisible(state)
         self.previewForward.setVisible(state)
-        self.backGraph.setVisible(state)
-        self.forwardGraph.setVisible(state)
+        #self.backGraph.setVisible(state)
+        #self.forwardGraph.setVisible(state)
         #self.graphImage.setVisible(state)
         self.previewImage.setVisible(state)
         self.graphWidget.setVisible(state)
@@ -390,9 +405,9 @@ class ExperimentDialog(QDialog):
 
         # update metadata on the labels:
         self.label_3.setText(str(len(self.config.imagePaths)))
-        self.label_6.setText(str(self.totalGraphs))
+        #self.label_6.setText(str(self.totalGraphs))
         self.label.setText(str(self.currentIdx+1))
-        self.label_4.setText(str(self.currentGraphIdx+1))
+        #self.label_4.setText(str(self.currentGraphIdx+1))
         self.label_13.setText(str(self.totalArgIdx))
         self.label_11.setText(str(self.currentArgIdx+1))
 
@@ -434,8 +449,8 @@ class ExperimentDialog(QDialog):
         self.graphWidget.canvas.axes.clear()
         self.graphWidget.canvas.axes.plot(x_data, y_data, 'o-')
         self.graphWidget.canvas.axes.set_title(ax.get_title())
-        self.graphWidget.canvas.axes.set_xlabel(ax.xaxis.get_label())
-        self.graphWidget.canvas.axes.set_ylabel(ax.yaxis.get_label())
+        self.graphWidget.canvas.axes.set_xlabel(str(ax.xaxis.get_label()))
+        self.graphWidget.canvas.axes.set_ylabel(str(ax.yaxis.get_label()))
         self.graphWidget.canvas.draw()
 
     def refreshGraphResults(self,i):
@@ -468,5 +483,5 @@ class ExperimentDialog(QDialog):
     def changeOnGraphButton(self, i):
         if self.currentGraphIdx+i < self.totalGraphs and self.currentGraphIdx+i >= 0:
             self.currentGraphIdx += i
-            self.label_4.setText(str(self.currentGraphIdx+1))
+            #self.label_4.setText(str(self.currentGraphIdx+1))
             #self.refreshGraphResults(self.currentGraphIdx)

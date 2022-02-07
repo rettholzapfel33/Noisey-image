@@ -1,4 +1,0 @@
-path: CARS/R0AD
-train: [5b2372a8a310010f43da1d3e.jpg, 0629_interstate-traffic-getty.jpg, 800px_COLOURBOX3265319.jpg, 14564720-traffic-jam-in-the-road-with-cars-on-a-highway.jpg]
-val: Busy-Freeway.jpg
-test: [cars.jpg, cars2.png, cars3.jpg]

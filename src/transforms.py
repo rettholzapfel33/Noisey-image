@@ -144,19 +144,6 @@ def saltAndPapper_noise(image, prob=0.01):
     image[probs > 1 - (prob / 2)] = white
     return image
 
-def poisson_noise(image):
-    vals = len(np.unique(image))
-    vals = 2 ** np.ceil(np.log2(vals))
-    noisy = np.random.poisson(image * vals) / float(vals)
-    return noisy
-
-def speckle_noise(image):
-    row,col,ch = image.shape
-    gauss = np.random.randn(row,col,ch)
-    gauss = gauss.reshape(row,col,ch)
-    noisy = image + image * gauss
-    return noisy
-
 augList = {
     "Intensity": {"function": dim_intensity, "default": [0.5], "example":0.5},
     "Gaussian Noise": {"function": gaussian_noise, "default": [1,25,50], "example":25},
@@ -164,8 +151,6 @@ augList = {
     "JPEG Compression": {"function": jpeg_comp, "default": [100,75,50], "example":20},
     "Normal Compression": {"function": normal_comp, "default": [20], "example":30},
     "Salt and Pepper": {"function": saltAndPapper_noise, "default": [0.01, 0.2, 0.3], "example":0.25},
-    #"Poisson Noise": poisson_noise,
-    #"Speckle Noise": speckle_noise,
 }
 
 class Augmentation:
