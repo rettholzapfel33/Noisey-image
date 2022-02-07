@@ -49,8 +49,6 @@ class Worker(QtCore.QObject):
 
         result = []
         for img in self.files:
-
-            
             pred = model.run(img)
             temp = model.draw(pred, img)
             temp["pred"] = pred
