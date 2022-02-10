@@ -5,6 +5,7 @@ from PyQt5.QtCore import QObject
 import os, csv, torch, scipy.io
 
 from src.predict_img import new_visualize_result, process_img, predict_img, load_model_from_cfg, visualize_result, transparent_overlays, get_color_palette
+from src.mit_semseg.utils import AverageMeter, accuracy, intersectionAndUnion
 
 # import yolov3 stuff:
 import src.obj_detector.detect as detect
@@ -41,9 +42,14 @@ class Model(abc.ABC):
     def draw_single_class(self, pred):
         raise NotImplementedError
 
+    @abc.abstractclassmethod
+    def report_accuracy(self):
+        raise NotImplementedError
+
     @abc.abstractproperty
     def outputFormat(self):
         raise NotImplementedError
+
 
     def __call__(self):
         pred = self.run()
@@ -122,6 +128,23 @@ class Segmentation(Model):
         imgs = new_visualize_result(pred, img, selected_class)
         return {"segmentation": imgs[0], "overlay": imgs[1]}
 
+    def report_accuracy(self, pred, pred_truth):
+        acc_meter = AverageMeter()
+        intersection_meter = AverageMeter()
+        union_meter = AverageMeter()
+
+        acc, pix = accuracy(pred, pred_truth)
+        intersection, union = intersectionAndUnion(pred, pred_truth, 150)
+        acc_meter.update(acc, pix)
+        intersection_meter.update(intersection)
+        union_meter.update(union)
+        
+        class_ious = {}
+        iou = intersection_meter.sum / (union_meter.sum + 1e-10)
+        for i, _iou in enumerate(iou):
+            class_ious[i] = _iou
+        return iou.mean(), acc_meter.average(), class_ious
+
     def outputFormat(self):
         return "{}" # hex based output?
 
@@ -159,6 +182,9 @@ class YOLOv3(Model):
     def draw_single_class(self, pred, img, selected_class):
         np_img = detect._draw_and_return_output_image_single_class(img, pred, selected_class, self.classes)
         return {"overlay": np_img}
+
+    def report_accuracy(self, pred, pred_truth):
+        return
 
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"

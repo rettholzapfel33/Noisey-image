@@ -4,6 +4,8 @@ from PyQt5.QtCore import QObject, pyqtSignal, Qt
 
 from numpy.lib.function_base import select
 from src.utils.qt5extra import CheckState
+#import utils.qt5extra.CheckState
+
 import PyQt5
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QListWidgetItem, QMessageBox, QWidget
 from PyQt5 import uic
@@ -11,6 +13,7 @@ import cv2
 import numpy as np
 import time
 from src.utils import images
+#import src.utils.images
 
 def letterbox_image(image, size):
     '''

@@ -28,6 +28,7 @@ from src.utils.weights import Downloader
 
 CURRENT_PATH = str(Path(__file__).parent.absolute()) + '/'
 TEMP_PATH = CURRENT_PATH + 'src/tmp_results/'
+DEFAULT_PATH = CURRENT_PATH + 'imgs/default_imgs/'
 
 class Worker(QtCore.QObject):
     finished = QtCore.pyqtSignal(tuple)
@@ -185,9 +186,26 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.preview.setPixmap(QtGui.QPixmap.fromImage(qt_img))
 
 
-    def default_img(self, fileName = "MISC1/car detection.png"):
+    def default_img(self):
         #print(CURRENT_PATH + "imgs/" + fileName)
-        self.open_file(CURRENT_PATH + "imgs/" + fileName)
+        if(os.path.isdir(DEFAULT_PATH)):
+            onlyfiles = [f for f in os.listdir(DEFAULT_PATH) if os.path.isfile(os.path.join(DEFAULT_PATH, f))]
+    
+        for file in onlyfiles:
+            if(Path(file).stem == "original"):
+                original = os.path.join(DEFAULT_PATH, file)
+                self.open_file(original)
+
+            if(Path(file).stem == "segmentation"):
+                print(Path(file).stem)
+                segmentation = os.path.join(DEFAULT_PATH, file)
+                qt_img = convert_cvimg_to_qimg(cv2.imread(segmentation))
+                self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(qt_img))
+
+            if(Path(file).stem == "segmentation_overlay"):
+                segmentation_overlay = os.path.join(DEFAULT_PATH, file)
+                qt_img = convert_cvimg_to_qimg(cv2.imread(segmentation_overlay))
+                self.ui.preview_2.setPixmap(QtGui.QPixmap.fromImage(qt_img))
 
         self.changePreviewImage()
 
