@@ -109,6 +109,8 @@ def detect_image(model, image, img_size=416, conf_thres=0.5, nms_thres=0.5):
 
     if torch.cuda.is_available():
         input_img = input_img.to("cuda")
+    else:
+        input_img = input_img.cpu()
 
     # Get detections
     with torch.no_grad():

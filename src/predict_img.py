@@ -80,7 +80,7 @@ def visualize_result(img, pred, colors, index=None):
     if index is not None:
         pred = pred.copy()
         pred[pred != index] = -1
-        print(f'{names[index+1]}:')
+        #print(f'{names[index+1]}:')
 
     # colorize prediction
     pred_color = colorEncode(pred, colors, mode='BGR').astype(numpy.uint8)
@@ -215,7 +215,7 @@ def start_from_gui(imgs, save, progress = None, display = 0, alpha = 0.6):
     results = []
 
     #cfg = str(Path(__file__).parent.absolute()) + "/config/ade20k-resnet50dilated-ppm_deepsup.yaml"
-    cfg = str(Path(__file__).parent.absolute()) + "/config/ade20k-hrnetv2.yaml"
+    cfg = str(Path(__file__).parent.absolute()) + "/mit_semseg/config/ade20k-hrnetv2.yaml"
 
     # colors
     colors = scipy.io.loadmat(str(Path(__file__).parent.absolute()) + '/data/color150.mat')['colors']
@@ -321,7 +321,7 @@ if __name__ == '__main__':
     parser.add_argument("-s", "--save", default="tmp_results/", type=str, metavar='', help="save prediction to")
     parser.add_argument("-d", "--display", default=1, type=int, metavar='', help="display real time prediction")
     
-    parser.add_argument("--cfg", default=str(Path(__file__).parent.absolute()) + "/config/ade20k-resnet50dilated-ppm_deepsup.yaml", 
+    parser.add_argument("--cfg", default=str(Path(__file__).parent.absolute()) + "/mit_semseg/config/ade20k-resnet50dilated-ppm_deepsup.yaml", 
                         metavar="FILE", help="path to config file", type=str,)
     parser.add_argument("--gpu", default=0, type=int, metavar='', help="gpu id for evaluation")
     parser.add_argument("opts", help="Modify config options using the command-line", 

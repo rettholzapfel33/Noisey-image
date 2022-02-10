@@ -1,17 +1,17 @@
 # Created by Vijay Rajagopal
 import os
-from src.evaluators.tube_evaluator import TubeEvaluator
+from src.evaluators.map_metric.src.evaluators.tube_evaluator import TubeEvaluator
 import sys
 import argparse
 import logging
-from src.utils import converter
-from src.utils.enumerators import (BBFormat, BBType, CoordinatesType,
+from src.evaluators.map_metric.src.utils import converter
+from src.evaluators.map_metric.src.utils.enumerators import (BBFormat, BBType, CoordinatesType,
                                    MethodAveragePrecision)
-import src.evaluators.coco_evaluator as coco_evaluator
-import src.evaluators.pascal_voc_evaluator as pascal_voc_evaluator
-import src.utils.converter as converter
-import src.utils.general_utils as general_utils
-from src.bounding_box import BoundingBox
+import src.evaluators.map_metric.src.evaluators.coco_evaluator as coco_evaluator
+import src.evaluators.map_metric.src.evaluators.pascal_voc_evaluator as pascal_voc_evaluator
+import src.evaluators.map_metric.src.utils.converter as converter
+import src.evaluators.map_metric.src.utils.general_utils as general_utils
+from src.evaluators.map_metric.src.bounding_box import BoundingBox
 import matplotlib.pyplot as plt
 
 def parseArgs():

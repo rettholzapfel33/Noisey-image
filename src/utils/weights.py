@@ -54,7 +54,7 @@ class DownloadWorker(QObject):
                         self.progress.emit(0)
 
                 file_url = "%s/%s"%(new_url, _file)
-                _folder = './src/ckpt/%s'%(filename)
+                _folder = './src/mit_semseg/ckpt/%s'%(filename)
                 if not os.path.exists(_folder): os.mkdir(_folder)
                 self.logProgress.emit("Downloading %s\n"%(file_url))
                 request = urllib.request.urlretrieve(file_url, os.path.join(_folder, _file), callback)
@@ -81,9 +81,9 @@ class DownloadWorker(QObject):
         for path in path_dict.items():
             if path[0] == 'mit_semseg':
                 self.progress.emit(0)
-                _path_base = os.path.join('./src/ckpt/', path[1])
+                _path_base = os.path.join('./src/mit_semseg/ckpt/', path[1])
                 print(_path_base)
-                if not os.path.exists('./src/ckpt'): os.mkdir('./src/ckpt')
+                if not os.path.exists('./src/mit_semseg/ckpt'): os.mkdir('./src/mit_semseg/ckpt')
                 if not os.path.exists(_path_base):
                     print("MIT Segmentation weights (%s) not found. Attempting to download..."%(path[1]))
                     self.downloadMITWeight(path[1])
@@ -159,7 +159,7 @@ class Downloader(QDialog):
     def check(path_dict:dict):
         for path in path_dict.items():
             if path[0] == 'mit_semseg':
-                _path_base = os.path.join('./src/ckpt/', path[1])
+                _path_base = os.path.join('./src/mit_semseg/ckpt/', path[1])
                 if not os.path.exists(_path_base):
                     return True
             elif path[0] == 'yolov3':

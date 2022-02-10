@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from PyQt5.QtCore import QObject
 import os, csv, torch, scipy.io
+import numpy as np
 
 from src.predict_img import new_visualize_result, process_img, predict_img, load_model_from_cfg, visualize_result, transparent_overlays, get_color_palette
 from src.mit_semseg.utils import AverageMeter, accuracy, intersectionAndUnion
@@ -148,6 +149,14 @@ class Segmentation(Model):
     def outputFormat(self):
         return "{}" # hex based output?
 
+    def calculateRatios(self, dets):
+        values, counts = np.unique(dets, return_counts=True)
+        total_idx = [i for i in range(150)]
+        for idx in total_idx:
+            if not idx in values:
+                counts = np.insert(counts, idx, 0)
+        return counts
+
 class YOLOv3(Model):
     """
     YOLO Model that inhertes the Model class
@@ -191,7 +200,7 @@ class YOLOv3(Model):
 
 _registry = {
     'Semantic Segmentation': Segmentation(
-        str(Path(__file__).parent.absolute()) + "/config/ade20k-hrnetv2.yaml",
+        str(Path(__file__).parent.absolute()) + "/mit_semseg/config/ade20k-hrnetv2.yaml",
         scipy.io.loadmat(str(Path(__file__).parent.absolute()) + '/data/color150.mat')['colors']
     ),
     'Object Detection (YOLOv3)': YOLOv3(

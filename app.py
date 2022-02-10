@@ -50,8 +50,6 @@ class Worker(QtCore.QObject):
 
         result = []
         for img in self.files:
-
-            
             pred = model.run(img)
             temp = model.draw(pred, img)
             temp["pred"] = pred
@@ -491,8 +489,8 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.ui.statusbar.showMessage("Import an image first!", 3000)
                 return -1
             imgPaths.append(file_path)
-
-        config = ExperimentConfig(mainAug, self.ui.compoundAug.isChecked(), imgPaths, _model, labels=self.labels)
+            
+        config = ExperimentConfig(mainAug, self.ui.compoundAug.isChecked(), imgPaths, _model, comboModelType, labels=self.labels)
         self.experiment = ExperimentDialog(config)
         self.experiment.startExperiment()
 

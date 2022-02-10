@@ -17,67 +17,14 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>30</y>
-     <width>301</width>
-     <height>211</height>
+     <y>20</y>
+     <width>391</width>
+     <height>231</height>
     </rect>
    </property>
    <property name="text">
     <string/>
    </property>
-  </widget>
-  <widget class="QWidget" name="layoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>520</x>
-     <y>360</y>
-     <width>239</width>
-     <height>48</height>
-    </rect>
-   </property>
-   <layout class="QGridLayout" name="graphPreview">
-    <item row="0" column="0" rowspan="3">
-     <widget class="QPushButton" name="backGraph">
-      <property name="text">
-       <string>&lt;&lt;</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1" rowspan="2" colspan="2">
-     <widget class="QLabel" name="label_4">
-      <property name="text">
-       <string>0</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="3" rowspan="3">
-     <widget class="QPushButton" name="forwardGraph">
-      <property name="text">
-       <string>&gt;&gt;</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="2">
-     <widget class="QLabel" name="label_5">
-      <property name="text">
-       <string>_________</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1" colspan="2">
-     <widget class="QLabel" name="label_6">
-      <property name="text">
-       <string>0</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-   </layout>
   </widget>
   <widget class="QProgressBar" name="progressBar">
    <property name="geometry">
@@ -260,7 +207,7 @@
   <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>390</x>
+     <x>430</x>
      <y>20</y>
      <width>511</width>
      <height>341</height>
@@ -269,7 +216,6 @@
    <layout class="QGridLayout" name="graphGrid"/>
   </widget>
   <zorder>previewImage</zorder>
-  <zorder>layoutWidget</zorder>
   <zorder>layoutWidget</zorder>
   <zorder>label_7</zorder>
   <zorder>layoutWidget_2</zorder>
