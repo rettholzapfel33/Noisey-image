@@ -115,7 +115,7 @@ class Segmentation(Model):
         detectedNames = {"all": [255,255,255]}
         pred_color, org_pred_split = visualize_result(img, pred, self.colors)
 
-        color_palette = get_color_palette(pred, org_pred_split.shape[0], self.names, self.colors, detectedNames)
+        #color_palette = get_color_palette(pred, org_pred_split.shape[0], self.names, self.colors, detectedNames)
 
         # transparent pred on org
         dst = transparent_overlays(img, pred_color, alpha=0.6)

@@ -85,6 +85,7 @@ class ExperimentWorker(QObject):
                 if assembler is None: assembler = 0
                 assembler += len(dets)
             else:
+                raise NotImplementedError()
                 # do mAP calculation here
                 pass
         elif self.config.modelName == 'Semantic Segmentation':
@@ -93,12 +94,14 @@ class ExperimentWorker(QObject):
                 ratios = self.config.model.calculateRatios(dets)
                 total_pixels = np.sum(ratios)
                 ratios = (ratios / total_pixels)*100
-                assembler.append(ratios)
+                if len(assembler) == 0:
+                    assembler.append(ratios)
+                else:
+                    assembler[0] = (assembler[0]+ratios)/i
             else:
+                raise NotImplementedError()
                 pass # do whatever segmentation needs for eval LOL IDK
         else: raise Exception('model name is not recognized in _registry'%(self.config.modelName))
-        
-        print(assembler)
         return assembler
 
     def run(self):
@@ -146,7 +149,6 @@ class ExperimentWorker(QObject):
                         self.logProgress.emit('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
                         self.progress.emit(i)
 
-                    print(_count)
                     if type(_count) == int: _count /= len(self.config.imagePaths)
                     counter.append(_count)
                 counter = [counter]
@@ -171,7 +173,6 @@ class ExperimentWorker(QObject):
                             _img = aug(_img, request_param=aug.args[j])
                             dets = self.config.model.run(_img)
                             self.writeDets(dets, new_sub_dir, imgPath)
-                            #self.insertLog('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
                             self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
                             self.progress.emit(i)
                             _count = self.calculateStat(dets, _count, i)
@@ -180,8 +181,9 @@ class ExperimentWorker(QObject):
                         count_temp.append(_count)
                     counter.append(count_temp)
 
-        print(counter)
+        #print(len(counter[0]))
         #exit() 
+
         self.writeGraph(counter, os.path.join(self.savePath, exp_path))
         # clean up model
         self.config.model.deinitialize()
@@ -258,10 +260,8 @@ class ExperimentResultWorker(QObject):
                 print(exc)
 
         _graphs = np.load(os.path.join(self.parentPath, 'graphing.npy'), allow_pickle=True)
-        print(_graphs)
-        #exit()
 
-        if self.config.modelName == 'Semantic Segmentation':
+        if self.config.modelName == 'Semantic Segmentation' and len(_graphs.shape) > 1:
             _graphs = _graphs.squeeze(2)
 
         if self.config.isCompound:
@@ -271,8 +271,7 @@ class ExperimentResultWorker(QObject):
                 _graphs = np.transpose(_graphs, (1,0))
 
             _title = ", ".join(list(graphContent.keys()))
-            print(_title)
-            _items = np.array(list(graphContent.values()))
+            _items = list(graphContent.values())
             argLen = len(_items[0])
             #_g = _graphs[self.argPosition]
             _x = [i for i in range(argLen)]
@@ -283,14 +282,26 @@ class ExperimentResultWorker(QObject):
                 print(_x, _g, argLen)
                 ax.plot(_x, _g, 'o-')
         else:
-            _g = _graphs[self.augPosition]
+            if self.config.modelName == 'Semantic Segmentation':
+                if len(_graphs.shape) > 1:
+                    _g = _graphs[self.augPosition]
+                else:
+                    _g = _graphs[self.augPosition]
+                    _g = np.array(_g).squeeze(1)
+            else:
+                _g = _graphs[self.augPosition]
+
             _keys = list(graphContent.keys())
             _items = np.array(list(graphContent.values()))
+            print(_items)
             _title = _keys[self.augPosition]
             #_x = [i for i in range(len(_items[self.argPosition]))]
-            _x = _items[self.argPosition]
+            _x = _items[self.augPosition]
             ax.set_title(_title)
             ax.plot(_x, _g, '-o')
+
+        plt.show()
+        
         self.finishedGraph.emit([fig, ax])
         self.finished.emit()
 
@@ -306,7 +317,7 @@ class ExperimentDialog(QDialog):
         self.graphGrid.addWidget(self.graphWidget)
 
         self.progressBar.setValue(0)
-        self.textProgress.setEnabled(False)
+        #self.textProgress.setEnabled(False)
         self.config = config
         self._progressMove = 1/len(self.config.imagePaths)
         self.config.expName = createExperimentName(self.config.savePath)

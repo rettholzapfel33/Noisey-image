@@ -6,10 +6,10 @@ import numpy as np
 
 # Sementic segmentation
 from src.predict_img import new_visualize_result
-#from src.noise_image import add_noise_img
 
 # PyQt5
 from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5.QtWidgets import QMessageBox
 from src.window import Ui_MainWindow
 from PyQt5.QtCore import Qt
 from src.yamlDialog import Ui_Dialog
@@ -472,6 +472,12 @@ class mainWindow(QtWidgets.QMainWindow):
             ret, msg = mainAug.checkArgs()
             if not ret:
                 print(msg) # create dialog box saying something is wrong 
+                msg_box = QMessageBox()
+                msg_box.setIcon(QMessageBox.Warning)
+                msg_box.setText(msg)
+                msg_box.setWindowTitle("Compound Error")
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.exec_()
                 return -1
 
         # initialize model (temp; move to thread worker):
