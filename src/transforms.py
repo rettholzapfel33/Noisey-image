@@ -1,4 +1,6 @@
 import random
+import math
+import os
 from urllib import request
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
 
@@ -191,6 +193,55 @@ def fisheye_transform(image, factor=0.25):
                 new_image[x][y] = image[new_x][new_y]
     return new_image
 
+def pick_img(start_dir):
+    curr_dir = os.listdir(os.path.join(start_dir))
+    # curr_dir.remove("LABELS")
+    curr_path = start_dir
+    
+    while True:
+        curr_file = random.choice(curr_dir)
+
+        if os.path.isfile(os.path.join(curr_path, curr_file)):
+            img = cv2.imread(os.path.join(curr_path, curr_file))
+            if img is None:
+                curr_dir = os.listdir(os.path.join(start_dir))
+                # curr_dir.remove("LABELS")
+                curr_path = start_dir
+            else:
+                return img
+        else:
+            curr_path = os.path.join(curr_path, curr_file)
+            curr_dir = os.listdir(os.path.join(curr_path))
+
+def simple_mosaic(image, dummy):
+    # pick three images
+    images = [pick_img('imgs') for x in range(4)]
+    # images += [image]
+
+    # find smallest image, resize others to fit
+    smallest = image.shape[0] * image.shape[1]
+    sm_shape = image.shape
+    for i in images:
+        curr_area = i.shape[0] * i.shape[1]
+        if curr_area < smallest:
+            smallest = curr_area
+            sm_shape = i.shape
+
+    # combine images into one big 2x2
+    resized = [cv2.resize(curr_im, (sm_shape[0], sm_shape[1])) for curr_im in images]
+    big_image = []
+    big_image = np.concatenate((resized[0], resized[1]), axis=1)
+    bottom = np.concatenate((resized[2], resized[3]), axis=1)
+    big_image = np.concatenate((big_image, bottom), axis=0)
+    
+    # pick random bounds to make the mosaic image
+    row_start = math.floor(random.random() * big_image.shape[0] / 2)
+    col_start = math.floor(random.random() * big_image.shape[1] / 2)
+    row_end = row_start + math.floor(big_image.shape[0] / 2)
+    col_end = col_start + math.floor(big_image.shape[1] / 2)
+    final_im = big_image[row_start:row_end][col_start:col_end]
+    return final_im
+
 augList = {
     "Intensity": {"function": dim_intensity, "default": [0.5], "example":0.5},
     "Gaussian Noise": {"function": gaussian_noise, "default": [1,25,50], "example":25},
@@ -200,6 +251,7 @@ augList = {
     "Salt and Pepper": {"function": saltAndPapper_noise, "default": [0.01, 0.2, 0.3], "example":0.25},
     "Flip Axis": {"function": flipAxis, "default": [-1], "example": -1},
     "Fisheye Transformation": {"function": fisheye_transform, "default": [0.2, 0.3, 0.4], "example":0.4},
+    "Simple Mosaic": {"function": simple_mosaic, "default":[], "example":[]}
 }
 
 class Augmentation:
