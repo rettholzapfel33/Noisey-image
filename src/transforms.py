@@ -147,6 +147,50 @@ def saltAndPapper_noise(image, prob=0.01):
     image[probs > 1 - (prob / 2)] = white
     return image
 
+def flipAxis(image, mode):
+    if mode > 0:
+        return cv2.flip(image, 1) # Flips along vertical axis
+    elif mode == 0:
+        return cv2.flip(image, 0) # Flips along horizontal axis
+    else: 
+        return cv2.flip(image, -1) # Flips along both axes
+
+def flipVertical(image):
+    image = cv2.flip(image, 0)
+    return image
+    
+def fisheye_transform(image, factor=0.25):
+    '''
+    Transform image using fisheye projection
+    |Parameters: 
+        |image (numpy array): The original input image
+        |center (array): [x, y] values of the center of transformation
+        |factor (float): The distortion factor for fisheye effect
+    |Returns: 
+        |image (numpy array): The transformed image 
+    '''
+    new_image = np.zeros_like(image)
+    width, height = image.shape[0], image.shape[1]
+    w, h = float(width), float(height)
+    for x in range(len(new_image)):
+        for y in range(len(new_image[x])):
+            # normalize x and y to be in interval of [-1, 1]
+            xnd, ynd = float((2*x - w)/w), float((2*y - h)/h)
+            # get xn and yn euclidean distance from normalized center
+            radius = np.sqrt(xnd**2 + ynd**2)
+            # get new normalized pixel coordinates
+            if 1 - factor*(radius**2) == 0:
+                new_xnd, new_ynd = xnd, ynd
+            else:
+                new_xnd = xnd / (1 - (factor*(radius**2)))
+                new_ynd = ynd / (1 - (factor*(radius**2)))
+            # convert the new normalized distorted x and y back to image pixels
+            new_x, new_y = int(((new_xnd + 1)*w)/2), int(((new_ynd + 1)*h)/2)
+            # if new pixel is in bounds copy from source pixel to destination pixel
+            if 0 <= new_x and new_x < width and 0 <= new_y and new_y < height:
+                new_image[x][y] = image[new_x][new_y]
+    return new_image
+
 augList = {
     "Intensity": {"function": dim_intensity, "default": [0.5], "example":0.5},
     "Gaussian Noise": {"function": gaussian_noise, "default": [1,25,50], "example":25},
@@ -154,6 +198,8 @@ augList = {
     "JPEG Compression": {"function": jpeg_comp, "default": [100,75,50], "example":20},
     "Normal Compression": {"function": normal_comp, "default": [20], "example":30},
     "Salt and Pepper": {"function": saltAndPapper_noise, "default": [0.01, 0.2, 0.3], "example":0.25},
+    "Flip Axis": {"function": flipAxis, "default": [-1], "example": -1},
+    "Fisheye Transformation": {"function": fisheye_transform, "default": [0.2, 0.3, 0.4], "example":0.4},
 }
 
 class Augmentation:
