@@ -242,6 +242,12 @@ def simple_mosaic(image, dummy):
     final_im = big_image[row_start:row_end][col_start:col_end]
     return final_im
 
+def black_white(image, channel=0):
+    channel = int(channel)
+    image[:,:,1] = image[:,:,channel]
+    image[:,:,2] = image[:,:,channel]
+    return image
+
 augList = {
     "Intensity": {"function": dim_intensity, "default": [0.5], "example":0.5},
     "Gaussian Noise": {"function": gaussian_noise, "default": [1,25,50], "example":25},
@@ -251,7 +257,8 @@ augList = {
     "Salt and Pepper": {"function": saltAndPapper_noise, "default": [0.01, 0.2, 0.3], "example":0.25},
     "Flip Axis": {"function": flipAxis, "default": [-1], "example": -1},
     "Fisheye Transformation": {"function": fisheye_transform, "default": [0.2, 0.3, 0.4], "example":0.4},
-    "Simple Mosaic": {"function": simple_mosaic, "default":[], "example":[]}
+    "Simple Mosaic": {"function": simple_mosaic, "default":[], "example":[]},
+    "Black and White": {"function": black_white, "default":[0], "example":0}
 }
 
 class Augmentation:
