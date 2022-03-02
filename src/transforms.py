@@ -258,6 +258,25 @@ def speckle_noise(image, dummy):
     noise = image + image * gauss
     return noise
 
+def saturation (image, factor=50):
+    '''
+    Saturation impacts the color intensity of the image, making it more vivid or muted depending
+    on the value.
+    '''
+    
+    hsvimg = cv2.cvtColor(image, cv2.COLOR_BGR2HSV).astype("float32")
+    
+    (h, s, v) = cv2.split(hsvimg)
+    fac = 6.5025
+    
+    s[:] = s * ((factor/100) * fac)
+
+    s = np.clip(s,0,255)
+    imghsv = cv2.merge([h,s,v])
+    
+    img_sated = cv2.cvtColor(imghsv.astype("uint8"), cv2.COLOR_HSV2BGR)
+    return img_sated
+
 augList = {
     "Intensity": {"function": dim_intensity, "default": [0.5], "example":0.5},
     "Gaussian Noise": {"function": gaussian_noise, "default": [1,25,50], "example":25},
@@ -269,7 +288,8 @@ augList = {
     "Fisheye Transformation": {"function": fisheye_transform, "default": [0.2, 0.3, 0.4], "example":0.4},
     "Simple Mosaic": {"function": simple_mosaic, "default":[], "example":[]},
     "Black and White": {"function": black_white, "default":[0], "example":0}, 
-    "Speckle Noise": {"function": speckle_noise, "default":[], "example":[]}
+    "Speckle Noise": {"function": speckle_noise, "default":[], "example":[]},
+    "Saturation" : {"function": saturation, "default":[50], "example":50}
 }
 
 class Augmentation:
