@@ -277,6 +277,21 @@ def saturation (image, factor=50):
     img_sated = cv2.cvtColor(imghsv.astype("uint8"), cv2.COLOR_HSV2BGR)
     return img_sated
 
+def alternate_mosaic(image, dummy):
+    width, height = image.shape[0], image.shape[1]
+    halfw, halfh = int(width/2), int(height/2)
+    new_image = np.zeros_like(image)
+    # Divide image into four quadrants. Swap quardants I / III and II / IV.
+    for x in range(halfw):
+        for y in range(halfh):
+            new_image[x][y] = image[x+halfw][y+halfh]
+            new_image[x+halfw][y+halfh] = image[x][y]
+    for x in range(halfw, width):
+        for y in range(halfh):
+            new_image[x][y] = image[x-halfw][y+halfh]
+            new_image[x-halfw][y+halfh] = image[x][y]
+    return new_image
+
 augList = {
     "Intensity": {"function": dim_intensity, "default": [0.5], "example":0.5},
     "Gaussian Noise": {"function": gaussian_noise, "default": [1,25,50], "example":25},
@@ -289,7 +304,8 @@ augList = {
     "Simple Mosaic": {"function": simple_mosaic, "default":[], "example":[]},
     "Black and White": {"function": black_white, "default":[0], "example":0}, 
     "Speckle Noise": {"function": speckle_noise, "default":[], "example":[]},
-    "Saturation" : {"function": saturation, "default":[50], "example":50}
+    "Saturation" : {"function": saturation, "default":[50], "example":50},
+    "Alternate Mosaic": {"function": alternate_mosaic, "default":[], "example":[]}
 }
 
 class Augmentation:
