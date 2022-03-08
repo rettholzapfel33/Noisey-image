@@ -242,8 +242,9 @@ def simple_mosaic(image, dummy):
     final_im = big_image[row_start:row_end][col_start:col_end]
     return final_im
 
-def black_white(image, channel=0):
+def black_white(image, channel):
     channel = int(channel)
+    image[:,:,0] = image[:,:,channel]
     image[:,:,1] = image[:,:,channel]
     image[:,:,2] = image[:,:,channel]
     return image
@@ -277,19 +278,35 @@ def saturation (image, factor=50):
     img_sated = cv2.cvtColor(imghsv.astype("uint8"), cv2.COLOR_HSV2BGR)
     return img_sated
 
-def alternate_mosaic(image, dummy):
+def alternate_mosaic(image, num_slices):
+    if num_slices == 1: return image
     width, height = image.shape[0], image.shape[1]
-    halfw, halfh = int(width/2), int(height/2)
     new_image = np.zeros_like(image)
-    # Divide image into four quadrants. Swap quardants I / III and II / IV.
-    for x in range(halfw):
-        for y in range(halfh):
-            new_image[x][y] = image[x+halfw][y+halfh]
-            new_image[x+halfw][y+halfh] = image[x][y]
-    for x in range(halfw, width):
-        for y in range(halfh):
-            new_image[x][y] = image[x-halfw][y+halfh]
-            new_image[x-halfw][y+halfh] = image[x][y]
+
+    mats = []
+    x_size = int(width/num_slices)
+    y_size = int(height/num_slices)
+    x,y = 0,0
+    while x < height:
+        y = 0
+        while y < width:
+            app = image[x:x+x_size,y:y+y_size,:]
+            if len(mats) != 0:
+                if app.shape != mats[0].shape: break
+            mats.append(app)
+            y += y_size
+        x += x_size
+    random.shuffle(mats)
+    x,y = 0,0
+    i = 0
+    while x < height:
+        y = 0
+        while y < width:
+            if i == len(mats):break
+            new_image[x:x+x_size,y:y+y_size,:] = mats[i]
+            y += y_size
+            i += 1
+        x += x_size
     return new_image
 
 augList = {
@@ -302,10 +319,10 @@ augList = {
     "Flip Axis": {"function": flipAxis, "default": [-1], "example": -1},
     "Fisheye Transformation": {"function": fisheye_transform, "default": [0.2, 0.3, 0.4], "example":0.4},
     "Simple Mosaic": {"function": simple_mosaic, "default":[], "example":[]},
-    "Black and White": {"function": black_white, "default":[0], "example":0}, 
+    "Black and White": {"function": black_white, "default":[0,1,2], "example":0}, 
     "Speckle Noise": {"function": speckle_noise, "default":[], "example":[]},
     "Saturation" : {"function": saturation, "default":[50], "example":50},
-    "Alternate Mosaic": {"function": alternate_mosaic, "default":[], "example":[]}
+    "Alternate Mosaic": {"function": alternate_mosaic, "default":[1,2,3,4,5], "example":2} # 1x1 - 5x5
 }
 
 class Augmentation:
