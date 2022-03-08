@@ -161,7 +161,7 @@ def flipVertical(image):
     image = cv2.flip(image, 0)
     return image
     
-def fisheye_transform(image, factor=0.25):
+def fisheye(image, factor=0.25):
     '''
     Transform image using fisheye projection
     |Parameters: 
@@ -191,6 +191,19 @@ def fisheye_transform(image, factor=0.25):
             # if new pixel is in bounds copy from source pixel to destination pixel
             if 0 <= new_x and new_x < width and 0 <= new_y and new_y < height:
                 new_image[x][y] = image[new_x][new_y]
+    return new_image
+
+def barrel(image, factor=0.005):
+    height, width, channel = image.shape
+    k1, k2, p1, p2 = factor, 0, 0, 0
+    dist_coeff = np.array([[k1],[k2],[p1],[p2]])
+    # assume unit matrix for camera
+    cam = np.eye(3,dtype=np.float32)
+    cam[0,2] = width/2.0  # define center x
+    cam[1,2] = height/2.0 # define center y
+    cam[0,0] = 10.        # define focal length x
+    cam[1,1] = 10.        # define focal length y
+    new_image = cv2.undistort(image, cam, dist_coeff)
     return new_image
 
 def pick_img(start_dir):
@@ -282,7 +295,6 @@ def alternate_mosaic(image, num_slices):
     if num_slices == 1: return image
     width, height = image.shape[0], image.shape[1]
     new_image = np.zeros_like(image)
-
     mats = []
     x_size = int(width/num_slices)
     y_size = int(height/num_slices)
@@ -317,7 +329,8 @@ augList = {
     "Normal Compression": {"function": normal_comp, "default": [20], "example":30},
     "Salt and Pepper": {"function": saltAndPapper_noise, "default": [0.01, 0.2, 0.3], "example":0.25},
     "Flip Axis": {"function": flipAxis, "default": [-1], "example": -1},
-    "Fisheye Transformation": {"function": fisheye_transform, "default": [0.2, 0.3, 0.4], "example":0.4},
+    "Fisheye": {"function": fisheye, "default": [0.2, 0.3, 0.4], "example":0.4},
+    "Barrel": {"function": barrel, "default": [0.05, 0.005, 0.0005], "example":0.005},
     "Simple Mosaic": {"function": simple_mosaic, "default":[], "example":[]},
     "Black and White": {"function": black_white, "default":[0,1,2], "example":0}, 
     "Speckle Noise": {"function": speckle_noise, "default":[], "example":[]},
