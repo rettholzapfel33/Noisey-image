@@ -3,7 +3,7 @@ bs4==0.0.1
 certifi==2021.10.8
 charset-normalizer==2.0.6
 cycler==0.10.0
-dataclasses==0.8
+dataclasses==0.6
 decorator==4.4.2
 idna==3.2
 imageio==2.9.0
@@ -27,7 +27,7 @@ requests==2.26.0
 scikit-image==0.17.2
 scipy==1.5.4
 Shapely==1.7.1
-sip==4.19.8
+#sip==4.19.8
 six==1.16.0
 soupsieve==2.2.1
 tifffile==2020.9.3
