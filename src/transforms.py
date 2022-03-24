@@ -3,6 +3,7 @@ from urllib import request
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
 
 from numpy.lib.function_base import select
+from torchvision.transforms.functional import center_crop
 from src.utils.qt5extra import CheckState
 #import utils.qt5extra.CheckState
 
@@ -16,7 +17,8 @@ from src.utils import images
 
 import PIL
 
-CUDA_LAUNCH_BLOCK=1
+from skimage import io
+from sklearn.cluster import KMeans
 
 #import src.utils.images
 
@@ -194,7 +196,9 @@ def fisheye_transform(image, factor=0.25):
             # if new pixel is in bounds copy from source pixel to destination pixel
             if 0 <= new_x and new_x < width and 0 <= new_y and new_y < height:
                 new_image[x][y] = image[new_x][new_y]
+
     return new_image
+
 
 def webp_transform(image, quality=10):
     
@@ -215,6 +219,21 @@ def webp_transform(image, quality=10):
         dec_img = cv2.imdecode(enc_img, 1)
         return dec_img
 
+def kmeans_transform(image, n_clusters=10):
+
+    rows, cols = image.shape[0], image.shape[1]
+    image = image.reshape(rows * cols, 3)
+    
+    # Initialize KMeans
+    kMeans = KMeans(n_clusters)
+    kMeans.fit(image)
+
+    compressed = kMeans.cluster_centers_[kMeans.labels_]
+    compressed = np.clip(compressed.astype('uint8'), 0, 255)
+
+    compressed = compressed.reshape(rows, cols, 3)
+
+    return compressed
 
 augList = {
     "Intensity": {"function": dim_intensity, "default": [0.5], "example":0.5},
@@ -225,7 +244,8 @@ augList = {
     "Salt and Pepper": {"function": saltAndPapper_noise, "default": [0.01, 0.2, 0.3], "example":0.25},
     "Flip Axis": {"function": flipAxis, "default": [-1], "example": -1},
     "Fisheye Transformation": {"function": fisheye_transform, "default": [0.2, 0.3, 0.4], "example":0.4},
-    "WebP Compression": {"function": webp_transform, "default": [10], "example":10}
+    "WebP Compression": {"function": webp_transform, "default": [10], "example":10},
+    "KMeans Transformation": {"function": kmeans_transform, "default": [10], "example":10}
 }
 
 class Augmentation:
