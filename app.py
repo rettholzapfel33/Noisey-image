@@ -1,6 +1,7 @@
 # System libs
 import os
 from pathlib import Path
+from tkinter import E
 import PIL.Image
 import numpy as np
 
@@ -25,6 +26,7 @@ from src.experimentDialog import ExperimentConfig, ExperimentDialog
 from src import models
 from src.utils.qt5extra import CheckState
 from src.utils.weights import Downloader
+from src.dataParser import *
 
 CURRENT_PATH = str(Path(__file__).parent.absolute()) + '/'
 TEMP_PATH = CURRENT_PATH + 'src/tmp_results/'
@@ -223,14 +225,15 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.ui.statusbar.showMessage("File already opened", 3000)
                 continue
 
-            if filePath.endswith(".yaml"):
+            if filePath.endswith(".yaml") or filePath.endswith(".xml"):
                 # return_value = self.read_yaml(filePath)
                 # if(len(return_value) > 1 and type(return_value[1]) is dict):
                 #     filePaths.extend(return_value[0])
                 #     labels = return_value[1]
                 # else:
                 #     filePaths.extend(return_value)
-                filePaths.extend(self.read_yaml(filePath))
+                # filePaths.extend(self.read_yaml(filePath))
+                filePaths.extend(self.parseData(filePath))
                 continue
 
             new_item = QtWidgets.QListWidgetItem()
@@ -245,87 +248,16 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.original_2.clear()
             self.ui.preview_2.clear()
 
-    def read_yaml(self, filePath):
-        #print(filePath[:filePath.rfind('/') + 1])
-        filePaths = []
-        with open(filePath) as file:
-            documents = yaml.full_load(file)
-            #print(documents)
+    def parseData(self, filePath):
 
-        trainVT = []
-        if("train" in documents):
-            trainVT.append("train")
-        if("val" in documents):
-            trainVT.append("val")
-        if("test" in documents):
-            trainVT.append("test")
-
-        if(len(trainVT) > 1):
-            dialogUI = Ui_Dialog()
-            dialog = QtWidgets.QDialog()
-            dialogUI.setupUi(dialog)
-
-            for x in trainVT:
-                item = QtWidgets.QListWidgetItem()
-                item.setText(x)
-                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-                item.setCheckState(Qt.Unchecked)
-                dialogUI.listWidget.addItem(item)
-
-            dialog.exec_()
-
-            if(dialog.result() == 0):
-                return []
-
-            checkedItems = []
-            for index in range(dialogUI.listWidget.count()):
-                if dialogUI.listWidget.item(index).checkState() == Qt.Checked:
-                    checkedItems.append(dialogUI.listWidget.item(index).text())
-        else:
-            checkedItems = trainVT
-
-        for x in checkedItems:
-            if(isinstance(documents[x], list)):
-                filePaths.extend(documents[x])
-            else:
-                filePaths.append(documents[x])
-
-        root = filePath[:filePath.rfind('/') + 1]
-
-        if "path" in documents:
-            root = os.path.join(root, documents["path"])
-
-        filePaths = list(map(lambda path: root + path, filePaths))
-
-        for file in filePaths:
-            if(os.path.isdir(file)):
-                onlyfiles = [f for f in os.listdir(file) if os.path.isfile(os.path.join(file, f))]
-                onlyfiles = list(map(lambda path: os.path.join(file, path), onlyfiles))
-        
-                filePaths.remove(file)
-                filePaths.extend(onlyfiles)
-
-        if "labels" in documents:
-            labels_folder = os.path.join(root, documents["labels"])
-            onlylabels = [f for f in os.listdir(labels_folder) if os.path.isfile(os.path.join(labels_folder, f))]
-            labels = list(map(lambda path: os.path.join(labels_folder, path), onlylabels))
-
-            labels_dic = {}
-            for label in labels:
-                file_content = []
-                with open(label) as f:
-                    for line in f:
-                        _list = line.split()
-                        if type(_list) == list:
-                            _list = list(map(float, _list))
-                        file_content.append(_list)
-                #print(file_content)
-                base=os.path.basename(label)
-                labels_dic[os.path.splitext(base)[0]] = file_content
-
-            self.labels = labels_dic
-        
+        if filePath.endswith(".yaml"):
+            # if extension is .yaml
+            filePaths = read_yaml(self, filePath)
+        # elif filePath.endswith(".xml"):
+            # if extension is .xml
+            # filePaths = read_xml(self, filePath)
         return filePaths
+
 
     def reportProgress2(self, n):
         if(n == 3):
