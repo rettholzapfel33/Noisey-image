@@ -225,13 +225,14 @@ class mainWindow(QtWidgets.QMainWindow):
                 self.ui.statusbar.showMessage("File already opened", 3000)
                 continue
 
-            if filePath.endswith(".yaml") or filePath.endswith(".xml"):
+            if filePath.endswith(".yaml"):
                 # return_value = self.read_yaml(filePath)
-                # if(len(return_value) > 1 and type(return_value[1]) is dict):
-                #     filePaths.extend(return_value[0])
-                #     labels = return_value[1]
-                # else:
-                #     filePaths.extend(return_value)
+                return_value = self.parseData(filePath)
+                if(len(return_value) > 1 and type(return_value[1]) is dict):
+                    filePaths.extend(return_value[0])
+                    labels = return_value[1]
+                else:
+                    filePaths.extend(return_value)
                 # filePaths.extend(self.read_yaml(filePath))
                 filePaths.extend(self.parseData(filePath))
                 continue
@@ -250,7 +251,6 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def parseData(self, filePath):
         if filePath.endswith(".yaml"):
-            print("In .yaml file...")
             filePaths = read_yaml(self, filePath)
         return filePaths
 
