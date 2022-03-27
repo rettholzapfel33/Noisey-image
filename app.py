@@ -249,13 +249,9 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.preview_2.clear()
 
     def parseData(self, filePath):
-
         if filePath.endswith(".yaml"):
-            # if extension is .yaml
+            print("In .yaml file...")
             filePaths = read_yaml(self, filePath)
-        # elif filePath.endswith(".xml"):
-            # if extension is .xml
-            # filePaths = read_xml(self, filePath)
         return filePaths
 
 
