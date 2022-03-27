@@ -26,8 +26,6 @@ def read_yaml(self, filePath):
     if("test" in documents):
         trainVT.append("test")
     
-    # print(f"TrainVT: {trainVT}")
-
     if(len(trainVT) > 1):
         dialogUI = Ui_Dialog()
         dialog = QtWidgets.QDialog()
@@ -87,21 +85,26 @@ def read_yaml(self, filePath):
         labels = list(map(lambda path: os.path.join(labels_folder, path), onlylabels))
         labels_dic = {}
 
+        # Parses .xml annotation files and stores in dictionary as the following:
+        # { filename: [width, height, [objects]] }
         if documents["type"] == "voc":
-            # for label in labels:
-            #     file_content = []
-            with open(labels[0]) as f:
-                tree_root = ET.parse(f).getroot()
+            for label in labels:
+                file_content = []
+                with open(label) as f:
+                    tree_root = ET.parse(f).getroot()
                 
-            # for child in tree_root:
-            #     print(f"Children: {child}")
-            #     for x in tree_root.findall(child.tag+"/*"):
-            #         print(f"{x.tag}: {x.text}")
-            # for obj in tree_root.findall("object"):
-            #     print(f"Object Name: {obj[0].text}")
-
+                objects = []
+                for x in tree_root.findall("object"):
+                    obj_class = [x[i].text for i in range(4)]
+                    coords = [x[4][i].text for i in range(len(x[4]))]
+                    obj_class.append(coords)
+                    objects.append(obj_class)
+                    
+                file_content = [tree_root[4][0].text, tree_root[4][1].text, objects]
+                labels_dic[tree_root[1].text] = file_content
+        # elif documents["type"] == "coco" -> parses .json files for this COCO dataset -> SKYLAR
         else:
-            # Works for files that don't need special treatment (like .txt)
+            # Parses .txt annotation files
             for label in labels:
                 file_content = []
                 with open(label) as f:
@@ -112,6 +115,7 @@ def read_yaml(self, filePath):
                         file_content.append(_list)
                 base=os.path.basename(label)
                 labels_dic[os.path.splitext(base)[0]] = file_content
-            self.labels = labels_dic
-    
+
+        self.labels = labels_dic
+
     return filePaths
