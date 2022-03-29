@@ -443,11 +443,12 @@ class ExperimentDialog(QDialog):
 
     def updateGraph(self, ax_list):
         fig, ax = ax_list
-        line = ax.lines[0]
-        x_data = line.get_xdata()
-        y_data = line.get_ydata()
-        self.graphWidget.canvas.axes.clear()
-        self.graphWidget.canvas.axes.plot(x_data, y_data, 'o-')
+        for i in range(len(ax.lines)):
+            line = ax.lines[i]
+            x_data = line.get_xdata()
+            y_data = line.get_ydata()
+            # self.graphWidget.canvas.axes.clear()
+            self.graphWidget.canvas.axes.plot(x_data, y_data, 'o-')
         self.graphWidget.canvas.axes.set_title(ax.get_title())
         self.graphWidget.canvas.axes.set_xlabel(str(ax.xaxis.get_label()))
         self.graphWidget.canvas.axes.set_ylabel(str(ax.yaxis.get_label()))
@@ -483,5 +484,5 @@ class ExperimentDialog(QDialog):
     def changeOnGraphButton(self, i):
         if self.currentGraphIdx+i < self.totalGraphs and self.currentGraphIdx+i >= 0:
             self.currentGraphIdx += i
-            #self.label_4.setText(str(self.currentGraphIdx+1))
-            #self.refreshGraphResults(self.currentGraphIdx)
+            self.label_4.setText(str(self.currentGraphIdx+1))
+            self.refreshGraphResults(self.currentGraphIdx)

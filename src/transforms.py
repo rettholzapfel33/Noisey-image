@@ -295,13 +295,20 @@ def alternate_mosaic(image, num_slices):
     if num_slices == 1: return image
     width, height = image.shape[0], image.shape[1]
     new_image = np.zeros_like(image)
-    mats = []
+    
     x_size = int(width/num_slices)
+    while(width % x_size != 0):
+        width -= 1
+        x_size = int(width/num_slices)
     y_size = int(height/num_slices)
+    while(height % y_size != 0):
+        height -= 1
+        y_size = int(height/num_slices)
+    mats = []
     x,y = 0,0
-    while x < height:
+    while x < width:
         y = 0
-        while y < width:
+        while y < height:
             app = image[x:x+x_size,y:y+y_size,:]
             if len(mats) != 0:
                 if app.shape != mats[0].shape: break
@@ -311,9 +318,9 @@ def alternate_mosaic(image, num_slices):
     random.shuffle(mats)
     x,y = 0,0
     i = 0
-    while x < height:
+    while x < width:
         y = 0
-        while y < width:
+        while y < height:
             if i == len(mats):break
             new_image[x:x+x_size,y:y+y_size,:] = mats[i]
             y += y_size
