@@ -22,9 +22,11 @@ def loadAndInferImage(image):
                    obj1                        obj2
     '''
     boxes = yolo.run(image) # format for one box: [x1, y1, x2, y2, confidence, class]
+
     return boxes
 
 if __name__ == '__main__':
     image = cv2.imread('../imgs/default_imgs/car detection.png')
     assert type(image) != None, "file read fail"
-    loadAndInferImage(image)
+    boxes = loadAndInferImage(image)
+    print(boxes)
