@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'src/qt_designer_file/main_window_new.ui'
+# Form implementation generated from reading ui file './src/qt_designer_file/main_window_new.ui'
 #
 # Created by: PyQt5 UI code generator 5.9
 #
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1554, 932)
+        MainWindow.resize(1195, 681)
         MainWindow.setAutoFillBackground(False)
         MainWindow.setStyleSheet("")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -245,22 +245,13 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addLayout(self.horizontalLayout_3)
         self.verticalLayout.addLayout(self.horizontalLayout_4)
         self.gridLayout.addLayout(self.verticalLayout, 3, 1, 1, 1)
-        self.gridLayout_3 = QtWidgets.QGridLayout()
-        self.gridLayout_3.setObjectName("gridLayout_3")
-        self.radioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.radioButton.setObjectName("radioButton")
-        self.gridLayout_3.addWidget(self.radioButton, 0, 0, 1, 1)
-        self.radioButton_2 = QtWidgets.QRadioButton(self.centralwidget)
-        self.radioButton_2.setObjectName("radioButton_2")
-        self.gridLayout_3.addWidget(self.radioButton_2, 1, 0, 1, 1)
-        self.gridLayout.addLayout(self.gridLayout_3, 3, 0, 1, 1)
         self.gridLayout.setColumnStretch(0, 1)
         self.gridLayout.setColumnStretch(1, 6)
         self.gridLayout.setColumnStretch(2, 6)
         self.horizontalLayout_6.addLayout(self.gridLayout)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1554, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1195, 22))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -319,8 +310,6 @@ class Ui_MainWindow(object):
         self.loadAug.setText(_translate("MainWindow", "Load Augmentations"))
         self.saveAug.setText(_translate("MainWindow", "Save Augmentations"))
         self.demoAug.setText(_translate("MainWindow", "Demo Augmentation"))
-        self.radioButton.setText(_translate("MainWindow", "Images"))
-        self.radioButton_2.setText(_translate("MainWindow", "Videos"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.menuEdit.setTitle(_translate("MainWindow", "Edit"))
         self.menuFont_Size.setTitle(_translate("MainWindow", "Font Size"))

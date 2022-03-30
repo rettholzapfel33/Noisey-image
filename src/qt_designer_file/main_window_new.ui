@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1195</width>
-    <height>681</height>
+    <width>1554</width>
+    <height>932</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -431,6 +431,24 @@
         </item>
        </layout>
       </item>
+      <item row="3" column="0">
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <widget class="QRadioButton" name="radioButton">
+          <property name="text">
+           <string>Images</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QRadioButton" name="radioButton_2">
+          <property name="text">
+           <string>Videos</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
      </layout>
     </item>
    </layout>
@@ -440,7 +458,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1195</width>
+     <width>1554</width>
      <height>22</height>
     </rect>
    </property>
