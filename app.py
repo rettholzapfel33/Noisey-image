@@ -3,12 +3,14 @@ import os
 from pathlib import Path
 import PIL.Image
 import numpy as np
+import ffmpeg
 
 # Sementic segmentation
 from src.predict_img import new_visualize_result
 
 # PyQt5
 from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaPlaylist, QMediaContent
 from PyQt5.QtWidgets import QMessageBox
 from src.window import Ui_MainWindow
 from PyQt5.QtCore import Qt
@@ -73,6 +75,9 @@ class mainWindow(QtWidgets.QMainWindow):
         self.addWindow.setModal(True)
         self.addWindow.demoAug()
 
+        # Set up media player
+        self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
+
         # Check status of configurations:
         weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights"}
         self.labels = []
@@ -90,6 +95,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.progressBar.hide()
         self.ui.progressBar_2.hide()
 
+        self.ui.radioButton.setChecked(True)
+
         self.ui.comboBox.addItems(["Semantic Segmentation", "Object Detection (YOLOv3)"])
 
         # QActions
@@ -101,6 +108,10 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.pushButton_2.clicked.connect(self.startExperiment)
         self.ui.pushButton_4.clicked.connect(quit)
         self.ui.compoundAug.setChecked(True)
+
+        # Radio Buttons
+        self.ui.radioButton.clicked.connect(lambda:self.changeUI('image'))
+        self.ui.radioButton_2.clicked.connect(lambda:self.changeUI('video'))
 
         # Augmentation Generator:
         self.ui.addAug.clicked.connect(self.addWindow.show)
@@ -500,6 +511,68 @@ class mainWindow(QtWidgets.QMainWindow):
         self.experiment = ExperimentDialog(config)
         self.experiment.startExperiment()
 
+    def vidwrite(self, fn, images, bitrate, framerate=60, vcodec='libx264'):
+        if not isinstance(images, np.ndarray):
+            images = np.asarray(images)
+        n,height,width,channels = images.shape
+        process = (
+            ffmpeg
+                .input('pipe:', format='rawvideo', pix_fmt='rgb24', s='{}x{}'.format(width, height), r=framerate)
+                .output(fn, pix_fmt='yuv420p', vcodec=vcodec, **{'b:v': bitrate })
+                .overwrite_output()
+                .run_async(pipe_stdin=True)
+        )
+        for frame in images:
+            process.stdin.write(
+                frame
+                    .astype(np.uint8)
+                    .tobytes()
+            )
+        process.stdin.close()
+        process.wait()
+
+
+    def displayVideo(self):
+
+        videoin = "vids/default/test.mp4"
+
+        cap = cv2.VideoCapture(videoin)
+        probe = ffmpeg.probe(videoin)
+        video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
+        original_bitrate = int(video_stream["bit_rate"])
+        
+        video = []
+        while(True):
+            ret, frame = cap.read()
+            if not ret: break
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            video.append(frame)
+
+        print("Video read in done...")
+        video = np.array(video)
+        bit_rates = [original_bitrate/4]
+
+        for br in bit_rates:
+            print(br)
+            videoout = "out_%i.mp4"%(br)
+            new_video_clip_overlay = []
+            for frame in video:
+                new_frame = np.copy(frame)
+                new_frame = cv2.putText(new_frame, "bitrate: %i"%(br), (30,30), cv2.FONT_HERSHEY_DUPLEX, 1, (0,255,0), thickness=2)
+                new_video_clip_overlay.append(new_frame)
+
+        # Code to display image to preview panel
+        self.ui.preview_2.setMovie(QtGui.QMovie("vids/default/test.gif"))
+
+    def changeUI(self, _str):
+
+        if _str == 'image':
+
+            pass
+
+        if _str == 'video':
+
+            self.displayVideo()
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
