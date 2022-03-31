@@ -450,8 +450,11 @@ class ExperimentDialog(QDialog):
             # self.graphWidget.canvas.axes.clear()
             self.graphWidget.canvas.axes.plot(x_data, y_data, 'o-')
         self.graphWidget.canvas.axes.set_title(ax.get_title())
-        self.graphWidget.canvas.axes.set_xlabel(str(ax.xaxis.get_label()))
-        self.graphWidget.canvas.axes.set_ylabel(str(ax.yaxis.get_label()))
+        # self.graphWidget.canvas.axes.set_xlabel(str(ax.xaxis.get_label()))
+        # self.graphWidget.canvas.axes.set_ylabel(str(ax.yaxis.get_label()))
+        self.graphWidget.canvas.axes.set_xlabel("Augment Level")
+        self.graphWidget.canvas.axes.set_ylabel("Accuracy")
+        # self.graphWidget.canvas.axes.legend()
         self.graphWidget.canvas.draw()
 
     def refreshGraphResults(self,i):
