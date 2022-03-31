@@ -1,7 +1,9 @@
 # System libs
 import os
+import glob
 from pathlib import Path
 import PIL.Image
+from PIL import Image
 import numpy as np
 import ffmpeg
 
@@ -531,9 +533,31 @@ class mainWindow(QtWidgets.QMainWindow):
         process.stdin.close()
         process.wait()
 
+    def convert_mp4_to_jpgs(self, path):
+
+        video_capture = cv2.VideoCapture(path)
+        still_reading, image = video_capture.read()
+        frame_count = 0
+        while still_reading:
+            cv2.imwrite(f"vids/convert/frame_{frame_count:03d}.jpg", image)
+            
+            # read next image
+            still_reading, image = video_capture.read()
+            frame_count += 1
+
+    def make_gif(self, frame_folder):
+
+        images = glob.glob(f"{frame_folder}/*.jpg")
+        images.sort()
+        frames = [Image.open(image) for image in images]
+        frame_one = frames[0]
+        frame_one.save("vids/gifs/flask_demo.gif", format="GIF", append_images=frames,
+                    save_all=True, duration=50, loop=0)
+
 
     def displayVideo(self):
 
+        '''
         videoin = "vids/default/test.mp4"
 
         cap = cv2.VideoCapture(videoin)
@@ -550,29 +574,53 @@ class mainWindow(QtWidgets.QMainWindow):
 
         print("Video read in done...")
         video = np.array(video)
-        bit_rates = [original_bitrate/4]
+        bit_rates = [original_bitrate/2]
 
         for br in bit_rates:
             print(br)
-            videoout = "out_%i.mp4"%(br)
+            videoout = "vids/compressed/out_%i.mp4"%(br)
             new_video_clip_overlay = []
             for frame in video:
                 new_frame = np.copy(frame)
                 new_frame = cv2.putText(new_frame, "bitrate: %i"%(br), (30,30), cv2.FONT_HERSHEY_DUPLEX, 1, (0,255,0), thickness=2)
                 new_video_clip_overlay.append(new_frame)
+                self.vidwrite(videoout, new_video_clip_overlay, framerate=60, vcodec='libx264', bitrate=br)
+
+            self.convert_mp4_to_jpgs(videoout)
+            self.make_gif('vids/convert')
+        '''
 
         # Code to display image to preview panel
-        self.ui.preview_2.setMovie(QtGui.QMovie("vids/default/test.gif"))
+        originalGif = QtGui.QMovie('vids/gifs/original.gif')
+        self.ui.original_2.setMovie(originalGif)
+        originalGif.start()
+
+        compressedGif = QtGui.QMovie('vids/gifs/compressed.gif')
+        self.ui.preview_2.setMovie(compressedGif)
+        compressedGif.start()
+
 
     def changeUI(self, _str):
 
         if _str == 'image':
 
-            pass
+            # Show the preview
+            self.ui.preview.show()
+            self.ui.original.show()
+
+            # Clear contents of labels
+            self.ui.original_2.clear()
+            self.ui.preview_2.clear()
+
 
         if _str == 'video':
 
+            # Show the compressed gifs
             self.displayVideo()
+
+            # Hide the labels
+            self.ui.preview.hide()
+            self.ui.original.hide()
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
