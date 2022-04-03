@@ -1,5 +1,6 @@
 # System libs
 import os
+from os.path import exists
 import glob
 from pathlib import Path
 import PIL.Image
@@ -23,6 +24,7 @@ from functools import partial
 import yaml
 
 # import utilities:
+import src.h264
 from src.utils.images import convert_cvimg_to_qimg
 from src.transforms import AugDialog, AugmentationPipeline, Augmentation, mainAug
 from src.experimentDialog import ExperimentConfig, ExperimentDialog
@@ -78,7 +80,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.addWindow.demoAug()
 
         # Set up media player
-        self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
+        #self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
 
         # Check status of configurations:
         weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights"}
@@ -97,8 +99,6 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.progressBar.hide()
         self.ui.progressBar_2.hide()
 
-        self.ui.radioButton.setChecked(True)
-
         self.ui.comboBox.addItems(["Semantic Segmentation", "Object Detection (YOLOv3)"])
 
         # QActions
@@ -112,8 +112,9 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.compoundAug.setChecked(True)
 
         # Radio Buttons
-        self.ui.radioButton.clicked.connect(lambda:self.changeUI('image'))
-        self.ui.radioButton_2.clicked.connect(lambda:self.changeUI('video'))
+        self.ui.imageButton.setChecked(True)
+        self.ui.imageButton.clicked.connect(lambda:self.changeUI('image'))
+        self.ui.videoButton.clicked.connect(lambda:self.changeUI('video'))
 
         # Augmentation Generator:
         self.ui.addAug.clicked.connect(self.addWindow.show)
@@ -513,114 +514,55 @@ class mainWindow(QtWidgets.QMainWindow):
         self.experiment = ExperimentDialog(config)
         self.experiment.startExperiment()
 
-    def vidwrite(self, fn, images, bitrate, framerate=60, vcodec='libx264'):
-        if not isinstance(images, np.ndarray):
-            images = np.asarray(images)
-        n,height,width,channels = images.shape
-        process = (
-            ffmpeg
-                .input('pipe:', format='rawvideo', pix_fmt='rgb24', s='{}x{}'.format(width, height), r=framerate)
-                .output(fn, pix_fmt='yuv420p', vcodec=vcodec, **{'b:v': bitrate })
-                .overwrite_output()
-                .run_async(pipe_stdin=True)
-        )
-        for frame in images:
-            process.stdin.write(
-                frame
-                    .astype(np.uint8)
-                    .tobytes()
-            )
-        process.stdin.close()
-        process.wait()
-
-    def convert_mp4_to_jpgs(self, path):
-
-        video_capture = cv2.VideoCapture(path)
-        still_reading, image = video_capture.read()
-        frame_count = 0
-        while still_reading:
-            cv2.imwrite(f"vids/convert/frame_{frame_count:03d}.jpg", image)
-            
-            # read next image
-            still_reading, image = video_capture.read()
-            frame_count += 1
-
-    def make_gif(self, frame_folder):
-
-        images = glob.glob(f"{frame_folder}/*.jpg")
-        images.sort()
-        frames = [Image.open(image) for image in images]
-        frame_one = frames[0]
-        frame_one.save("vids/gifs/flask_demo.gif", format="GIF", append_images=frames,
-                    save_all=True, duration=50, loop=0)
-
-
-    def displayVideo(self):
-
-        '''
-        videoin = "vids/default/test.mp4"
-
-        cap = cv2.VideoCapture(videoin)
-        probe = ffmpeg.probe(videoin)
-        video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
-        original_bitrate = int(video_stream["bit_rate"])
-        
-        video = []
-        while(True):
-            ret, frame = cap.read()
-            if not ret: break
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            video.append(frame)
-
-        print("Video read in done...")
-        video = np.array(video)
-        bit_rates = [original_bitrate/2]
-
-        for br in bit_rates:
-            print(br)
-            videoout = "vids/compressed/out_%i.mp4"%(br)
-            new_video_clip_overlay = []
-            for frame in video:
-                new_frame = np.copy(frame)
-                new_frame = cv2.putText(new_frame, "bitrate: %i"%(br), (30,30), cv2.FONT_HERSHEY_DUPLEX, 1, (0,255,0), thickness=2)
-                new_video_clip_overlay.append(new_frame)
-                self.vidwrite(videoout, new_video_clip_overlay, framerate=60, vcodec='libx264', bitrate=br)
-
-            self.convert_mp4_to_jpgs(videoout)
-            self.make_gif('vids/convert')
-        '''
-
-        # Code to display image to preview panel
-        originalGif = QtGui.QMovie('vids/gifs/original.gif')
-        self.ui.original_2.setMovie(originalGif)
-        originalGif.start()
-
-        compressedGif = QtGui.QMovie('vids/gifs/compressed.gif')
-        self.ui.preview_2.setMovie(compressedGif)
-        compressedGif.start()
-
 
     def changeUI(self, _str):
 
         if _str == 'image':
 
+            self.default_img()
+
             # Show the preview
-            self.ui.preview.show()
-            self.ui.original.show()
+            self.ui.preview_2.show()
+            self.ui.original_2.show()
 
             # Clear contents of labels
-            self.ui.original_2.clear()
-            self.ui.preview_2.clear()
+            self.ui.original.clear()
+            self.ui.preview.clear()
 
 
         if _str == 'video':
 
-            # Show the compressed gifs
-            self.displayVideo()
-
             # Hide the labels
-            self.ui.preview.hide()
-            self.ui.original.hide()
+            self.ui.preview_2.hide()
+            self.ui.original_2.hide()
+
+            # Check if Gifs are present
+            if exists('vids/gifs/original.gif') and exists('vids/gifs/original.gif'):
+
+                # Show the compressed gifs
+                originalGif = QtGui.QMovie('vids/gifs/original.gif')
+                self.ui.original.setMovie(originalGif)
+                originalGif.start()
+
+                compressedGif = QtGui.QMovie('vids/gifs/compressed.gif')
+                self.ui.preview.setMovie(compressedGif)
+                compressedGif.start()
+
+
+            # Call h264
+            else:
+
+                src.h264.main()
+
+                # Show the compressed gifs
+                originalGif = QtGui.QMovie('vids/gifs/original.gif')
+                self.ui.original.setMovie(originalGif)
+                originalGif.start()
+
+                compressedGif = QtGui.QMovie('vids/gifs/compressed.gif')
+                self.ui.preview.setMovie(compressedGif)
+                compressedGif.start()
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])

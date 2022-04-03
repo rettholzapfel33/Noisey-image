@@ -225,7 +225,7 @@ def kmeans_transform(image, n_clusters=10):
     image = image.reshape(rows * cols, 3)
     
     # Initialize KMeans
-    kMeans = KMeans(n_clusters)
+    kMeans = KMeans(int(n_clusters))
     kMeans.fit(image)
 
     compressed = kMeans.cluster_centers_[kMeans.labels_]

@@ -434,14 +434,14 @@
       <item row="3" column="0">
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
-         <widget class="QRadioButton" name="radioButton">
+         <widget class="QRadioButton" name="imageButton">
           <property name="text">
            <string>Images</string>
           </property>
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QRadioButton" name="radioButton_2">
+         <widget class="QRadioButton" name="videoButton">
           <property name="text">
            <string>Videos</string>
           </property>
