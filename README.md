@@ -16,11 +16,11 @@ To recreate the development environment to run and edit this project, it is high
 **Anaconda Steps:**
 1. Start an Anaconda shell
 2. Create an environment: `conda create --name noisey python=3.6`
-3. Installing torch:
+3. Installing FFMPEG and libx264: `conda install x264=='1!152.20180717' ffmpeg=4.0.2 -c conda-forge`
+4. Installing torch:
     - (CUDA): `conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch` (adjust CUDA versions to your system's driver version)
     - (CPU-only): `conda install pytorch torchvision torchaudio cpuonly -c pytorch`
-4. Installing FFMPEG and libx264 `conda install x264=='1!152.20180717' ffmpeg=4.0.2 -c conda-forge`
-5. Install required packages `pip install -r requirements.txt`
+5. Install required packages: `pip install -r requirements.txt`
 
 **virtualenv Steps:**
 1. Create an environment: `python3 -m venv [NAME_OF_ENVIRONMENT]`
