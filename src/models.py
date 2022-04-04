@@ -19,6 +19,10 @@ import json
 from src.efficientnet_pytorch.model import EfficientNet
 from torchvision import transforms
 
+# import yolov4 stuff:
+from src.yolov4.tool.utils import *
+from src.yolov4.tool.darknet2pytorch import Darknet
+
 currPath = str(Path(__file__).parent.absolute()) + '/'
 
 class Model(abc.ABC):
@@ -343,18 +347,18 @@ class YOLOv4(Model):
         self.CLASSES, self.CFG, self.WEIGHTS = network_config
         
         print(self.CLASSES, self.CFG, self.WEIGHTS)
-        self.classes = load_classes(self.CLASSES)
+        self.classes = load_class_names(self.CLASSES)
 
     def run(self, input):
-        #pred = train.train(self.yolo, device?, self.CFG)
         #pred = detect.detect_image(self.yolo, input)
         #return pred #[x1,y1,x2,y2,conf,class] <--- box
         return
 
     def initialize(self, *kwargs):
-        #self.yolo = modelsv4.Yolov4()
-        #self.yolo = train.Yolo_loss.build_target(self.yolo, pred, )
+        self.yolo = Darknet(self.CFG)
+        self.yolo.load_weights(self.WEIGHTS)
         #self.yolo = load_model(self.CFG, self.WEIGHTS)
+        # need to use tools/darknet2pytorch.py to convert weights -- is that already done there?
         return 0
     
     def deinitialize(self):
