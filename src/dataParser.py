@@ -1,6 +1,7 @@
 # System libs
 import os
 import yaml
+import json
 import xml.etree.ElementTree as ET
 
 # PyQt5
@@ -103,6 +104,22 @@ def read_yaml(self, filePath):
                 file_content = [tree_root[4][0].text, tree_root[4][1].text, objects]
                 labels_dic[tree_root[1].text] = file_content
         # elif documents["type"] == "coco" -> parses .json files for this COCO dataset -> SKYLAR
+        elif documents["type"] == "coco":
+           for label in labels:
+               with open(label) as f:
+                   instances = json.load(f)
+                   for i in instances['images']:
+                       name = i['file_name']
+                       labels_dic[name] = {}
+                       labels_dic[name]['height'] = i['height']
+                       labels_dic[name]['width'] = i['width']
+                   for i in instances['annotations']:
+                       findid = i['image_id']
+                       fix_string = str(findid).zfill(12)
+                       fix_string = fix_string + '.jpg'
+                       labels_dic[fix_string]['category_id'] = i['category_id']
+                       labels_dic[fix_string]['bbox'] = i['bbox']
+           f.close()    
         else:
             # Parses .txt annotation files
             for label in labels:
