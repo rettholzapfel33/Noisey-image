@@ -64,7 +64,7 @@ class Model(abc.ABC):
 
 class Segmentation(Model):
     """
-    Segmentation Model that inhertes the Model class
+    Segmentation Model that inherits the Model class
     It specifies its four main functions: run, initialize, deinitialize, and draw. 
     """
     def __init__(self, *network_config) -> None:
@@ -165,7 +165,7 @@ class Segmentation(Model):
 
 class YOLOv3(Model):
     """
-    YOLO Model that inhertes the Model class
+    YOLO Model that inherits the Model class
     It specifies its four main functions: run, initialize, deinitialize, and draw. 
     """
     def __init__(self, *network_config) -> None:
@@ -332,6 +332,50 @@ class DETR(Model):
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
 
+class YOLOv4(Model):
+    """
+    YOLOv4 Model that inherits the Model class
+    It specifies its four main functions: run, initialize, deinitialize, and draw. 
+    """
+    def __init__(self, *network_config) -> None:
+        super(YOLOv4, self).__init__()
+        # network_config: CLASSES, CFG, WEIGHTS
+        self.CLASSES, self.CFG, self.WEIGHTS = network_config
+        
+        print(self.CLASSES, self.CFG, self.WEIGHTS)
+        self.classes = load_classes(self.CLASSES)
+
+    def run(self, input):
+        #pred = train.train(self.yolo, device?, self.CFG)
+        #pred = detect.detect_image(self.yolo, input)
+        #return pred #[x1,y1,x2,y2,conf,class] <--- box
+        return
+
+    def initialize(self, *kwargs):
+        #self.yolo = modelsv4.Yolov4()
+        #self.yolo = train.Yolo_loss.build_target(self.yolo, pred, )
+        #self.yolo = load_model(self.CFG, self.WEIGHTS)
+        return 0
+    
+    def deinitialize(self):
+        return -1
+    
+    def draw(self, pred, img):
+        np_img, detectedNames = detect._draw_and_return_output_image(img, pred, 416, self.classes)
+        return {"dst": np_img,
+                "listOfNames":detectedNames}
+
+    def draw_single_class(self, pred, img, selected_class):
+        np_img = detect._draw_and_return_output_image_single_class(img, pred, selected_class, self.classes)
+        return {"overlay": np_img}
+
+    def report_accuracy(self, pred, pred_truth):
+        print('pred comparison', pred, pred_truth)
+        return
+
+    def outputFormat(self):
+        return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
+
 
 _registry = {
     'Semantic Segmentation': Segmentation(
@@ -348,5 +392,10 @@ _registry = {
     ),
     'Object Detection (DETR)': DETR(
         os.path.join(currPath, 'obj_detector/cfg', 'coco.names')
+    ),
+    'Object Detection (YOLOv4)': YOLOv4(
+        os.path.join(currPath, 'yolov4/data', 'coco.names'),
+        os.path.join(currPath, 'yolov4/cfg', 'yolov4.cfg'),
+        os.path.join(currPath,'yolov4/weight','yolov4.weights')
     )
 }
