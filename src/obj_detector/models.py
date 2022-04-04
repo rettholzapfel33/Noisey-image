@@ -9,7 +9,6 @@ import numpy as np
 from src.obj_detector.utils.parse_config import parse_model_config
 from src.obj_detector.utils.utils import weights_init_normal
 
-
 def create_modules(module_defs):
     """
     Constructs module list of layer blocks from module configuration in module_defs

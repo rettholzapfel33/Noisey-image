@@ -92,7 +92,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.progressBar.hide()
         self.ui.progressBar_2.hide()
 
-        self.ui.comboBox.addItems(["Semantic Segmentation", "Object Detection (YOLOv3)"])
+        self.ui.comboBox.addItems(["Semantic Segmentation", "Object Detection (YOLOv3)", "EfficientNetV2"])
 
         # QActions
         # Default values (images, noise, etc.) are set up here:

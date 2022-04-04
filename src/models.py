@@ -1,6 +1,7 @@
 import abc
 import os
 from pathlib import Path
+from pyexpat import model
 from PyQt5.QtCore import QObject
 import os, csv, torch, scipy.io
 import numpy as np
@@ -12,6 +13,11 @@ from src.mit_semseg.utils import AverageMeter, accuracy, intersectionAndUnion
 import src.obj_detector.detect as detect
 from src.obj_detector.models import load_model
 from src.obj_detector.utils.utils import load_classes
+
+# import efficientNetV2
+import json
+from src.efficientnet_pytorch.model import EfficientNet
+from torchvision import transforms
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 
@@ -193,7 +199,71 @@ class YOLOv3(Model):
         return {"overlay": np_img}
 
     def report_accuracy(self, pred, pred_truth):
+        print('pred comparison', pred, pred_truth)
         return
+
+    def outputFormat(self):
+        return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
+
+class EfficientNetV2(Model):
+    def __init__(self, *network_config) -> None:
+        super(EfficientNetV2, self).__init__()
+
+        self.cfg = network_config
+
+    def initialize(self, *kwargs):
+        self.model = EfficientNet.from_pretrained('efficientnet-b0')
+        self.model.eval()
+
+        # Load ImageNet class names for returning predictions
+        self.labels_map = json.load(open(os.path.join('src', 'efficientnet_pytorch', 'labels_map.txt')))
+        self.labels_map = [self.labels_map[str(i)] for i in range(1000)]
+
+    def run(self, input):
+        tfms = transforms.Compose([
+            transforms.ToPILImage(),
+            transforms.Resize(224),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),])
+        img = tfms(input).unsqueeze(0)
+        
+        with torch.no_grad():
+            output = self.model(img)
+        print('~~~~~~~~~OUTPUT~~~~~~~~~~~: ', output.shape)
+        for idx in torch.topk(output, k=5).indices.squeeze(0).tolist():
+            prob = torch.softmax(output, dim=1)[0, idx].item()
+            print('{label:<75} ({p:.2f}%)'.format(label=self.labels_map[idx], p=prob*100))
+        return output
+
+    def deinitialize(self):
+        return -1
+
+    def draw(self, pred, img):
+        print(pred)
+
+    def draw_single_class(self, pred, img, selected_class):
+        # np_img = detect._draw_and_return_output_image_single_class(img, pred, selected_class, self.classes)
+        # return {"overlay": np_img}
+        return
+
+    def report_accuracy(self, pred, pred_truth):
+        print(pred, pred_truth)
+        # print(self.model.summary())
+        acc_meter = AverageMeter()
+        intersection_meter = AverageMeter()
+        union_meter = AverageMeter()
+
+        acc, pix = accuracy(pred, pred_truth)
+        intersection, union = intersectionAndUnion(pred, pred_truth, 150)
+        acc_meter.update(acc, pix)
+        intersection_meter.update(intersection)
+        union_meter.update(union)
+        
+        class_ious = {}
+        iou = intersection_meter.sum / (union_meter.sum + 1e-10)
+        for i, _iou in enumerate(iou):
+            class_ious[i] = _iou
+        return iou.mean(), acc_meter.average(), class_ious
 
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
@@ -207,5 +277,8 @@ _registry = {
         os.path.join(currPath, 'obj_detector/cfg', 'coco.names'),
         os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg'),
         os.path.join(currPath,'obj_detector/weights','yolov3.weights')
+    ),
+    'EfficientNetV2': EfficientNetV2(
+        'efficientnet-b0'
     )
 }

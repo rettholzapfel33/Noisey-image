@@ -96,6 +96,12 @@ class ExperimentWorker(QObject):
                 assembler.append(ratios)
             else:
                 pass # do whatever segmentation needs for eval LOL IDK
+        elif self.config.modelName == 'EfficientNetV2':
+            if len(self.config.labels) == 0:
+                if assembler is None: assembler = 0
+                assembler += len(dets)
+            else:
+                pass
         else: raise Exception('model name is not recognized in _registry'%(self.config.modelName))
         
         print(assembler)
