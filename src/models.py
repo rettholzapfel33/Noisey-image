@@ -268,6 +268,71 @@ class EfficientNetV2(Model):
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
 
+class DETR(Model):
+    """
+    DETR Model that inherits the Model class
+    It specifies its four main functions: run, initialize, deinitialize, and draw.
+    """
+    def __init__(self, *network_config) -> None:
+        super(DETR, self).__init__()
+        self.CLASSES = network_config[0]
+        print(self.CLASSES)
+        self.classes = load_classes(self.CLASSES)
+    
+    def initialize(self, *kwargs):
+        self.detr = torch.hub.load('facebookresearch/detr', 'detr_resnet101', pretrained=True)
+        self.detr= self.detr.eval()
+        if torch.cuda.is_available():
+            self.on_gpu = True
+            self.detr.cuda()
+        else:
+            self.on_gpu = False
+            self.detr.cpu()
+        return 0
+
+    def box_cxcywh_to_xyxy(self, x):
+        x_c, y_c, w, h = x.unbind(1)
+        b = [(x_c - 0.5 * w), (y_c - 0.5 * h),
+        (x_c + 0.5 * w), (y_c + 0.5 * h)]
+        return torch.stack(b, dim=1)
+
+    def rescale_bboxes(self, out_bbox, size):
+        img_w, img_h = size
+        # Push to CPU to perform operation after
+        b = self.box_cxcywh_to_xyxy(out_bbox).cpu()
+        b = b * torch.tensor([img_w, img_h, img_w, img_h], dtype=torch.float32)
+        return b
+
+    def run(self, input):
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
+        img = transform(input).unsqueeze(0)
+        if self.on_gpu: img = img.cuda()
+        pred = self.detr(img)
+        return pred
+
+    def deinitialize(self):
+        # deinitialize equivalent of detr model if there is one
+        return -1
+
+    def draw(self, pred, img):
+        np_img, detectedNames = img, 1 #TODO: detect._draw_and_return_output_image equivalent from yolo equivalent in detr
+        return {"dst": np_img,
+                "listOfNames": detectedNames}
+
+    def draw_single_class(self, pred, img, selected_class):
+        np_img = img #TODO: detect._draw_and_return_output_image_single_class from yolo equivalent in detr
+        return {"overlay": np_img}
+
+    def report_accuracy(self, pred, pred_truth):
+        return
+
+    def outputFormat(self):
+        return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
+
+
 _registry = {
     'Semantic Segmentation': Segmentation(
         str(Path(__file__).parent.absolute()) + "/mit_semseg/config/ade20k-hrnetv2.yaml",
@@ -280,5 +345,8 @@ _registry = {
     ),
     'EfficientNetV2': EfficientNetV2(
         'efficientnet-b0'
+    ),
+    'Object Detection (DETR)': DETR(
+        os.path.join(currPath, 'obj_detector/cfg', 'coco.names')
     )
 }
