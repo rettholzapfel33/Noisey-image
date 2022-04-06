@@ -102,6 +102,12 @@ class ExperimentWorker(QObject):
                 assembler += len(dets)
             else:
                 pass
+        elif self.config.modelName == 'Object Detection (YOLOv4)':
+            if len(self.config.labels) == 0:
+                if assembler is None: assembler = 0
+                assembler += len(dets)
+            else:
+                pass
         else: raise Exception('model name is not recognized in _registry'%(self.config.modelName))
         
         print(assembler)
