@@ -1,6 +1,8 @@
+import os
 import random
 from urllib import request
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
+from pyparsing import empty
 
 from numpy.lib.function_base import select
 from torchvision.transforms.functional import center_crop
@@ -14,6 +16,7 @@ import cv2
 import numpy as np
 import time
 from src.utils import images
+from src import models
 
 import PIL
 
@@ -235,6 +238,49 @@ def kmeans_transform(image, n_clusters=10):
 
     return compressed
 
+def roiCompression(image, prob=0.01):
+
+    # Initialize yolo
+    yolo = models.YOLOv3(
+        os.path.join('src', 'obj_detector/cfg', 'coco.names'),
+        os.path.join('src', 'obj_detector/cfg', 'yolov3.cfg'),
+        os.path.join('src','obj_detector/weights','yolov3.weights')
+    )
+
+    yolo.initialize()
+
+    '''
+    box format:
+    [ [x1, y1, x2, y2, conf, cls], [x1, y1, x2, y2, conf, cls], ... ]
+                    ^                           ^
+                   obj1                        obj2
+    '''
+
+    boxes = yolo.run(image)
+    boxes = boxes.numpy()
+
+    if boxes is not empty:
+
+        # Create black image the same size as the input
+        image2 = np.zeros(image.shape, dtype=np.uint8) 
+        #image2 = image 
+
+        # make some random box coordinate from center:
+        for i in boxes:
+
+            x1 = i[0]
+            y1 = i[1]
+            x2 = i[2]
+            y2 = i[3]
+
+            dummyBox = [int(y1), int(x1), int(y2), int(x2)]
+
+            image_chunk = image[dummyBox[0]:dummyBox[2], dummyBox[1]:dummyBox[3],:] # x1:x2, y1:y2, all three color channels
+            image2[dummyBox[0]:dummyBox[2], dummyBox[1]:dummyBox[3],:] = image_chunk # plunk this little guy into the new black canvas
+
+    return image2
+
+
 augList = {
     "Intensity": {"function": dim_intensity, "default": [0.5], "example":0.5},
     "Gaussian Noise": {"function": gaussian_noise, "default": [1,25,50], "example":25},
@@ -245,7 +291,8 @@ augList = {
     "Flip Axis": {"function": flipAxis, "default": [-1], "example": -1},
     "Fisheye Transformation": {"function": fisheye_transform, "default": [0.2, 0.3, 0.4], "example":0.4},
     "WebP Compression": {"function": webp_transform, "default": [10], "example":10},
-    "KMeans Transformation": {"function": kmeans_transform, "default": [10], "example":10}
+    "KMeans Transformation": {"function": kmeans_transform, "default": [10], "example":10},
+    "ROI Compression": {"function": roiCompression, "default": [0.01, 0.2, 0.3], "example": 0.5}
 }
 
 class Augmentation:

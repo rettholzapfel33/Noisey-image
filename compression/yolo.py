@@ -6,6 +6,7 @@ sys.path.append('../')
 from src import models
 import cv2
 from pathlib import Path
+import numpy
 
 def loadAndInferImage(image):
     yolo = models.YOLOv3(
@@ -29,4 +30,10 @@ if __name__ == '__main__':
     image = cv2.imread('../imgs/default_imgs/car detection.png')
     assert type(image) != None, "file read fail"
     boxes = loadAndInferImage(image)
-    print(boxes)
+    boxes = boxes.numpy()
+
+    for i in boxes:
+        print(int(i[0]))
+        print(int(i[1]))
+        print(int(i[2]))
+        print(int(i[3]))

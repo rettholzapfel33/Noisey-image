@@ -561,6 +561,7 @@ class mainWindow(QtWidgets.QMainWindow):
         
         qtFrame = self.convertCV(frame)
         self.ui.video_original.setPixmap(qtFrame)
+        self.ui.video_preview.setPixmap(qtFrame)
 
     def changeUI(self, _str):
 
