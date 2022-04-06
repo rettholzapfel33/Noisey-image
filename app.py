@@ -1,18 +1,20 @@
 # System libs
 import os
+import time
 from os.path import exists
 import glob
 from pathlib import Path
 import PIL.Image
 from PIL import Image
 import numpy as np
-import ffmpeg
 
 # Sementic segmentation
 from src.predict_img import new_visualize_result
 
 # PyQt5
 from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QThread
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaPlaylist, QMediaContent
 from PyQt5.QtWidgets import QMessageBox
 from src.window import Ui_MainWindow
@@ -25,7 +27,7 @@ import yaml
 
 # import utilities:
 import src.h264
-from src.utils.images import convert_cvimg_to_qimg
+from src.utils.images import convert_cvimg_to_qimg, convertCV2QT
 from src.transforms import AugDialog, AugmentationPipeline, Augmentation, mainAug
 from src.experimentDialog import ExperimentConfig, ExperimentDialog
 from src import models
@@ -69,6 +71,9 @@ class Worker(QtCore.QObject):
 
 
 class mainWindow(QtWidgets.QMainWindow):
+
+    change_pixmap_signal = pyqtSignal(tuple)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -78,6 +83,10 @@ class mainWindow(QtWidgets.QMainWindow):
         self.addWindow = AugDialog(self.ui.listAugs)
         self.addWindow.setModal(True)
         self.addWindow.demoAug()
+
+        self.run = True
+
+        self.change_pixmap_signal.connect(self.__updateImage__)
 
         # Set up media player
         #self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
@@ -514,55 +523,76 @@ class mainWindow(QtWidgets.QMainWindow):
         self.experiment = ExperimentDialog(config)
         self.experiment.startExperiment()
 
+    def convertCV(self, cv_img):
+        
+        rgb_image = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+        h, w, ch = rgb_image.shape
+        bytes_per_line = ch * w
+        convert_to_Qt_format = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
+        p = convert_to_Qt_format.scaled(1000, 1000, Qt.KeepAspectRatio)
+        return QPixmap.fromImage(p)
+
+    def displayVideo(self):
+
+        # Convert the original mp4 to JPG images
+        videoIn = cv2.VideoCapture('vids/default/test.mp4')
+        videoOut = None
+
+        while(self.run):
+            t1 = time.time()
+            ret, frame = videoIn.read()
+            if not ret:
+                break
+
+            if type(videoOut) == type(None):
+                videoOut = cv2.VideoWriter('vids/convert', cv2.VideoWriter_fourcc(*"mp4v"), 30, (frame.shape[1], frame.shape[0]))
+
+            videoOut.write(frame)
+
+            self.change_pixmap_signal.emit((frame, t1))
+
+        videoIn.release()
+        videoOut.release()
+    
+    @pyqtSlot(tuple)
+    def __updateImage__(self, frame_tuple):
+        
+        frame, t1 = frame_tuple
+        
+        qtFrame = self.convertCV(frame)
+        self.ui.video_original.setPixmap(qtFrame)
 
     def changeUI(self, _str):
 
         if _str == 'image':
 
-            self.default_img()
-
-            # Show the preview
+            # Show the image labels
+            self.ui.preview.show()
+            self.ui.original.show()
             self.ui.preview_2.show()
             self.ui.original_2.show()
 
-            # Clear contents of labels
-            self.ui.original.clear()
-            self.ui.preview.clear()
-
+            # Hide the video labels
+            self.ui.video_original.hide()
+            self.ui.video_preview.hide()
 
         if _str == 'video':
 
-            # Hide the labels
+            # Hide the image labels
+            self.ui.preview.hide()
+            self.ui.original.hide()
             self.ui.preview_2.hide()
             self.ui.original_2.hide()
 
-            # Check if Gifs are present
-            if exists('vids/gifs/original.gif') and exists('vids/gifs/original.gif'):
+            # Show the video labels
+            self.ui.video_original.show()
+            self.ui.video_preview.show()
 
-                # Show the compressed gifs
-                originalGif = QtGui.QMovie('vids/gifs/original.gif')
-                self.ui.original.setMovie(originalGif)
-                originalGif.start()
+            # Compress default MP4
+            #src.h264.main() 
 
-                compressedGif = QtGui.QMovie('vids/gifs/compressed.gif')
-                self.ui.preview.setMovie(compressedGif)
-                compressedGif.start()
-
-
-            # Call h264
-            else:
-
-                src.h264.main()
-
-                # Show the compressed gifs
-                originalGif = QtGui.QMovie('vids/gifs/original.gif')
-                self.ui.original.setMovie(originalGif)
-                originalGif.start()
-
-                compressedGif = QtGui.QMovie('vids/gifs/compressed.gif')
-                self.ui.preview.setMovie(compressedGif)
-                compressedGif.start()
-
+            # Convert MP4 files to individual frames and show in pixmap
+            self.displayVideo()
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
