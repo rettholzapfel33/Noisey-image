@@ -19,6 +19,10 @@ import json
 from src.efficientnet_pytorch.model import EfficientNet
 from torchvision import transforms
 
+# import detr stuff:
+from PIL import Image
+from src.detr.model import DETRdemo
+
 # import yolov4 stuff:
 from src.yolov4.tool.utils import *
 from src.yolov4.tool.darknet2pytorch import Darknet
@@ -279,58 +283,52 @@ class DETR(Model):
     """
     def __init__(self, *network_config) -> None:
         super(DETR, self).__init__()
-        self.CLASSES = network_config[0]
-        print(self.CLASSES)
+        self.CLASSES, self.WEIGHTS = network_config[0], network_config[1]
+        print(self.CLASSES, self.WEIGHTS)
         self.classes = load_classes(self.CLASSES)
     
     def initialize(self, *kwargs):
-        self.detr = torch.hub.load('facebookresearch/detr', 'detr_resnet101', pretrained=True)
-        self.detr= self.detr.eval()
+        self.model = DETRdemo(num_classes=len(self.classes))
+        self.model.load_state_dict(torch.load(self.WEIGHTS))
+        self.model.eval()
         if torch.cuda.is_available():
+            self.model.cuda()
             self.on_gpu = True
-            self.detr.cuda()
         else:
+            self.model.cpu()
             self.on_gpu = False
-            self.detr.cpu()
-        return 0
-
-    def box_cxcywh_to_xyxy(self, x):
-        x_c, y_c, w, h = x.unbind(1)
-        b = [(x_c - 0.5 * w), (y_c - 0.5 * h),
-        (x_c + 0.5 * w), (y_c + 0.5 * h)]
-        return torch.stack(b, dim=1)
-
-    def rescale_bboxes(self, out_bbox, size):
-        img_w, img_h = size
-        # Push to CPU to perform operation after
-        b = self.box_cxcywh_to_xyxy(out_bbox).cpu()
-        b = b * torch.tensor([img_w, img_h, img_w, img_h], dtype=torch.float32)
-        return b
-
-    def run(self, input):
-        transform = transforms.Compose([
+        self.transform = transforms.Compose([
+            transforms.Resize(800),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
-        img = transform(input).unsqueeze(0)
+        return 0
+
+    def run(self, input):
+        tfms = transforms.ToPILImage()
+        img = tfms(input)
         if self.on_gpu: img = img.cuda()
-        pred = self.detr(img)
+        scores, boxes = self.model.detect(img, self.model, self.transform)
+        _confidences, _classes = torch.max(scores, axis=1)
+        _cls_conf = torch.cat((torch.unsqueeze(_confidences, axis=0), torch.unsqueeze(_classes, axis=0)))
+        _cls_conf = torch.transpose(_cls_conf, 0,1)
+        pred = torch.cat((boxes, _cls_conf), axis=1) #[x1,y1,x2,y2,conf,class] <--- box
         return pred
 
     def deinitialize(self):
-        # deinitialize equivalent of detr model if there is one
         return -1
 
     def draw(self, pred, img):
-        np_img, detectedNames = img, 1 #TODO: detect._draw_and_return_output_image equivalent from yolo equivalent in detr
+        np_img, detectedNames = detect._draw_and_return_output_image(img, pred, 416, self.classes)
         return {"dst": np_img,
-                "listOfNames": detectedNames}
+                "listOfNames":detectedNames}
 
     def draw_single_class(self, pred, img, selected_class):
-        np_img = img #TODO: detect._draw_and_return_output_image_single_class from yolo equivalent in detr
+        np_img = detect._draw_and_return_output_image_single_class(img, pred, selected_class, self.classes)
         return {"overlay": np_img}
 
     def report_accuracy(self, pred, pred_truth):
+        print('pred comparison', pred, pred_truth)
         return
 
     def outputFormat(self):
@@ -395,7 +393,8 @@ _registry = {
         'efficientnet-b0'
     ),
     'Object Detection (DETR)': DETR(
-        os.path.join(currPath, 'obj_detector/cfg', 'coco.names')
+        os.path.join(currPath, 'detr/cfg', 'coco.names'),
+        os.path.join(currPath, 'detr/weights', 'detr.weights')
     ),
     'Object Detection (YOLOv4)': YOLOv4(
         os.path.join(currPath, 'yolov4/data', 'coco.names'),
