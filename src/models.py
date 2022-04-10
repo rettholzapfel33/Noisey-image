@@ -29,6 +29,7 @@ from src.yolov4.models.models import Darknet
 from src.yolov4.models.models import load_darknet_weights
 import src.yolov4.utils.utils as utils_v4
 from src.transforms import letterbox_image
+from src.yolov4.utils.general import (check_img_size, non_max_suppression, apply_classifier, scale_coords, xyxy2xywh, strip_optimizer)
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 
@@ -358,10 +359,15 @@ class YOLOv4(Model):
         self.conf_threshold = 0.25
 
     def run(self, input):
+        im0 = np.copy(input)
         img = letterbox_image(input, self.img_size)[0]
         img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
         img = np.ascontiguousarray(img)
-        img = torch.from_numpy(img).to(device)
+        if torch.cuda.is_available():
+            img = torch.from_numpy(img).cuda()
+        else:
+            img = torch.from_numpy(img).cpu()
+        img = img.float()
         img /= 255.0
         if img.ndimension() == 3:
             img = img.unsqueeze(0)
@@ -372,6 +378,10 @@ class YOLOv4(Model):
             if det is not None and len(det):
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
+        if torch.cuda.is_available():
+            pred = pred.cpu()
+        pred = pred[0].detach().numpy()
+        #print(self.yolo.training)
         return pred
 
     def initialize(self, *kwargs):
@@ -409,20 +419,20 @@ _registry = {
         scipy.io.loadmat(str(Path(__file__).parent.absolute()) + '/data/color150.mat')['colors']
     ),
     'Object Detection (YOLOv3)': YOLOv3(
-        os.path.join(currPath, 'obj_detector/cfg', 'coco.names'),
-        os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg'),
-        os.path.join(currPath,'obj_detector/weights','yolov3.weights')
+        os.path.join(currPath, 'obj_detector', 'cfg', 'coco.names'),
+        os.path.join(currPath, 'obj_detector', 'cfg', 'yolov3.cfg'),
+        os.path.join(currPath,'obj_detector', 'weights', 'yolov3.weights')
     ),
     'EfficientNetV2': EfficientNetV2(
         'efficientnet-b0'
     ),
     'Object Detection (DETR)': DETR(
-        os.path.join(currPath, 'obj_detector/cfg', 'coco.names')
+        os.path.join(currPath, 'obj_detector', 'cfg', 'coco.names')
     ),
     'Object Detection (YOLOv4)': YOLOv4(
-        os.path.join(currPath, 'yolov4/data', 'coco.names'),
-        os.path.join(currPath, 'yolov4/cfg', 'yolov4.cfg'),
-        os.path.join(currPath,'yolov4/weights','yolov4.weights')
+        os.path.join(currPath, 'yolov4', 'data', 'coco.names'),
+        os.path.join(currPath, 'yolov4', 'cfg', 'yolov4.cfg'),
+        os.path.join(currPath,'yolov4', 'weights', 'yolov4.weights')
     )
 }
 
