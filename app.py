@@ -76,7 +76,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.addWindow.demoAug()
 
         # Check status of configurations:
-        weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights", "detr":"detr.weights"}
+        weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights", 'detr':"detr.weights", 'yolov4':"yolov4.weights"}
         self.labels = []
 
         if Downloader.check(weight_dict):
@@ -92,7 +92,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.progressBar.hide()
         self.ui.progressBar_2.hide()
 
-        self.ui.comboBox.addItems(models._registry.keys())
+        self.ui.comboBox.addItems(list(models._registry.keys()))
 
         # QActions
         # Default values (images, noise, etc.) are set up here:

@@ -6,6 +6,10 @@ from PyQt5.QtCore import QObject
 import os, csv, torch, scipy.io
 import numpy as np
 
+if __name__ == '__main__':
+    import sys
+    sys.path.append('./')
+
 from src.predict_img import new_visualize_result, process_img, predict_img, load_model_from_cfg, visualize_result, transparent_overlays, get_color_palette
 from src.mit_semseg.utils import AverageMeter, accuracy, intersectionAndUnion
 
@@ -24,8 +28,12 @@ from PIL import Image
 from src.detr.model import DETRdemo
 
 # import yolov4 stuff:
-from src.yolov4.tool.utils import *
-from src.yolov4.tool.darknet2pytorch import Darknet
+import src.yolov4.detect as detect_v4
+from src.yolov4.models.models import Darknet
+from src.yolov4.models.models import load_darknet_weights
+import src.yolov4.utils.utils as utils_v4
+from src.transforms import letterbox_image
+from src.yolov4.utils.general import (check_img_size, non_max_suppression, apply_classifier, scale_coords, xyxy2xywh, strip_optimizer)
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 
@@ -343,21 +351,45 @@ class YOLOv4(Model):
         super(YOLOv4, self).__init__()
         # network_config: CLASSES, CFG, WEIGHTS
         self.CLASSES, self.CFG, self.WEIGHTS = network_config
-        
+        self.img_size = (416,416)
         print(self.CLASSES, self.CFG, self.WEIGHTS)
-        self.classes = load_class_names(self.CLASSES)
+        self.classes = load_classes(self.CLASSES)
+        self.conf_threshold = 0.25
 
     def run(self, input):
-        #pred = detect.detect_image(self.yolo, input)
+        im0 = np.copy(input)
+        img = letterbox_image(input, self.img_size)[0]
+        img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
+        img = np.ascontiguousarray(img)
+        if torch.cuda.is_available():
+            img = torch.from_numpy(img).cuda()
+        else:
+            img = torch.from_numpy(img).cpu()
+        img = img.float()
+        img /= 255.0
+        if img.ndimension() == 3:
+            img = img.unsqueeze(0)
+        pred = self.yolo(img, augment=False)[0]
+        pred = non_max_suppression(pred, self.conf_threshold, 0.6, classes=None, agnostic=False)
         #return pred #[x1,y1,x2,y2,conf,class] <--- box
-        return
+        for i, det in enumerate(pred):  # detections per image
+            if det is not None and len(det):
+                # Rescale boxes from img_size to im0 size
+                det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
+        if torch.cuda.is_available():
+            pred = pred.cpu()
+        pred = pred[0].detach().numpy()
+        #print(self.yolo.training)
+        return pred
 
     def initialize(self, *kwargs):
-        self.yolo = Darknet(self.CFG)
-        self.yolo.load_weights(self.WEIGHTS)
-        #self.yolo = load_model(self.CFG, self.WEIGHTS)
-        # need to use tools/darknet2pytorch.py to convert weights -- is that already done there?
-        return 0
+        self.yolo = Darknet(self.CFG, self.img_size)
+        if torch.cuda.is_available():
+            self.yolo = self.yolo.cuda()
+        else:
+            self.yolo = self.yolo.cpu()
+        load_darknet_weights(self.yolo, self.WEIGHTS)
+        self.yolo.eval()
     
     def deinitialize(self):
         return -1
@@ -385,20 +417,30 @@ _registry = {
         scipy.io.loadmat(str(Path(__file__).parent.absolute()) + '/data/color150.mat')['colors']
     ),
     'Object Detection (YOLOv3)': YOLOv3(
-        os.path.join(currPath, 'obj_detector/cfg', 'coco.names'),
-        os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg'),
-        os.path.join(currPath,'obj_detector/weights','yolov3.weights')
+        os.path.join(currPath, 'obj_detector', 'cfg', 'coco.names'),
+        os.path.join(currPath, 'obj_detector', 'cfg', 'yolov3.cfg'),
+        os.path.join(currPath,'obj_detector', 'weights', 'yolov3.weights')
     ),
     'EfficientNetV2': EfficientNetV2(
         'efficientnet-b0'
     ),
     'Object Detection (DETR)': DETR(
-        os.path.join(currPath, 'detr/cfg', 'coco.names'),
-        os.path.join(currPath, 'detr/weights', 'detr.weights')
+        os.path.join(currPath, 'detr', 'cfg', 'coco.names'),
+        os.path.join(currPath, 'detr', 'weights', 'detr.weights')
     ),
     'Object Detection (YOLOv4)': YOLOv4(
-        os.path.join(currPath, 'yolov4/data', 'coco.names'),
-        os.path.join(currPath, 'yolov4/cfg', 'yolov4.cfg'),
-        os.path.join(currPath,'yolov4/weight','yolov4.weights')
+        os.path.join(currPath, 'yolov4', 'data', 'coco.names'),
+        os.path.join(currPath, 'yolov4', 'cfg', 'yolov4.cfg'),
+        os.path.join(currPath,'yolov4', 'weights', 'yolov4.weights')
     )
 }
+
+
+if __name__ == '__main__':
+    import cv2
+    model = _registry['Object Detection (YOLOv4)']
+    model.initialize()
+    img = cv2.imread('imgs/default_imgs/original.png')
+    assert type(img) != None # image path wrong
+    preds = model.run(img)
+    print(preds) # right format if last is 0<x<1 and first 4 are large numbers
