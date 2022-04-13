@@ -17,8 +17,11 @@ import yaml
 from src.utils.images import convertCV2QT
 import matplotlib.pyplot as plt
 
-# calculating stats:
-from src.evaluators.map_metric import driver
+# eval imports:
+from src.evaluators.map_metric.lib.BoundingBoxes import BoundingBox
+from src.evaluators.map_metric.lib import BoundingBoxes
+from src.evaluators.map_metric.lib.Evaluator import *
+from src.evaluators.map_metric.lib.utils import BBFormat
 
 def createExperimentName(savePath):
     _root_name = 'exp'
@@ -33,7 +36,7 @@ def createExperimentName(savePath):
         return "%s_%i"%(_root_name, _max_index+1)
 
 class ExperimentConfig:
-    def __init__(self, mainAug:AugmentationPipeline, isCompound:bool, imagePaths:list, model, modelName, shouldAug=True, labels=[]) -> None:
+    def __init__(self, mainAug:AugmentationPipeline, isCompound:bool, imagePaths:list, model, modelName, shouldAug=True, labels=[], labelType="voc") -> None:
         self.mainAug = mainAug
         self.isCompound = isCompound
         self.imagePaths = imagePaths
@@ -41,6 +44,7 @@ class ExperimentConfig:
         self.modelName = modelName
         self.shouldAug = shouldAug
         self.labels = labels
+        self.labelType = labelType
         self.expName = ''
         self.savePath = './src/data/tmp/runs'
 
@@ -79,7 +83,7 @@ class ExperimentWorker(QObject):
        #np.savetxt(os.path.join(outPath, 'graphing.csv'),inData,)
        np.save(os.path.join(outPath, 'graphing.npy'), inData)
 
-    def calculateStat(self, dets, assembler, i):
+    def calculateStat(self, dets, assembler, i, filename):
         if self.config.modelName == 'Object Detection (YOLOv3)':
             if len(self.config.labels) == 0:
                 if assembler is None: assembler = 0
@@ -87,7 +91,30 @@ class ExperimentWorker(QObject):
             else:
                 raise NotImplementedError()
                 # do mAP calculation here
-                pass
+                
+        elif self.config.modelName == 'Face Detection (MTCNN)':
+            if len(self.config.labels) == 0:
+                if assembler is None: assembler = 0
+                assembler += len(dets)
+            else:
+                if assembler is None: assembler = 0
+                # convert to boundingbox classes
+                #[x1,y1,x2,y2,conf,class] <--- box
+                if filename in self.config.labels:
+                    # canvas = np.zeros((1400,1607,3),dtype=np.uint8)
+                    # gtDets = [ det.getAbsoluteBoundingBox(BBFormat.XYX2Y2) for det in self.config.labels[filename] ]
+                    # [ cv2.rectangle(canvas, ( int(det[0]), int(det[1])), (int(det[2]), int(det[3])), (0,0,255), thickness=2 ) for det in gtDets]
+                    # [ cv2.rectangle(canvas, ( int(det[0]), int(det[1])), (int(det[2]), int(det[3])), (0,255,0), thickness=2 ) for det in dets]
+                    # cv2.imwrite('test.png', canvas)
+
+                    preds = [BoundingBox(filename, det[5], det[0], det[1], det[2]-det[0], det[3]-det[1], classConfidence=det[4], bbType=BBType.Detected) for det in dets]
+                    gt = self.config.labels[filename]
+                    #preds = [ BoundingBox(filename, 0, det.getAbsoluteBoundingBox(format=BBFormat.XYWH)[0], det.getAbsoluteBoundingBox(format=BBFormat.XYWH)[1], det.getAbsoluteBoundingBox(format=BBFormat.XYWH)[2], det.getAbsoluteBoundingBox(format=BBFormat.XYWH)[3], format=BBFormat.XYWH, bbType=BBType.Detected, classConfidence=0.99)  for det in self.config.labels[filename]]
+                    mAP50 = self.config.model.report_accuracy(preds, gt, self.config.labelType)
+                    # do mAP calculation here
+                    assembler += mAP50
+                else: print("WARNING: %s does not have key in labels! Ignoring for now.")
+                
         elif self.config.modelName == 'Semantic Segmentation':
             if len(self.config.labels) == 0:
                 if assembler is None: assembler = []
@@ -112,6 +139,11 @@ class ExperimentWorker(QObject):
         
         # write meta out for later loading and reference
         self.writeMeta(os.path.join(self.savePath, exp_path))
+
+        # map compute purposes:
+        if self.config.model.complexOutput:
+            old_thres = self.config.model.conf_thres
+            self.config.model.conf_thres = 0.00001
 
         if len(self.config.mainAug) == 0:
             for i, imgPath in enumerate(self.config.imagePaths):
@@ -175,14 +207,14 @@ class ExperimentWorker(QObject):
                             self.writeDets(dets, new_sub_dir, imgPath)
                             self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
                             self.progress.emit(i)
-                            _count = self.calculateStat(dets, _count, i)
+                            _count = self.calculateStat(dets, _count, i, os.path.splitext(imgPath.split('/')[-1])[0] ) # find the filename only
 
                         if type(_count) == int: _count /= len(self.config.imagePaths)
                         count_temp.append(_count)
                     counter.append(count_temp)
 
-        #print(len(counter[0]))
-        #exit() 
+        if self.config.model.complexOutput:
+            self.config.model.conf_thres = old_thres
 
         self.writeGraph(counter, os.path.join(self.savePath, exp_path))
         # clean up model

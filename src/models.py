@@ -13,6 +13,17 @@ import src.obj_detector.detect as detect
 from src.obj_detector.models import load_model
 from src.obj_detector.utils.utils import load_classes
 
+# mtcnn:
+from src.mtcnn_pytorch import detector as mtcnn_detector
+from src.mtcnn_pytorch import visualization_utils as mtcnn_utils
+from PIL import Image
+
+# import mAP eval:
+from src.evaluators.map_metric.lib.BoundingBoxes import BoundingBox
+from src.evaluators.map_metric.lib import BoundingBoxes
+from src.evaluators.map_metric.lib.Evaluator import *
+from src.evaluators.map_metric.lib.utils import BBFormat
+
 currPath = str(Path(__file__).parent.absolute()) + '/'
 
 class Model(abc.ABC):
@@ -55,6 +66,72 @@ class Model(abc.ABC):
     def __call__(self):
         pred = self.run()
         return pred
+
+class MTCNN(Model):
+    def __init__(self, *network_config) -> None:
+        super().__init__(*network_config)
+        self.network_config = network_config
+        self.complexOutput = False
+    
+    def run(self, input):
+        _img = Image.fromarray(input)
+        detections, _ = mtcnn_detector.detect_faces(self.model, _img)
+        cls_matrix = np.zeros((detections.shape[0],1))
+        detections = np.concatenate((detections, cls_matrix), axis=1)
+        return detections
+
+    def initialize(self):
+        self.model = mtcnn_detector.load_model(*self.network_config)
+
+    def deinitialize(self):
+        return -1
+
+    def draw(self, pred, img):
+        _img = Image.fromarray(img)
+        _img = mtcnn_utils.show_bboxes(_img, pred)
+        img = np.array(_img)
+        return {"dst": img, "listOfNames": {"all": [255,255,255], "face": [255,0,0]}}
+
+    def draw_single_class(self, pred, img, selected_class):
+        img = self.draw(pred, img)["dst"]
+        return {"overlay": img}
+
+    def report_accuracy(self, pred:list, gt:list, evalType='voc'):
+        """Function takes in prediction boxes and ground truth boxes and
+        returns the mean average precision (mAP) @ IOU 0.5 under VOC2007 criteria (default).
+
+        Args:
+            pred (list): A list of BoundingBox objects representing each detection from method
+            gt (list): A list of BoundingBox objects representing each object in the ground truth
+
+        Returns:
+            mAP: a number representing the mAP over all classes for a single image.
+        """        
+        if len(pred) == 0: return 0
+
+        allBoundingBoxes = BoundingBoxes()
+        evaluator = Evaluator()
+
+        # loop through gt:
+        for _gt in gt:
+            assert type(_gt) == BoundingBox, "_gt is not BoundingBox type. Instead is %s"%(str(type(_gt)))
+            allBoundingBoxes.addBoundingBox(_gt)
+
+        for _pred in pred:
+            assert type(_pred) == BoundingBox, "_gt is not BoundingBox type. Instead is %s"%(str(type(_pred)))
+            allBoundingBoxes.addBoundingBox(_pred)
+
+        #for box in allBoundingBoxes:
+        #    print(box.getAbsoluteBoundingBox(format=BBFormat.XYWH), box.getBBType()) 
+        if evalType == 'voc':
+            metrics = evaluator.GetPascalVOCMetrics(allBoundingBoxes)
+        elif evalType == 'coco':
+            assert False
+        else: assert False, "evalType %s not supported"%(evalType) 
+        return metrics[0]['AP']
+
+    def outputFormat(self):
+        return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
 
 class Segmentation(Model):
     """
@@ -171,9 +248,12 @@ class YOLOv3(Model):
         # self.WEIGHTS = os.path.join(currPath,'obj_detector/weights','yolov3.weights')
         print(self.CLASSES, self.CFG, self.WEIGHTS)
         self.classes = load_classes(self.CLASSES)
+        self.img_size = 416
+        self.conf_thres = 0.5
+        self.nms_thres = 0.5
 
     def run(self, input):
-        pred = detect.detect_image(self.yolo, input)
+        pred = detect.detect_image(self.yolo, input, img_size=self.img_size, conf_thres=self.conf_thres, nms_thres=self.nms_thres)
         return pred #[x1,y1,x2,y2,conf,class] <--- box
 
     def initialize(self, *kwargs):
@@ -192,20 +272,66 @@ class YOLOv3(Model):
         np_img = detect._draw_and_return_output_image_single_class(img, pred, selected_class, self.classes)
         return {"overlay": np_img}
 
-    def report_accuracy(self, pred, pred_truth):
-        return
+    def report_accuracy(self, pred:list, gt:list, evalType='voc'):
+        """Function takes in prediction boxes and ground truth boxes and
+        returns the mean average precision (mAP) @ IOU 0.5 under VOC2007 criteria (default).
+
+        Args:
+            pred (list): A list of BoundingBox objects representing each detection from method
+            gt (list): A list of BoundingBox objects representing each object in the ground truth
+
+        Returns:
+            mAP: a number representing the mAP over all classes for a single image.
+        """        
+        if len(pred) == 0: return 0
+
+        allBoundingBoxes = BoundingBoxes()
+        evaluator = Evaluator()
+
+        # loop through gt:
+        for _gt in gt:
+            assert type(_gt) == BoundingBox, "_gt is not BoundingBox type. Instead is %s"%(str(type(_gt)))
+            allBoundingBoxes.addBoundingBox(_gt)
+
+        for _pred in pred:
+            assert type(_pred) == BoundingBox, "_gt is not BoundingBox type. Instead is %s"%(str(type(_pred)))
+            allBoundingBoxes.addBoundingBox(_pred)
+
+        image = np.zeros((1400,1607,3), dtype=np.uint8)
+        out_image = allBoundingBoxes.drawAllBoundingBoxes(image, '100faces')
+        cv2.imwrite('test.png', out_image)
+
+        #for box in allBoundingBoxes:
+        #    print(box.getAbsoluteBoundingBox(format=BBFormat.XYWH), box.getBBType()) 
+        if evalType == 'voc':
+            metrics = evaluator.GetPascalVOCMetrics(allBoundingBoxes)
+            print(metrics)
+        elif evalType == 'coco':
+            assert False
+        else: assert False, "evalType %s not supported"%(evalType) 
+        return metrics[0]['AP']
 
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
 
 _registry = {
+    # 'Face Detection (YOLOv3)': YOLOv3(
+    #     os.path.join(currPath, 'obj_detector/cfg', 'face.names'),
+    #     os.path.join(currPath, 'obj_detector/cfg', 'yolov3-face.cfg'),
+    #     os.path.join(currPath,'obj_detector/weights','yolov3-face_last.weights')
+    # ),
+    'Face Detection (MTCNN)': MTCNN(
+        os.path.join(currPath, 'mtcnn_pytorch/weights', 'pnet.npy'),
+        os.path.join(currPath, 'mtcnn_pytorch/weights', 'rnet.npy'),
+        os.path.join(currPath,'mtcnn_pytorch/weights','onet.npy')
+    ),
     'Semantic Segmentation': Segmentation(
         str(Path(__file__).parent.absolute()) + "/mit_semseg/config/ade20k-hrnetv2.yaml",
         scipy.io.loadmat(str(Path(__file__).parent.absolute()) + '/data/color150.mat')['colors']
     ),
     'Object Detection (YOLOv3)': YOLOv3(
-        os.path.join(currPath, 'obj_detector/cfg', 'coco.names'),
+        os.path.join(currPath, 'obj_detector/cfg', 'face.names'),
         os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg'),
         os.path.join(currPath,'obj_detector/weights','yolov3.weights')
-    )
+    ),
 }

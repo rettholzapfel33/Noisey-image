@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import PIL.Image
 import numpy as np
+from src.evaluators.map_metric.lib.BoundingBox import BoundingBox
 
 # Sementic segmentation
 from src.predict_img import new_visualize_result
@@ -90,7 +91,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.progressBar.hide()
         self.ui.progressBar_2.hide()
 
-        self.ui.comboBox.addItems(["Semantic Segmentation", "Object Detection (YOLOv3)"])
+        self.ui.comboBox.addItems(list(models._registry.keys()))
 
         # QActions
         # Default values (images, noise, etc.) are set up here:
@@ -100,7 +101,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.pushButton.clicked.connect(self.run_model)  
         self.ui.pushButton_2.clicked.connect(self.startExperiment)
         self.ui.pushButton_4.clicked.connect(quit)
-        self.ui.compoundAug.setChecked(True)
+        #self.ui.compoundAug.setChecked(True)
 
         # Augmentation Generator:
         self.ui.addAug.clicked.connect(self.addWindow.show)
@@ -138,6 +139,7 @@ class mainWindow(QtWidgets.QMainWindow):
             QtWidgets.QAbstractItemView.ExtendedSelection
         )
         self.ui.listAugs.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        self.label_eval = None
 
     def listwidgetmenu(self, position):
         """menu for right clicking in the file list widget"""
@@ -224,6 +226,8 @@ class mainWindow(QtWidgets.QMainWindow):
                 continue
 
             if filePath.endswith(".yaml"):
+                if new_item is None:
+                    self.ui.fileList.clear()
                 # return_value = self.read_yaml(filePath)
                 # if(len(return_value) > 1 and type(return_value[1]) is dict):
                 #     filePaths.extend(return_value[0])
@@ -236,6 +240,7 @@ class mainWindow(QtWidgets.QMainWindow):
             new_item = QtWidgets.QListWidgetItem()
             new_item.setText(fileName)
             new_item.setData(QtCore.Qt.UserRole, {'filePath':filePath})
+        
             self.ui.fileList.addItem(new_item)
 
 
@@ -312,19 +317,26 @@ class mainWindow(QtWidgets.QMainWindow):
 
             labels_dic = {}
             for label in labels:
+                base=os.path.basename(label)
+                base_name = os.path.splitext(base)[0]
                 file_content = []
                 with open(label) as f:
                     for line in f:
-                        _list = line.split()
+                        _list = line.split(',')
                         if type(_list) == list:
                             _list = list(map(float, _list))
-                        file_content.append(_list)
-                #print(file_content)
-                base=os.path.basename(label)
-                labels_dic[os.path.splitext(base)[0]] = file_content
+                            #for line in _list:
+                            box = BoundingBox(base_name, _list[0], _list[1], _list[2], _list[3], _list[4])
+                            #box = BoundingBox(base_name, "face", _list[1], _list[2], _list[3], _list[4])
+                            file_content.append(box)
+                        #file_content.append(_list)
 
+                #print(file_content)
+                labels_dic[base_name] = file_content
+            
             self.labels = labels_dic
-        
+            self.label_eval = "voc" # TODO: change to adapt for different eval
+
         return filePaths
 
     def reportProgress2(self, n):
@@ -335,17 +347,19 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.progressBar.setValue(n)
 
     def change_file_selection(self, qListItem):
-        originalImg = cv2.imread(qListItem.data(QtCore.Qt.UserRole)['filePath'])
+        if not qListItem is None:
+            originalImg = cv2.imread(qListItem.data(QtCore.Qt.UserRole)['filePath'])
 
-        self.ui.listWidget.clear()
-        self.ui.original_2.clear()
-        self.ui.preview_2.clear()
+            self.ui.listWidget.clear()
+            self.ui.original_2.clear()
+            self.ui.preview_2.clear()
 
-        originalQtImg = convert_cvimg_to_qimg(originalImg)
-        self.ui.original.setPixmap(QtGui.QPixmap.fromImage(originalQtImg))
+            originalQtImg = convert_cvimg_to_qimg(originalImg)
+            self.ui.original.setPixmap(QtGui.QPixmap.fromImage(originalQtImg))
 
-        self.changePreviewImage()
-
+            self.changePreviewImage()
+        else:
+            print("INFO: qListItem was None (was it cleared by YAML read function?)")
 
     def change_seg_selection(self, current):
         if(current == None):
@@ -382,9 +396,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 qImg_segmentation= convert_cvimg_to_qimg(imgs["segmentation"])
                 self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(qImg_segmentation))
         
-
     def display_result(self, result):
-        comboModelType = self.ui.comboBox.currentText()
         qListItems = result[1]
         model_results = result[0]
 
@@ -496,7 +508,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 return -1
             imgPaths.append(file_path)
             
-        config = ExperimentConfig(mainAug, self.ui.compoundAug.isChecked(), imgPaths, _model, comboModelType, labels=self.labels)
+        config = ExperimentConfig(mainAug, self.ui.compoundAug.isChecked(), imgPaths, _model, comboModelType, labels=self.labels, labelType=self.label_eval)
         self.experiment = ExperimentDialog(config)
         self.experiment.startExperiment()
 

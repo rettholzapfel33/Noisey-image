@@ -16,17 +16,20 @@ if __name__ == '__main__':
 
     mainAug.append('Gaussian Noise')
     mainAug.append('JPEG Compression')
-    mainAug.append('Salt and Pepper')
+    #mainAug.append('Salt and Pepper')
     for aug in mainAug:
         augmented = aug(augmented, example=True)
 
-    model = models._registry["Semantic Segmentation"]
-
-    model.initialize()   
+    #model = models._registry["Semantic Segmentation"]
+    model = models._registry["Face Detection (MTCNN)"]
+    print("Initialized")
+    model.conf_thres = 0.2 # added for yolov4
+    model.initialize()
     pred = model.run(augmented)
     result = model.draw(pred, augmented)
     model.deinitialize()
 
     cv2.imwrite("imgs/default_imgs/original.png", original)
-    cv2.imwrite("imgs/default_imgs/segmentation.png", result["segmentation"])
+    #cv2.imwrite("imgs/default_imgs/segmentation.png", result["segmentation"])
     cv2.imwrite("imgs/default_imgs/segmentation_overlay.png", result["dst"])
+    #cv2.imwrite("imgs/default_imgs/segmentation_overlay.png", result)

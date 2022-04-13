@@ -193,7 +193,7 @@ def fisheye_transform(image, factor=0.25):
 
 augList = {
     "Intensity": {"function": dim_intensity, "default": [0.5], "example":0.5},
-    "Gaussian Noise": {"function": gaussian_noise, "default": [1,25,50], "example":25},
+    "Gaussian Noise": {"function": gaussian_noise, "default": [1,10,15,20,25,30,35,40,45,50,55,60], "example":25},
     "Gaussian Blur": {"function": gaussian_blur, "default": [30], "example":30},
     "JPEG Compression": {"function": jpeg_comp, "default": [100,75,50], "example":20},
     "Normal Compression": {"function": normal_comp, "default": [20], "example":30},
@@ -389,7 +389,7 @@ class AugDialog(QDialog):
         uic.loadUi('./src/qt_designer_file/dialogAug.ui', self)
         self.__loadAugs__()
         self.__loadEvents__()
-        self.defaultImage = './src/data/tmp/car_detection_sample.png'
+        self.defaultImage = 'imgs/default_imgs/original.png'
         self.__loadInitialImage__()
         self.__loadExample__()
         self.savedAugPath = './src/data/saved_augs'
@@ -583,8 +583,8 @@ class AugDialog(QDialog):
     def demoAug(self):
         mainAug.clear()
         mainAug.append('Gaussian Noise')
-        mainAug.append('JPEG Compression')
-        mainAug.append('Salt and Pepper')
+        #mainAug.append('JPEG Compression')
+        #mainAug.append('Salt and Pepper')
         self.__updateViewer__()
 
 # Augmentation holder:
