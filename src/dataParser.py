@@ -11,6 +11,9 @@ from PyQt5.QtCore import Qt
 # import utilities:
 from src.yamlDialog import Ui_Dialog
 
+# eval:
+from src.evaluators.map_metric.lib.BoundingBox import BoundingBox
+
 def read_yaml(self, filePath):
     filePaths = []
 
@@ -123,16 +126,26 @@ def read_yaml(self, filePath):
         else:
             # Parses .txt annotation files
             for label in labels:
+                base=os.path.basename(label)
+                base_name = os.path.splitext(base)[0]
                 file_content = []
                 with open(label) as f:
                     for line in f:
-                        _list = line.split()
+                        _list = line.split(',')
                         if type(_list) == list:
                             _list = list(map(float, _list))
-                        file_content.append(_list)
-                base=os.path.basename(label)
-                labels_dic[os.path.splitext(base)[0]] = file_content
+                            #for line in _list:
+                            box = BoundingBox(base_name, _list[0], _list[1], _list[2], _list[3], _list[4])
+                            #box = BoundingBox(base_name, "face", _list[1], _list[2], _list[3], _list[4])
+                            file_content.append(box)
+                        #file_content.append(_list)
+
+                #print(file_content)
+                labels_dic[base_name] = file_content
+            
+            labels_content = labels_dic
+            label_eval = "voc" # TODO: change to adapt for different eval
 
         self.labels = labels_dic
 
-    return filePaths
+    return filePaths, (labels_content, label_eval)

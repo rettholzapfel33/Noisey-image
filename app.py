@@ -4,7 +4,6 @@ from pathlib import Path
 from tkinter import E
 import PIL.Image
 import numpy as np
-from src.evaluators.map_metric.lib.BoundingBox import BoundingBox
 
 # Sementic segmentation
 from src.predict_img import new_visualize_result
@@ -253,97 +252,10 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.fileList.setCurrentItem(new_item)
             self.ui.original_2.clear()
             self.ui.preview_2.clear()
-
-    def read_yaml(self, filePath):
-        #print(filePath[:filePath.rfind('/') + 1])
-        filePaths = []
-        with open(filePath) as file:
-            documents = yaml.full_load(file)
-            #print(documents)
-
-        trainVT = []
-        if("train" in documents):
-            trainVT.append("train")
-        if("val" in documents):
-            trainVT.append("val")
-        if("test" in documents):
-            trainVT.append("test")
-
-        if(len(trainVT) > 1):
-            dialogUI = Ui_Dialog()
-            dialog = QtWidgets.QDialog()
-            dialogUI.setupUi(dialog)
-
-            for x in trainVT:
-                item = QtWidgets.QListWidgetItem()
-                item.setText(x)
-                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-                item.setCheckState(Qt.Unchecked)
-                dialogUI.listWidget.addItem(item)
-
-            dialog.exec_()
-
-            if(dialog.result() == 0):
-                return []
-
-            checkedItems = []
-            for index in range(dialogUI.listWidget.count()):
-                if dialogUI.listWidget.item(index).checkState() == Qt.Checked:
-                    checkedItems.append(dialogUI.listWidget.item(index).text())
-        else:
-            checkedItems = trainVT
-
-        for x in checkedItems:
-            if(isinstance(documents[x], list)):
-                filePaths.extend(documents[x])
-            else:
-                filePaths.append(documents[x])
-
-        root = filePath[:filePath.rfind('/') + 1]
-
-        if "path" in documents:
-            root = os.path.join(root, documents["path"])
-
-        filePaths = list(map(lambda path: root + path, filePaths))
-
-        for file in filePaths:
-            if(os.path.isdir(file)):
-                onlyfiles = [f for f in os.listdir(file) if os.path.isfile(os.path.join(file, f))]
-                onlyfiles = list(map(lambda path: os.path.join(file, path), onlyfiles))
-        
-                filePaths.remove(file)
-                filePaths.extend(onlyfiles)
-
-        if "labels" in documents:
-            labels_folder = os.path.join(root, documents["labels"])
-            onlylabels = [f for f in os.listdir(labels_folder) if os.path.isfile(os.path.join(labels_folder, f))]
-            labels = list(map(lambda path: os.path.join(labels_folder, path), onlylabels))
-
-            labels_dic = {}
-            for label in labels:
-                base=os.path.basename(label)
-                base_name = os.path.splitext(base)[0]
-                file_content = []
-                with open(label) as f:
-                    for line in f:
-                        _list = line.split(',')
-                        if type(_list) == list:
-                            _list = list(map(float, _list))
-                            #for line in _list:
-                            box = BoundingBox(base_name, _list[0], _list[1], _list[2], _list[3], _list[4])
-                            #box = BoundingBox(base_name, "face", _list[1], _list[2], _list[3], _list[4])
-                            file_content.append(box)
-                        #file_content.append(_list)
-
-                #print(file_content)
-                labels_dic[base_name] = file_content
-            
-            self.labels = labels_dic
-            self.label_eval = "voc" # TODO: change to adapt for different eval
             
     def parseData(self, filePath):
         if filePath.endswith(".yaml"):
-            filePaths = read_yaml(self, filePath)
+            filePaths, (self.label, self.label_eval) = read_yaml(self, filePath)
         return filePaths
 
 
