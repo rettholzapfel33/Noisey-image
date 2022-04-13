@@ -315,16 +315,16 @@ class YOLOv3(Model):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
 
 _registry = {
-    # 'Face Detection (YOLOv3)': YOLOv3(
-    #     os.path.join(currPath, 'obj_detector/cfg', 'face.names'),
-    #     os.path.join(currPath, 'obj_detector/cfg', 'yolov3-face.cfg'),
-    #     os.path.join(currPath,'obj_detector/weights','yolov3-face_last.weights')
-    # ),
-    'Face Detection (MTCNN)': MTCNN(
-        os.path.join(currPath, 'mtcnn/weights', 'pnet.npy'),
-        os.path.join(currPath, 'mtcnn/weights', 'rnet.npy'),
-        os.path.join(currPath,'mtcnn/weights','onet.npy')
+    'Face Detection (YOLOv3)': YOLOv3(
+         os.path.join(currPath, 'obj_detector/cfg', 'face.names'),
+         os.path.join(currPath, 'obj_detector/cfg', 'yolov3-face.cfg'),
+         os.path.join(currPath,'obj_detector/weights','yolov3-face_last.weights')
     ),
+    # 'Face Detection (MTCNN)': MTCNN(
+    #     os.path.join(currPath, 'mtcnn/weights', 'pnet.npy'),
+    #     os.path.join(currPath, 'mtcnn/weights', 'rnet.npy'),
+    #     os.path.join(currPath,'mtcnn/weights','onet.npy')
+    # ),
     'Semantic Segmentation': Segmentation(
         str(Path(__file__).parent.absolute()) + "/mit_semseg/config/ade20k-hrnetv2.yaml",
         scipy.io.loadmat(str(Path(__file__).parent.absolute()) + '/data/color150.mat')['colors']

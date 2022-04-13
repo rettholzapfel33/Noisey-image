@@ -92,7 +92,7 @@ class ExperimentWorker(QObject):
                 raise NotImplementedError()
                 # do mAP calculation here
                 
-        elif self.config.modelName == 'Face Detection (MTCNN)':
+        elif self.config.modelName == 'Face Detection (YOLOv3)':
             if len(self.config.labels) == 0:
                 if assembler is None: assembler = 0
                 assembler += len(dets)
@@ -101,12 +101,6 @@ class ExperimentWorker(QObject):
                 # convert to boundingbox classes
                 #[x1,y1,x2,y2,conf,class] <--- box
                 if filename in self.config.labels:
-                    # canvas = np.zeros((1400,1607,3),dtype=np.uint8)
-                    # gtDets = [ det.getAbsoluteBoundingBox(BBFormat.XYX2Y2) for det in self.config.labels[filename] ]
-                    # [ cv2.rectangle(canvas, ( int(det[0]), int(det[1])), (int(det[2]), int(det[3])), (0,0,255), thickness=2 ) for det in gtDets]
-                    # [ cv2.rectangle(canvas, ( int(det[0]), int(det[1])), (int(det[2]), int(det[3])), (0,255,0), thickness=2 ) for det in dets]
-                    # cv2.imwrite('test.png', canvas)
-
                     preds = [BoundingBox(filename, det[5], det[0], det[1], det[2]-det[0], det[3]-det[1], classConfidence=det[4], bbType=BBType.Detected) for det in dets]
                     gt = self.config.labels[filename]
                     #preds = [ BoundingBox(filename, 0, det.getAbsoluteBoundingBox(format=BBFormat.XYWH)[0], det.getAbsoluteBoundingBox(format=BBFormat.XYWH)[1], det.getAbsoluteBoundingBox(format=BBFormat.XYWH)[2], det.getAbsoluteBoundingBox(format=BBFormat.XYWH)[3], format=BBFormat.XYWH, bbType=BBType.Detected, classConfidence=0.99)  for det in self.config.labels[filename]]

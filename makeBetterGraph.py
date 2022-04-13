@@ -29,7 +29,7 @@ if __name__ == '__main__':
         mAP = map50s[i]
         plt.plot(xaxis, mAP,'-o')
 
-    plt.title('Gaussian Noise vs MTCNN mAP')
+    plt.title('Gaussian Noise vs YOLOv3 mAP')
     plt.ylabel('mAP')
     plt.xlabel('Standard Deviation')
     plt.show()

@@ -21,7 +21,7 @@ if __name__ == '__main__':
         augmented = aug(augmented, example=True)
 
     #model = models._registry["Semantic Segmentation"]
-    model = models._registry["Face Detection (MTCNN)"]
+    model = models._registry["Face Detection (YOLOv3)"]
     print("Initialized")
     model.conf_thres = 0.2 # added for yolov4
     model.initialize()
