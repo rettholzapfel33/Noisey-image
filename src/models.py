@@ -14,8 +14,8 @@ from src.obj_detector.models import load_model
 from src.obj_detector.utils.utils import load_classes
 
 # mtcnn:
-from src.mtcnn_pytorch import detector as mtcnn_detector
-from src.mtcnn_pytorch import visualization_utils as mtcnn_utils
+from src.mtcnn import detector as mtcnn_detector
+from src.mtcnn import visualization_utils as mtcnn_utils
 from PIL import Image
 
 # import mAP eval:
@@ -321,9 +321,9 @@ _registry = {
     #     os.path.join(currPath,'obj_detector/weights','yolov3-face_last.weights')
     # ),
     'Face Detection (MTCNN)': MTCNN(
-        os.path.join(currPath, 'mtcnn_pytorch/weights', 'pnet.npy'),
-        os.path.join(currPath, 'mtcnn_pytorch/weights', 'rnet.npy'),
-        os.path.join(currPath,'mtcnn_pytorch/weights','onet.npy')
+        os.path.join(currPath, 'mtcnn/weights', 'pnet.npy'),
+        os.path.join(currPath, 'mtcnn/weights', 'rnet.npy'),
+        os.path.join(currPath,'mtcnn/weights','onet.npy')
     ),
     'Semantic Segmentation': Segmentation(
         str(Path(__file__).parent.absolute()) + "/mit_semseg/config/ade20k-hrnetv2.yaml",
