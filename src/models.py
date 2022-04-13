@@ -15,8 +15,10 @@ from src.obj_detector.models import load_model
 from src.obj_detector.utils.utils import load_classes
 
 # import efficientNetV2
-import json
-from src.efficientnet_pytorch.model import EfficientNet
+from src.effdet import create_model, create_evaluator, create_dataset, create_loader
+from src.effdet.data import resolve_input_config
+from timm.utils import AverageMeter, setup_default_logging
+from timm.models.layers import set_layer_config
 from torchvision import transforms
 
 # import detr stuff:
@@ -188,6 +190,7 @@ class YOLOv3(Model):
 
     def run(self, input):
         pred = detect.detect_image(self.yolo, input)
+        print('PRED YO', pred)
         return pred #[x1,y1,x2,y2,conf,class] <--- box
 
     def initialize(self, *kwargs):
@@ -213,50 +216,60 @@ class YOLOv3(Model):
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
 
-class EfficientNetV2(Model):
+class EfficientDetV2(Model):
     def __init__(self, *network_config) -> None:
-        super(EfficientNetV2, self).__init__()
+        super(EfficientDetV2, self).__init__()
 
-        self.cfg = network_config
+        # network_config: CLASSES, CFG, WEIGHTS
+        self.CLASSES, self.CFG = network_config
+        self.numClasses = len(self.CLASSES)
+        print(self.CLASSES, self.CFG)
+        self.classes = load_classes(self.CLASSES)
+        self.inputTrans = {
+            'efficientdetv2_dt': (768, 768),
+            'efficientdet_d1': (640, 640),
+            'efficientdet_d2': (768, 768),
+            'tf_efficientdetv2_ds': (1024, 1024),
+            'efficientdetv2_dt': (768, 768),
+            'tf_efficientdet_d7x': (1536, 1536),
+        }
 
     def initialize(self, *kwargs):
-        self.model = EfficientNet.from_pretrained('efficientnet-b0')
-        self.model.eval()
-
-        # Load ImageNet class names for returning predictions
-        self.labels_map = json.load(open(os.path.join('src', 'efficientnet_pytorch', 'labels_map.txt')))
-        self.labels_map = [self.labels_map[str(i)] for i in range(1000)]
+        self.bench = create_model(
+            self.CFG,
+            bench_task='predict',
+            num_classes=len(self.CLASSES),
+            pretrained=True,
+        )
+        self.bench.eval()
 
     def run(self, input):
-        tfms = transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.Resize(224),
+        # input_config = resolve_input_config(None)
+        self.transforms = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),])
-        img = tfms(input).unsqueeze(0)
-        
-        with torch.no_grad():
-            output = self.model(img)
-        print('~~~~~~~~~OUTPUT~~~~~~~~~~~: ', output.shape)
-        for idx in torch.topk(output, k=5).indices.squeeze(0).tolist():
-            prob = torch.softmax(output, dim=1)[0, idx].item()
-            print('{label:<75} ({p:.2f}%)'.format(label=self.labels_map[idx], p=prob*100))
-        return output
+            transforms.Resize(size=self.inputTrans[self.CFG]),
+            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
+        # print('~~~~~~~~~~~~~~INPUT ', np.array([input]))
+        scores = self.bench(self.transforms(input).unsqueeze(0))
+        print('PRINT',scores[0])
+        # resize to match original image
+        scores = scores[0]
+        scores[:][0] = scores[:][0] / self.inputTrans[self.CFG][0] * input.shape[0]
+        return scores
 
     def deinitialize(self):
         return -1
 
     def draw(self, pred, img):
-        print(pred)
+        np_img, detectedNames = detect._draw_and_return_output_image(img, pred, 416, self.classes)
+        return {"dst": np_img,
+                "listOfNames":detectedNames}
 
     def draw_single_class(self, pred, img, selected_class):
-        # np_img = detect._draw_and_return_output_image_single_class(img, pred, selected_class, self.classes)
-        # return {"overlay": np_img}
-        return
+        np_img = detect._draw_and_return_output_image_single_class(img, pred, selected_class, self.classes)
+        return {"overlay": np_img}
 
     def report_accuracy(self, pred, pred_truth):
-        print(pred, pred_truth)
-        # print(self.model.summary())
         acc_meter = AverageMeter()
         intersection_meter = AverageMeter()
         union_meter = AverageMeter()
@@ -389,8 +402,9 @@ _registry = {
         os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg'),
         os.path.join(currPath,'obj_detector/weights','yolov3.weights')
     ),
-    'EfficientNetV2': EfficientNetV2(
-        'efficientnet-b0'
+    'EfficientDetV2': EfficientDetV2(
+        os.path.join(currPath, 'obj_detector/cfg', 'coco.names'),
+        'efficientdetv2_dt'
     ),
     'Object Detection (DETR)': DETR(
         os.path.join(currPath, 'detr/cfg', 'coco.names'),
