@@ -1,9 +1,14 @@
 import abc
 import os
 from pathlib import Path
+from pyexpat import model
 from PyQt5.QtCore import QObject
 import os, csv, torch, scipy.io
 import numpy as np
+
+if __name__ == '__main__':
+    import sys
+    sys.path.append('./')
 
 from src.predict_img import new_visualize_result, process_img, predict_img, load_model_from_cfg, visualize_result, transparent_overlays, get_color_palette
 from src.mit_semseg.utils import AverageMeter, accuracy, intersectionAndUnion
@@ -23,6 +28,25 @@ from src.evaluators.map_metric.lib.BoundingBoxes import BoundingBox
 from src.evaluators.map_metric.lib import BoundingBoxes
 from src.evaluators.map_metric.lib.Evaluator import *
 from src.evaluators.map_metric.lib.utils import BBFormat
+
+# import efficientNetV2
+from src.effdet import create_model, create_evaluator, create_dataset, create_loader
+from src.effdet.data import resolve_input_config
+from timm.utils import AverageMeter, setup_default_logging
+from timm.models.layers import set_layer_config
+from torchvision import transforms
+
+# import detr stuff:
+from PIL import Image
+from src.detr.model import DETRdemo
+
+# import yolov4 stuff:
+import src.yolov4.detect as detect_v4
+from src.yolov4.models.models import Darknet
+from src.yolov4.models.models import load_darknet_weights
+import src.yolov4.utils.utils as utils_v4
+from src.transforms import letterbox_image
+from src.yolov4.utils.general import (check_img_size, non_max_suppression, apply_classifier, scale_coords, xyxy2xywh, strip_optimizer)
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 
@@ -135,7 +159,7 @@ class MTCNN(Model):
 
 class Segmentation(Model):
     """
-    Segmentation Model that inhertes the Model class
+    Segmentation Model that inherits the Model class
     It specifies its four main functions: run, initialize, deinitialize, and draw. 
     """
     def __init__(self, *network_config) -> None:
@@ -236,7 +260,7 @@ class Segmentation(Model):
 
 class YOLOv3(Model):
     """
-    YOLO Model that inhertes the Model class
+    YOLO Model that inherits the Model class
     It specifies its four main functions: run, initialize, deinitialize, and draw. 
     """
     def __init__(self, *network_config) -> None:
@@ -314,6 +338,206 @@ class YOLOv3(Model):
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
 
+class EfficientDetV2(Model):
+    def __init__(self, *network_config) -> None:
+        super(EfficientDetV2, self).__init__()
+
+        # network_config: CLASSES, CFG, WEIGHTS
+        self.CLASSES, self.CFG = network_config
+        self.numClasses = len(self.CLASSES)
+        print(self.CLASSES, self.CFG)
+        self.classes = load_classes(self.CLASSES)
+        self.inputTrans = {
+            'efficientdetv2_dt': (768, 768),
+            'efficientdet_d1': (640, 640),
+            'efficientdet_d2': (768, 768),
+            'tf_efficientdetv2_ds': (1024, 1024),
+            'efficientdetv2_dt': (768, 768),
+            'tf_efficientdet_d7x': (1536, 1536),
+        }
+
+    def initialize(self, *kwargs):
+        self.bench = create_model(
+            self.CFG,
+            bench_task='predict',
+            num_classes=len(self.CLASSES),
+            pretrained=True,
+        )
+        self.bench.eval()
+
+    def run(self, input):
+        # input_config = resolve_input_config(None)
+        self.transforms = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Resize(size=self.inputTrans[self.CFG]),
+            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
+        # print('~~~~~~~~~~~~~~INPUT ', np.array([input]))
+        scores = self.bench(self.transforms(input).unsqueeze(0))
+        print('PRINT',scores[0])
+        # resize to match original image
+        scores = scores[0]
+        scores[:][0] = scores[:][0] / self.inputTrans[self.CFG][0] * input.shape[0]
+        return scores
+
+    def deinitialize(self):
+        return -1
+
+    def draw(self, pred, img):
+        np_img, detectedNames = detect._draw_and_return_output_image(img, pred, 416, self.classes)
+        return {"dst": np_img,
+                "listOfNames":detectedNames}
+
+    def draw_single_class(self, pred, img, selected_class):
+        np_img = detect._draw_and_return_output_image_single_class(img, pred, selected_class, self.classes)
+        return {"overlay": np_img}
+
+    def report_accuracy(self, pred, pred_truth):
+        acc_meter = AverageMeter()
+        intersection_meter = AverageMeter()
+        union_meter = AverageMeter()
+
+        acc, pix = accuracy(pred, pred_truth)
+        intersection, union = intersectionAndUnion(pred, pred_truth, 150)
+        acc_meter.update(acc, pix)
+        intersection_meter.update(intersection)
+        union_meter.update(union)
+        
+        class_ious = {}
+        iou = intersection_meter.sum / (union_meter.sum + 1e-10)
+        for i, _iou in enumerate(iou):
+            class_ious[i] = _iou
+        return iou.mean(), acc_meter.average(), class_ious
+
+    def outputFormat(self):
+        return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
+
+class DETR(Model):
+    """
+    DETR Model that inherits the Model class
+    It specifies its four main functions: run, initialize, deinitialize, and draw.
+    """
+    def __init__(self, *network_config) -> None:
+        super(DETR, self).__init__()
+        self.CLASSES, self.WEIGHTS = network_config[0], network_config[1]
+        print(self.CLASSES, self.WEIGHTS)
+        self.classes = load_classes(self.CLASSES)
+    
+    def initialize(self, *kwargs):
+        self.model = DETRdemo(num_classes=len(self.classes))
+        self.model.load_state_dict(torch.load(self.WEIGHTS))
+        self.model.eval()
+        if torch.cuda.is_available():
+            self.model.cuda()
+            self.on_gpu = True
+        else:
+            self.model.cpu()
+            self.on_gpu = False
+        self.transform = transforms.Compose([
+            transforms.Resize(800),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
+        return 0
+
+    def run(self, input):
+        tfms = transforms.ToPILImage()
+        img = tfms(input)
+        if self.on_gpu: img = img.cuda()
+        scores, boxes = self.model.detect(img, self.model, self.transform)
+        _confidences, _classes = torch.max(scores, axis=1)
+        _cls_conf = torch.cat((torch.unsqueeze(_confidences, axis=0), torch.unsqueeze(_classes, axis=0)))
+        _cls_conf = torch.transpose(_cls_conf, 0,1)
+        pred = torch.cat((boxes, _cls_conf), axis=1) #[x1,y1,x2,y2,conf,class] <--- box
+        return pred
+
+    def deinitialize(self):
+        return -1
+
+    def draw(self, pred, img):
+        np_img, detectedNames = detect._draw_and_return_output_image(img, pred, 416, self.classes)
+        return {"dst": np_img,
+                "listOfNames":detectedNames}
+
+    def draw_single_class(self, pred, img, selected_class):
+        np_img = detect._draw_and_return_output_image_single_class(img, pred, selected_class, self.classes)
+        return {"overlay": np_img}
+
+    def report_accuracy(self, pred, pred_truth):
+        print('pred comparison', pred, pred_truth)
+        return
+
+    def outputFormat(self):
+        return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
+
+class YOLOv4(Model):
+    """
+    YOLOv4 Model that inherits the Model class
+    It specifies its four main functions: run, initialize, deinitialize, and draw. 
+    """
+    def __init__(self, *network_config) -> None:
+        super(YOLOv4, self).__init__()
+        # network_config: CLASSES, CFG, WEIGHTS
+        self.CLASSES, self.CFG, self.WEIGHTS = network_config
+        self.img_size = (416,416)
+        print(self.CLASSES, self.CFG, self.WEIGHTS)
+        self.classes = load_classes(self.CLASSES)
+        self.conf_threshold = 0.25
+
+    def run(self, input):
+        im0 = np.copy(input)
+        img = letterbox_image(input, self.img_size)[0]
+        img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
+        img = np.ascontiguousarray(img)
+        if torch.cuda.is_available():
+            img = torch.from_numpy(img).cuda()
+        else:
+            img = torch.from_numpy(img).cpu()
+        img = img.float()
+        img /= 255.0
+        if img.ndimension() == 3:
+            img = img.unsqueeze(0)
+        pred = self.yolo(img, augment=False)[0]
+        pred = non_max_suppression(pred, self.conf_threshold, 0.6, classes=None, agnostic=False)
+        #return pred #[x1,y1,x2,y2,conf,class] <--- box
+        for i, det in enumerate(pred):  # detections per image
+            if det is not None and len(det):
+                # Rescale boxes from img_size to im0 size
+                det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
+        if torch.cuda.is_available():
+            pred = pred.cpu()
+        pred = pred[0].detach().numpy()
+        #print(self.yolo.training)
+        return pred
+
+    def initialize(self, *kwargs):
+        self.yolo = Darknet(self.CFG, self.img_size)
+        if torch.cuda.is_available():
+            self.yolo = self.yolo.cuda()
+        else:
+            self.yolo = self.yolo.cpu()
+        load_darknet_weights(self.yolo, self.WEIGHTS)
+        self.yolo.eval()
+    
+    def deinitialize(self):
+        return -1
+    
+    def draw(self, pred, img):
+        np_img, detectedNames = detect._draw_and_return_output_image(img, pred, 416, self.classes)
+        return {"dst": np_img,
+                "listOfNames":detectedNames}
+
+    def draw_single_class(self, pred, img, selected_class):
+        np_img = detect._draw_and_return_output_image_single_class(img, pred, selected_class, self.classes)
+        return {"overlay": np_img}
+
+    def report_accuracy(self, pred, pred_truth):
+        print('pred comparison', pred, pred_truth)
+        return
+
+    def outputFormat(self):
+        return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
+
+
 _registry = {
     'Face Detection (YOLOv3)': YOLOv3(
          os.path.join(currPath, 'obj_detector/cfg', 'face.names'),
@@ -330,8 +554,31 @@ _registry = {
         scipy.io.loadmat(str(Path(__file__).parent.absolute()) + '/data/color150.mat')['colors']
     ),
     'Object Detection (YOLOv3)': YOLOv3(
-        os.path.join(currPath, 'obj_detector/cfg', 'face.names'),
-        os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg'),
-        os.path.join(currPath,'obj_detector/weights','yolov3.weights')
+        os.path.join(currPath, 'obj_detector', 'cfg', 'coco.names'),
+        os.path.join(currPath, 'obj_detector', 'cfg', 'yolov3.cfg'),
+        os.path.join(currPath,'obj_detector', 'weights', 'yolov3.weights')
     ),
+    'EfficientDetV2': EfficientDetV2(
+        os.path.join(currPath, 'obj_detector/cfg', 'coco.names'),
+        'efficientdetv2_dt'
+    ),
+    'Object Detection (DETR)': DETR(
+        os.path.join(currPath, 'detr', 'cfg', 'coco.names'),
+        os.path.join(currPath, 'detr', 'weights', 'detr.weights')
+    ),
+    'Object Detection (YOLOv4)': YOLOv4(
+        os.path.join(currPath, 'yolov4', 'data', 'coco.names'),
+        os.path.join(currPath, 'yolov4', 'cfg', 'yolov4.cfg'),
+        os.path.join(currPath,'yolov4', 'weights', 'yolov4.weights')
+    )
 }
+
+
+if __name__ == '__main__':
+    import cv2
+    model = _registry['Object Detection (YOLOv4)']
+    model.initialize()
+    img = cv2.imread('imgs/default_imgs/original.png')
+    assert type(img) != None # image path wrong
+    preds = model.run(img)
+    print(preds) # right format if last is 0<x<1 and first 4 are large numbers

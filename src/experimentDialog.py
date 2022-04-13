@@ -122,6 +122,24 @@ class ExperimentWorker(QObject):
             else:
                 raise NotImplementedError()
                 pass # do whatever segmentation needs for eval LOL IDK
+        elif self.config.modelName == 'EfficientDetV2':
+            if len(self.config.labels) == 0:
+                if assembler is None: assembler = 0
+                assembler += len(dets)
+            else:
+                pass
+        elif self.config.modelName == 'Object Detection (DETR)':
+            if len(self.config.labels) == 0:
+                if assembler is None: assembler = 0
+                assembler += len(dets)
+            else:
+                pass
+        elif self.config.modelName == 'Object Detection (YOLOv4)':
+            if len(self.config.labels) == 0:
+                if assembler is None: assembler = 0
+                assembler += len(dets)
+            else:
+                pass
         else: raise Exception('model name is not recognized in _registry'%(self.config.modelName))
         return assembler
 
@@ -480,14 +498,18 @@ class ExperimentDialog(QDialog):
 
     def updateGraph(self, ax_list):
         fig, ax = ax_list
-        line = ax.lines[0]
-        x_data = line.get_xdata()
-        y_data = line.get_ydata()
-        self.graphWidget.canvas.axes.clear()
-        self.graphWidget.canvas.axes.plot(x_data, y_data, 'o-')
+        for i in range(len(ax.lines)):
+            line = ax.lines[i]
+            x_data = line.get_xdata()
+            y_data = line.get_ydata()
+            # self.graphWidget.canvas.axes.clear()
+            self.graphWidget.canvas.axes.plot(x_data, y_data, 'o-')
         self.graphWidget.canvas.axes.set_title(ax.get_title())
-        self.graphWidget.canvas.axes.set_xlabel(str(ax.xaxis.get_label()))
-        self.graphWidget.canvas.axes.set_ylabel(str(ax.yaxis.get_label()))
+        # self.graphWidget.canvas.axes.set_xlabel(str(ax.xaxis.get_label()))
+        # self.graphWidget.canvas.axes.set_ylabel(str(ax.yaxis.get_label()))
+        self.graphWidget.canvas.axes.set_xlabel("Augment Level")
+        self.graphWidget.canvas.axes.set_ylabel("Accuracy")
+        # self.graphWidget.canvas.axes.legend()
         self.graphWidget.canvas.draw()
 
     def refreshGraphResults(self,i):
@@ -520,5 +542,5 @@ class ExperimentDialog(QDialog):
     def changeOnGraphButton(self, i):
         if self.currentGraphIdx+i < self.totalGraphs and self.currentGraphIdx+i >= 0:
             self.currentGraphIdx += i
-            #self.label_4.setText(str(self.currentGraphIdx+1))
-            #self.refreshGraphResults(self.currentGraphIdx)
+            self.label_4.setText(str(self.currentGraphIdx+1))
+            self.refreshGraphResults(self.currentGraphIdx)

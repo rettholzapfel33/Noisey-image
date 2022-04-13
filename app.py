@@ -1,6 +1,7 @@
 # System libs
 import os
 from pathlib import Path
+from tkinter import E
 import PIL.Image
 import numpy as np
 from src.evaluators.map_metric.lib.BoundingBox import BoundingBox
@@ -26,6 +27,7 @@ from src.experimentDialog import ExperimentConfig, ExperimentDialog
 from src import models
 from src.utils.qt5extra import CheckState
 from src.utils.weights import Downloader
+from src.dataParser import *
 
 CURRENT_PATH = str(Path(__file__).parent.absolute()) + '/'
 TEMP_PATH = CURRENT_PATH + 'src/tmp_results/'
@@ -75,7 +77,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.addWindow.demoAug()
 
         # Check status of configurations:
-        weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights"}
+        weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights", 'detr':"detr.weights", 'yolov4':"yolov4.weights"}
         self.labels = []
 
         if Downloader.check(weight_dict):
@@ -229,12 +231,14 @@ class mainWindow(QtWidgets.QMainWindow):
                 if new_item is None:
                     self.ui.fileList.clear()
                 # return_value = self.read_yaml(filePath)
-                # if(len(return_value) > 1 and type(return_value[1]) is dict):
-                #     filePaths.extend(return_value[0])
-                #     labels = return_value[1]
-                # else:
-                #     filePaths.extend(return_value)
-                filePaths.extend(self.read_yaml(filePath))
+                return_value = self.parseData(filePath)
+                if(len(return_value) > 1 and type(return_value[1]) is dict):
+                    filePaths.extend(return_value[0])
+                    labels = return_value[1]
+                else:
+                    filePaths.extend(return_value)
+                # filePaths.extend(self.read_yaml(filePath))
+                filePaths.extend(self.parseData(filePath))
                 continue
 
             new_item = QtWidgets.QListWidgetItem()
@@ -336,8 +340,12 @@ class mainWindow(QtWidgets.QMainWindow):
             
             self.labels = labels_dic
             self.label_eval = "voc" # TODO: change to adapt for different eval
-
+            
+    def parseData(self, filePath):
+        if filePath.endswith(".yaml"):
+            filePaths = read_yaml(self, filePath)
         return filePaths
+
 
     def reportProgress2(self, n):
         if(n == 3):
