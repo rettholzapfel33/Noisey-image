@@ -17,8 +17,11 @@ import yaml
 from src.utils.images import convertCV2QT
 import matplotlib.pyplot as plt
 
-# calculating stats:
-from src.evaluators.map_metric import driver
+# eval imports:
+from src.evaluators.map_metric.lib.BoundingBoxes import BoundingBox
+from src.evaluators.map_metric.lib import BoundingBoxes
+from src.evaluators.map_metric.lib.Evaluator import *
+from src.evaluators.map_metric.lib.utils import BBFormat
 
 def createExperimentName(savePath):
     _root_name = 'exp'
@@ -33,7 +36,7 @@ def createExperimentName(savePath):
         return "%s_%i"%(_root_name, _max_index+1)
 
 class ExperimentConfig:
-    def __init__(self, mainAug:AugmentationPipeline, isCompound:bool, imagePaths:list, model, modelName, shouldAug=True, labels=[]) -> None:
+    def __init__(self, mainAug:AugmentationPipeline, isCompound:bool, imagePaths:list, model, modelName, shouldAug=True, labels=[], labelType="voc") -> None:
         self.mainAug = mainAug
         self.isCompound = isCompound
         self.imagePaths = imagePaths
@@ -41,6 +44,7 @@ class ExperimentConfig:
         self.modelName = modelName
         self.shouldAug = shouldAug
         self.labels = labels
+        self.labelType = labelType
         self.expName = ''
         self.savePath = './src/data/tmp/runs'
 
@@ -79,22 +83,44 @@ class ExperimentWorker(QObject):
        #np.savetxt(os.path.join(outPath, 'graphing.csv'),inData,)
        np.save(os.path.join(outPath, 'graphing.npy'), inData)
 
-    def calculateStat(self, dets, assembler, i):
+    def calculateStat(self, dets, assembler, i, filename):
         if self.config.modelName == 'Object Detection (YOLOv3)':
             if len(self.config.labels) == 0:
                 if assembler is None: assembler = 0
                 assembler += len(dets)
             else:
+                raise NotImplementedError()
                 # do mAP calculation here
-                pass
+                
+        elif self.config.modelName == 'Face Detection (YOLOv3)':
+            if len(self.config.labels) == 0:
+                if assembler is None: assembler = 0
+                assembler += len(dets)
+            else:
+                if assembler is None: assembler = 0
+                # convert to boundingbox classes
+                #[x1,y1,x2,y2,conf,class] <--- box
+                if filename in self.config.labels:
+                    preds = [BoundingBox(filename, det[5], det[0], det[1], det[2]-det[0], det[3]-det[1], classConfidence=det[4], bbType=BBType.Detected) for det in dets]
+                    gt = self.config.labels[filename]
+                    #preds = [ BoundingBox(filename, 0, det.getAbsoluteBoundingBox(format=BBFormat.XYWH)[0], det.getAbsoluteBoundingBox(format=BBFormat.XYWH)[1], det.getAbsoluteBoundingBox(format=BBFormat.XYWH)[2], det.getAbsoluteBoundingBox(format=BBFormat.XYWH)[3], format=BBFormat.XYWH, bbType=BBType.Detected, classConfidence=0.99)  for det in self.config.labels[filename]]
+                    mAP50 = self.config.model.report_accuracy(preds, gt, self.config.labelType)
+                    # do mAP calculation here
+                    assembler += mAP50
+                else: print("WARNING: %s does not have key in labels! Ignoring for now.")
+                
         elif self.config.modelName == 'Semantic Segmentation':
             if len(self.config.labels) == 0:
                 if assembler is None: assembler = []
                 ratios = self.config.model.calculateRatios(dets)
                 total_pixels = np.sum(ratios)
                 ratios = (ratios / total_pixels)*100
-                assembler.append(ratios)
+                if len(assembler) == 0:
+                    assembler.append(ratios)
+                else:
+                    assembler[0] = (assembler[0]+ratios)/i
             else:
+                raise NotImplementedError()
                 pass # do whatever segmentation needs for eval LOL IDK
         elif self.config.modelName == 'EfficientDetV2':
             if len(self.config.labels) == 0:
@@ -115,8 +141,6 @@ class ExperimentWorker(QObject):
             else:
                 pass
         else: raise Exception('model name is not recognized in _registry'%(self.config.modelName))
-        
-        print(assembler)
         return assembler
 
     def run(self):
@@ -127,6 +151,11 @@ class ExperimentWorker(QObject):
         
         # write meta out for later loading and reference
         self.writeMeta(os.path.join(self.savePath, exp_path))
+
+        # map compute purposes:
+        if self.config.model.complexOutput:
+            old_thres = self.config.model.conf_thres
+            self.config.model.conf_thres = 0.00001
 
         if len(self.config.mainAug) == 0:
             for i, imgPath in enumerate(self.config.imagePaths):
@@ -164,7 +193,6 @@ class ExperimentWorker(QObject):
                         self.logProgress.emit('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
                         self.progress.emit(i)
 
-                    print(_count)
                     if type(_count) == int: _count /= len(self.config.imagePaths)
                     counter.append(_count)
                 counter = [counter]
@@ -189,17 +217,17 @@ class ExperimentWorker(QObject):
                             _img = aug(_img, request_param=aug.args[j])
                             dets = self.config.model.run(_img)
                             self.writeDets(dets, new_sub_dir, imgPath)
-                            #self.insertLog('Progress: (%i/%i)'%(i,len(self.config.imagePaths)))
                             self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
                             self.progress.emit(i)
-                            _count = self.calculateStat(dets, _count, i)
+                            _count = self.calculateStat(dets, _count, i, os.path.splitext(imgPath.split('/')[-1])[0] ) # find the filename only
 
                         if type(_count) == int: _count /= len(self.config.imagePaths)
                         count_temp.append(_count)
                     counter.append(count_temp)
 
-        print(counter)
-        #exit() 
+        if self.config.model.complexOutput:
+            self.config.model.conf_thres = old_thres
+
         self.writeGraph(counter, os.path.join(self.savePath, exp_path))
         # clean up model
         self.config.model.deinitialize()
@@ -276,10 +304,8 @@ class ExperimentResultWorker(QObject):
                 print(exc)
 
         _graphs = np.load(os.path.join(self.parentPath, 'graphing.npy'), allow_pickle=True)
-        print(_graphs)
-        #exit()
 
-        if self.config.modelName == 'Semantic Segmentation':
+        if self.config.modelName == 'Semantic Segmentation' and len(_graphs.shape) > 1:
             _graphs = _graphs.squeeze(2)
 
         if self.config.isCompound:
@@ -289,8 +315,7 @@ class ExperimentResultWorker(QObject):
                 _graphs = np.transpose(_graphs, (1,0))
 
             _title = ", ".join(list(graphContent.keys()))
-            print(_title)
-            _items = np.array(list(graphContent.values()))
+            _items = list(graphContent.values())
             argLen = len(_items[0])
             #_g = _graphs[self.argPosition]
             _x = [i for i in range(argLen)]
@@ -301,14 +326,26 @@ class ExperimentResultWorker(QObject):
                 print(_x, _g, argLen)
                 ax.plot(_x, _g, 'o-')
         else:
-            _g = _graphs[self.augPosition]
+            if self.config.modelName == 'Semantic Segmentation':
+                if len(_graphs.shape) > 1:
+                    _g = _graphs[self.augPosition]
+                else:
+                    _g = _graphs[self.augPosition]
+                    _g = np.array(_g).squeeze(1)
+            else:
+                _g = _graphs[self.augPosition]
+
             _keys = list(graphContent.keys())
             _items = np.array(list(graphContent.values()))
+            print(_items)
             _title = _keys[self.augPosition]
             #_x = [i for i in range(len(_items[self.argPosition]))]
-            _x = _items[self.argPosition]
+            _x = _items[self.augPosition]
             ax.set_title(_title)
             ax.plot(_x, _g, '-o')
+
+        plt.show()
+        
         self.finishedGraph.emit([fig, ax])
         self.finished.emit()
 
@@ -324,7 +361,7 @@ class ExperimentDialog(QDialog):
         self.graphGrid.addWidget(self.graphWidget)
 
         self.progressBar.setValue(0)
-        self.textProgress.setEnabled(False)
+        #self.textProgress.setEnabled(False)
         self.config = config
         self._progressMove = 1/len(self.config.imagePaths)
         self.config.expName = createExperimentName(self.config.savePath)

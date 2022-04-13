@@ -29,7 +29,6 @@ class SegmentationModule(SegmentationModuleBase):
         # added the following for training on 1 gpu
         # if the dataset is loaded as a list, this will
         # raise a TypeError while trying to access it as a dictionary.
-        print(type(feed_dict))
         
         if type(feed_dict) is list:
             feed_dict = feed_dict[0]
