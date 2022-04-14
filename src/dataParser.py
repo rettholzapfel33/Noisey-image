@@ -107,6 +107,7 @@ def read_yaml(self, filePath):
                 file_content = [tree_root[4][0].text, tree_root[4][1].text, objects]
                 labels_dic[tree_root[1].text] = file_content
         # elif documents["type"] == "coco" -> parses .json files for this COCO dataset -> SKYLAR
+        
         elif documents["type"] == "coco":
            for label in labels:
                with open(label) as f:
@@ -123,6 +124,7 @@ def read_yaml(self, filePath):
                        labels_dic[fix_string]['category_id'] = i['category_id']
                        labels_dic[fix_string]['bbox'] = i['bbox']
            f.close()    
+        
         else:
             # Parses .txt annotation files
             for label in labels:
@@ -144,8 +146,6 @@ def read_yaml(self, filePath):
                 labels_dic[base_name] = file_content
             
             labels_content = labels_dic
-            label_eval = "voc" # TODO: change to adapt for different eval
-
-        self.labels = labels_dic
-
+        
+        label_eval = "voc" # TODO: change to adapt for different eval
     return filePaths, (labels_content, label_eval)
