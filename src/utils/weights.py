@@ -12,6 +12,9 @@ from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QListWidgetI
 from PyQt5 import uic
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
+# for weights in Google drive:
+import gdown
+
 class DownloadWorker(QObject):
     finished = pyqtSignal()
     progress = pyqtSignal(float)
@@ -22,10 +25,8 @@ class DownloadWorker(QObject):
         self.pathDict = pathDict
 
     def run(self):
-        """Long-running task."""
         self.checkWeightsExists(self.pathDict)
         self.finished.emit()
-
     
     def downloadMITWeight(self, filename:str):
         HOST_URL = "http://sceneparsing.csail.mit.edu/model/pytorch/"
@@ -87,6 +88,12 @@ class DownloadWorker(QObject):
                 self.progress.emit(0)
         request = urllib.request.urlretrieve(host, save_path, callback)
 
+    def downloadGoogleDriveWeights(self, save_path, google_url):
+        self.progress.emit(0)
+        self.logProgress.emit('Downloading YOLOv3 Face weights from %s\n'%(google_url))
+        gdown.download(url=google_url, output=save_path, quiet=False, fuzzy=True)
+        self.progress.emit(100.0)
+
     def checkWeightsExists(self, path_dict:dict):
         # path_dict: key=model_name; val=model_type
         print("Checking weights...")
@@ -115,6 +122,14 @@ class DownloadWorker(QObject):
                 if not os.path.exists(_path_base):
                     print("DETR COCO weights not found. Attempting to download...")
                     self.downloadDETRWeights(_path_base)
+            elif path[0] == 'yolov3-face':
+                self.progress.emit(0)
+                _path_base = os.path.join('./src/obj_detector/weights', path[1])
+                print(_path_base)
+                if not os.path.exists('./src/obj_detector/weights'): os.mkdir('./src/obj_detector/weights')
+                if not os.path.exists(_path_base):
+                    print("YOLOv3 COCO weights not found. Attempting to download...")
+                    self.downloadGoogleDriveWeights(_path_base, "https://drive.google.com/u/0/uc?id=1OcabdJV98TaPg6D6LjWSNc6pl0s9IIdr")
         self.logProgress.emit("Finished downloading all weights. Press Continue to proceed to main GUI\n")
 
 # Setup Dialog Window:
@@ -187,6 +202,10 @@ class Downloader(QDialog):
                 if not os.path.exists(_path_base):
                     return True
             elif path[0] == 'detr':
+                _path_base = os.path.join('./src/obj_detector/weights', path[1])
+                if not os.path.exists(_path_base):
+                    return True
+            elif path[0] == 'yolov3-face':
                 _path_base = os.path.join('./src/obj_detector/weights', path[1])
                 if not os.path.exists(_path_base):
                     return True

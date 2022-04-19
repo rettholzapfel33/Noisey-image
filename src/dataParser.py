@@ -11,6 +11,9 @@ from PyQt5.QtCore import Qt
 # import utilities:
 from src.yamlDialog import Ui_Dialog
 
+# eval:
+from src.evaluators.map_metric.lib.BoundingBox import BoundingBox
+
 def read_yaml(self, filePath):
     filePaths = []
 
@@ -88,6 +91,7 @@ def read_yaml(self, filePath):
 
         # Parses .xml annotation files and stores in dictionary as the following:
         # { filename: [width, height, [objects]] }
+        # For VOC datasets
         if documents["type"] == "voc":
             for label in labels:
                 file_content = []
@@ -96,14 +100,16 @@ def read_yaml(self, filePath):
                 
                 objects = []
                 for x in tree_root.findall("object"):
+                    base_name = tree_root[1].text
                     obj_class = [x[i].text for i in range(4)]
-                    coords = [x[4][i].text for i in range(len(x[4]))]
-                    obj_class.append(coords)
-                    objects.append(obj_class)
-                    
-                file_content = [tree_root[4][0].text, tree_root[4][1].text, objects]
-                labels_dic[tree_root[1].text] = file_content
-        # elif documents["type"] == "coco" -> parses .json files for this COCO dataset -> SKYLAR
+                    coords = [j[i].text for j in x.findall("bndbox") for i in range(len(j))]
+                    w = int(coords[2])-int(coords[0])
+                    h = int(coords[3])-int(coords[1])
+                    box = BoundingBox(base_name, obj_class[0], coords[0], coords[1], str(w), str(h))
+                    file_content.append(box)
+
+                labels_dic[base_name] = file_content
+        # Parses .json annotation files and stores in dictionary -> for COCO datasets
         elif documents["type"] == "coco":
            for label in labels:
                with open(label) as f:
@@ -120,19 +126,29 @@ def read_yaml(self, filePath):
                        labels_dic[fix_string]['category_id'] = i['category_id']
                        labels_dic[fix_string]['bbox'] = i['bbox']
            f.close()    
+        # Parses .txt annotation files
         else:
-            # Parses .txt annotation files
             for label in labels:
+                base=os.path.basename(label)
+                base_name = os.path.splitext(base)[0]
                 file_content = []
                 with open(label) as f:
                     for line in f:
-                        _list = line.split()
+                        _list = line.split(',')
                         if type(_list) == list:
                             _list = list(map(float, _list))
-                        file_content.append(_list)
-                base=os.path.basename(label)
-                labels_dic[os.path.splitext(base)[0]] = file_content
+                            #for line in _list:
+                            box = BoundingBox(base_name, _list[0], _list[1], _list[2], _list[3], _list[4])
+                            #box = BoundingBox(base_name, "face", _list[1], _list[2], _list[3], _list[4])
+                            file_content.append(box)
+                        #file_content.append(_list)
+
+                #print(file_content)
+                labels_dic[base_name] = file_content
+            
+        labels_content = labels_dic
+        label_eval = "voc" # TODO: change to adapt for different eval
 
         self.labels = labels_dic
 
-    return filePaths
+    return filePaths, (labels_content, label_eval)

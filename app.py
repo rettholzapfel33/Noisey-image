@@ -7,10 +7,10 @@ import numpy as np
 
 # Sementic segmentation
 from src.predict_img import new_visualize_result
-#from src.noise_image import add_noise_img
 
 # PyQt5
 from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5.QtWidgets import QMessageBox
 from src.window import Ui_MainWindow
 from PyQt5.QtCore import Qt
 from src.yamlDialog import Ui_Dialog
@@ -76,7 +76,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.addWindow.demoAug()
 
         # Check status of configurations:
-        weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights", 'detr':"detr.weights", 'yolov4':"yolov4.weights"}
+        weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights", 'detr':"detr.weights", 'yolov4':"yolov4.weights", "yolov3-face":"yolov3-face_last.weights"}
         self.labels = []
 
         if Downloader.check(weight_dict):
@@ -102,7 +102,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.pushButton.clicked.connect(self.run_model)  
         self.ui.pushButton_2.clicked.connect(self.startExperiment)
         self.ui.pushButton_4.clicked.connect(quit)
-        self.ui.compoundAug.setChecked(True)
+        #self.ui.compoundAug.setChecked(True)
 
         # Augmentation Generator:
         self.ui.addAug.clicked.connect(self.addWindow.show)
@@ -140,6 +140,7 @@ class mainWindow(QtWidgets.QMainWindow):
             QtWidgets.QAbstractItemView.ExtendedSelection
         )
         self.ui.listAugs.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        self.label_eval = None
 
     def listwidgetmenu(self, position):
         """menu for right clicking in the file list widget"""
@@ -226,6 +227,8 @@ class mainWindow(QtWidgets.QMainWindow):
                 continue
 
             if filePath.endswith(".yaml"):
+                if new_item is None:
+                    self.ui.fileList.clear()
                 # return_value = self.read_yaml(filePath)
                 return_value = self.parseData(filePath)
                 if(len(return_value) > 1 and type(return_value[1]) is dict):
@@ -240,6 +243,7 @@ class mainWindow(QtWidgets.QMainWindow):
             new_item = QtWidgets.QListWidgetItem()
             new_item.setText(fileName)
             new_item.setData(QtCore.Qt.UserRole, {'filePath':filePath})
+        
             self.ui.fileList.addItem(new_item)
 
 
@@ -248,10 +252,10 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.fileList.setCurrentItem(new_item)
             self.ui.original_2.clear()
             self.ui.preview_2.clear()
-
+            
     def parseData(self, filePath):
         if filePath.endswith(".yaml"):
-            filePaths = read_yaml(self, filePath)
+            filePaths, (self.label, self.label_eval) = read_yaml(self, filePath)
         return filePaths
 
 
@@ -263,17 +267,19 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.progressBar.setValue(n)
 
     def change_file_selection(self, qListItem):
-        originalImg = cv2.imread(qListItem.data(QtCore.Qt.UserRole)['filePath'])
+        if not qListItem is None:
+            originalImg = cv2.imread(qListItem.data(QtCore.Qt.UserRole)['filePath'])
 
-        self.ui.listWidget.clear()
-        self.ui.original_2.clear()
-        self.ui.preview_2.clear()
+            self.ui.listWidget.clear()
+            self.ui.original_2.clear()
+            self.ui.preview_2.clear()
 
-        originalQtImg = convert_cvimg_to_qimg(originalImg)
-        self.ui.original.setPixmap(QtGui.QPixmap.fromImage(originalQtImg))
+            originalQtImg = convert_cvimg_to_qimg(originalImg)
+            self.ui.original.setPixmap(QtGui.QPixmap.fromImage(originalQtImg))
 
-        self.changePreviewImage()
-
+            self.changePreviewImage()
+        else:
+            print("INFO: qListItem was None (was it cleared by YAML read function?)")
 
     def change_seg_selection(self, current):
         if(current == None):
@@ -310,9 +316,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 qImg_segmentation= convert_cvimg_to_qimg(imgs["segmentation"])
                 self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(qImg_segmentation))
         
-
     def display_result(self, result):
-        comboModelType = self.ui.comboBox.currentText()
         qListItems = result[1]
         model_results = result[0]
 
@@ -400,6 +404,12 @@ class mainWindow(QtWidgets.QMainWindow):
             ret, msg = mainAug.checkArgs()
             if not ret:
                 print(msg) # create dialog box saying something is wrong 
+                msg_box = QMessageBox()
+                msg_box.setIcon(QMessageBox.Warning)
+                msg_box.setText(msg)
+                msg_box.setWindowTitle("Compound Error")
+                msg_box.setStandardButtons(QMessageBox.Ok)
+                msg_box.exec_()
                 return -1
 
         # initialize model (temp; move to thread worker):
@@ -418,7 +428,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 return -1
             imgPaths.append(file_path)
             
-        config = ExperimentConfig(mainAug, self.ui.compoundAug.isChecked(), imgPaths, _model, comboModelType, labels=self.labels)
+        config = ExperimentConfig(mainAug, self.ui.compoundAug.isChecked(), imgPaths, _model, comboModelType, labels=self.labels, labelType=self.label_eval)
         self.experiment = ExperimentDialog(config)
         self.experiment.startExperiment()
 
