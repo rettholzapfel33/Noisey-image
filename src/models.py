@@ -253,21 +253,15 @@ class EfficientDetV2(Model):
         self.bench.eval()
 
     def run(self, input):
-        # input_config = resolve_input_config(None)
+        # transform image and predict
         self.transforms = transforms.Compose([
             transforms.ToTensor(),
             transforms.Resize(size=self.inputTrans[self.CFG]),
             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
-        # print('~~~~~~~~~~~~~~INPUT ', np.array([input]))
         scores = self.bench(self.transforms(input).unsqueeze(0))
-        print('PRINT',scores[0])
+
         # resize to match original image
         scores = scores[0].detach().numpy()
-
-        print('BEFORE~~~~~~~~~~~~~~~~~~~~~~~~\n\n', scores)
-        print('inputshape: ', input.shape)
-        print('transformshape: ', self.inputTrans[self.CFG])
-        print('try: ', scores[:, 0], self.inputTrans[self.CFG][1], input.shape[1])
         scores[:, 0] = scores[:, 0] / self.inputTrans[self.CFG][1] * input.shape[1]
         scores[:, 1] = scores[:, 1] / self.inputTrans[self.CFG][0] * input.shape[0]
         scores[:, 2] = scores[:, 2] / self.inputTrans[self.CFG][1] * input.shape[1]
