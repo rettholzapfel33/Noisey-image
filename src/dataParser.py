@@ -115,17 +115,21 @@ def read_yaml(self, filePath):
                with open(label) as f:
                    instances = json.load(f)
                    for i in instances['images']:
+                       file_content.clear()
                        name = i['file_name']
-                       labels_dic[name] = {}
-                       labels_dic[name]['height'] = i['height']
-                       labels_dic[name]['width'] = i['width']
-                   for i in instances['annotations']:
-                       findid = i['image_id']
-                       fix_string = str(findid).zfill(12)
-                       fix_string = fix_string + '.jpg'
-                       labels_dic[fix_string]['category_id'] = i['category_id']
-                       labels_dic[fix_string]['bbox'] = i['bbox']
-           f.close()    
+                       for j in instances['annotations']:
+                           if(i['id'] == j['image_id']):
+                               classid = j['category_id']
+                               x1 = float(j['bbox'][0])
+                               y1 = float(j['bbox'][1])
+                               x2 = float(j['bbox'][0]) + float(j['bbox'][2])
+                               y2 = float(j['bbox'][1]) + float(j['bbox'][3])
+                               box = BoundingBox(name, classid, x1, y1, x2, y2)
+                               file_content.append(box)
+                               
+                   labels_dic[name] = file_content
+           f.close()
+           labels_content = labels_dic    
         # Parses .txt annotation files
         else:
             for label in labels:
