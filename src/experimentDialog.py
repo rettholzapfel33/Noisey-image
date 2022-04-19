@@ -7,6 +7,7 @@ from PyQt5.QtGui import QPixmap
 from src.mplwidget import MplWidget
 import matplotlib.pyplot as plt
 
+from makeBetterGraph import makemAPGraph
 from src.transforms import AugmentationPipeline, Augmentation
 import cv2
 import os
@@ -82,6 +83,11 @@ class ExperimentWorker(QObject):
     def writeGraph(self, inData, outPath):
        #np.savetxt(os.path.join(outPath, 'graphing.csv'),inData,)
        np.save(os.path.join(outPath, 'graphing.npy'), inData)
+       title = ""
+       for aug in self.config.mainAug:
+           title = aug.title
+           break
+       makemAPGraph(outPath, title, self.config.modelName)
 
     def calculateStat(self, dets, assembler, i, filename):
         if self.config.modelName == 'Object Detection (YOLOv3)':
@@ -344,7 +350,7 @@ class ExperimentResultWorker(QObject):
             ax.set_title(_title)
             ax.plot(_x, _g, '-o')
 
-        plt.show()
+        # plt.show()
         
         self.finishedGraph.emit([fig, ax])
         self.finished.emit()
