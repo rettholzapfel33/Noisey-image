@@ -349,13 +349,13 @@ augList = {
     "Normal Compression": {"function": normal_comp, "default": [20], "example":30},
     "Salt and Pepper": {"function": saltAndPapper_noise, "default": [0.01, 0.2, 0.3], "example":0.25},
     "Flip Axis": {"function": flipAxis, "default": [-1], "example": -1},
-    "Fisheye": {"function": fisheye, "default": [0.2, 0.3, 0.4], "example":0.4},
-    "Barrel": {"function": barrel, "default": [0.05, 0.005, 0.0005], "example":0.005},
+    "Fisheye": {"function": fisheye, "default": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], "example":0.4},
+    "Barrel": {"function": barrel, "default": [0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.001, 0.002, 0.003, 0.004, 0.005, 0.01], "example":0.005},
     "Simple Mosaic": {"function": simple_mosaic, "default":[], "example":[]},
     "Black and White": {"function": black_white, "default":[0,1,2], "example":0}, 
     "Speckle Noise": {"function": speckle_noise, "default": [1, 1.5, 2], "example":0.5},
     "Saturation" : {"function": saturation, "default":[50], "example":50},
-    "Alternate Mosaic": {"function": alternate_mosaic, "default":[1,2,3,4,5], "example":2} # 1x1 - 5x5
+    "Alternate Mosaic": {"function": alternate_mosaic, "default":[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "example":2} # 1x1 - 5x5
 }
 
 class Augmentation:
