@@ -122,9 +122,9 @@ def read_yaml(self, filePath):
                                classid = j['category_id']
                                x1 = float(j['bbox'][0])
                                y1 = float(j['bbox'][1])
-                               x2 = float(j['bbox'][0]) + float(j['bbox'][2])
-                               y2 = float(j['bbox'][1]) + float(j['bbox'][3])
-                               box = BoundingBox(name, classid, x1, y1, x2, y2)
+                               w = float(j['bbox'][2])
+                               h = float(j['bbox'][3])
+                               box = BoundingBox(name, classid, x1, y1, w, h)
                                file_content.append(box)
                                
                    labels_dic[name] = file_content
