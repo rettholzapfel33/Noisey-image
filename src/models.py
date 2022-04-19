@@ -350,18 +350,22 @@ class EfficientDetV2(Model):
         self.inputTrans = {
             'efficientdetv2_dt': (768, 768),
             'efficientdet_d1': (640, 640),
+            'tf_efficientdet_d1': (640, 640),
             'efficientdet_d2': (768, 768),
             'tf_efficientdetv2_ds': (1024, 1024),
             'efficientdetv2_dt': (768, 768),
             'tf_efficientdet_d7x': (1536, 1536),
-            'tf_efficientdet_d4': (1024, 1024)
+            'tf_efficientdet_d4': (1024, 1024),
+            'efficientdet_d0': (512, 512),
+            'tf_efficientdet_d0': (512, 512),
+            'tf_efficientdet_d0_ap': (512, 512)
         }
 
     def initialize(self, *kwargs):
         self.bench = create_model(
             self.CFG,
             bench_task='predict',
-            num_classes=len(self.CLASSES),
+            #num_classes=len(self.CLASSES),
             pretrained=True,
         )
         self.bench.eval()
@@ -370,8 +374,8 @@ class EfficientDetV2(Model):
         # transform image and predict
         self.transforms = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Resize(size=self.inputTrans[self.CFG]),
-            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
+            transforms.Resize(size=self.inputTrans[self.CFG]),])
+            #transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
         scores = self.bench(self.transforms(input).unsqueeze(0))
 
         # resize to match original image
@@ -380,8 +384,7 @@ class EfficientDetV2(Model):
         scores[:, 1] = scores[:, 1] / self.inputTrans[self.CFG][0] * input.shape[0]
         scores[:, 2] = scores[:, 2] / self.inputTrans[self.CFG][1] * input.shape[1]
         scores[:, 3] = scores[:, 3] / self.inputTrans[self.CFG][0] * input.shape[0]
-        print('AFTER~~~~~~~~~~~~~~~~~~~~~~~~~\n\n', scores)
-        return scores[np.where(scores[:,5] > 60)]
+        return scores[np.where(scores[:,4] > 0.17)]
 
     def deinitialize(self):
         return -1
@@ -563,7 +566,7 @@ _registry = {
         os.path.join(currPath,'obj_detector', 'weights', 'yolov3.weights')
     ),
     'EfficientDetV2': EfficientDetV2(
-        os.path.join(currPath, 'obj_detector/cfg', 'coco.names'),
+        os.path.join(currPath, 'detr', 'cfg', 'coco.names'),
         'efficientdetv2_dt'
     ),
     'Object Detection (DETR)': DETR(
