@@ -88,6 +88,12 @@ class DownloadWorker(QObject):
                 self.progress.emit(0)
         request = urllib.request.urlretrieve(host, save_path, callback)
 
+    def downloadYOLOv4Weights(self, save_path, google_url='https://drive.google.com/file/d/1TSvLHH48eJJk7Glr5p2lscVet2jCazhi/view?usp=sharing'):
+        self.progress.emit(0)
+        self.logProgress.emit('Downloading YOLOv4 weights from %s\n'%(google_url))
+        gdown.download(url=google_url, output=save_path, quiet=False, fuzzy=True)
+        self.progress.emit(100.0)
+
     def downloadGoogleDriveWeights(self, save_path, google_url):
         self.progress.emit(0)
         self.logProgress.emit('Downloading YOLOv3 Face weights from %s\n'%(google_url))
@@ -122,6 +128,14 @@ class DownloadWorker(QObject):
                 if not os.path.exists(_path_base):
                     print("DETR COCO weights not found. Attempting to download...")
                     self.downloadDETRWeights(_path_base)
+            elif path[0] == 'yolov4':
+                self.progress.emit(0)
+                _path_base = os.path.join('./src/yolov4/weights', path[1])
+                print(_path_base)
+                if not os.path.exists('./src/detr/weights'): os.mkdir('./src/detr/weights')
+                if not os.path.exists(_path_base):
+                    print("YOLOv4 COCO weights not found. Attempting to download...")
+                    self.downloadYOLOv4Weights(_path_base)
             elif path[0] == 'yolov3-face':
                 self.progress.emit(0)
                 _path_base = os.path.join('./src/obj_detector/weights', path[1])
@@ -202,7 +216,11 @@ class Downloader(QDialog):
                 if not os.path.exists(_path_base):
                     return True
             elif path[0] == 'detr':
-                _path_base = os.path.join('./src/obj_detector/weights', path[1])
+                _path_base = os.path.join('./src/detr/weights', path[1])
+                if not os.path.exists(_path_base):
+                    return True
+            elif path[0] == 'yolov4':
+                _path_base = os.path.join('./src/yolov4/weights', path[1])
                 if not os.path.exists(_path_base):
                     return True
             elif path[0] == 'yolov3-face':
