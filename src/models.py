@@ -240,6 +240,7 @@ class EfficientDetV2(Model):
             'tf_efficientdetv2_ds': (1024, 1024),
             'efficientdetv2_dt': (768, 768),
             'tf_efficientdet_d7x': (1536, 1536),
+            'tf_efficientdet_d4': (1024, 1024)
         }
 
     def initialize(self, *kwargs):
@@ -261,9 +262,18 @@ class EfficientDetV2(Model):
         scores = self.bench(self.transforms(input).unsqueeze(0))
         print('PRINT',scores[0])
         # resize to match original image
-        scores = scores[0]
-        scores[:][0] = scores[:][0] / self.inputTrans[self.CFG][0] * input.shape[0]
-        return scores
+        scores = scores[0].detach().numpy()
+
+        print('BEFORE~~~~~~~~~~~~~~~~~~~~~~~~\n\n', scores)
+        print('inputshape: ', input.shape)
+        print('transformshape: ', self.inputTrans[self.CFG])
+        print('try: ', scores[:, 0], self.inputTrans[self.CFG][1], input.shape[1])
+        scores[:, 0] = scores[:, 0] / self.inputTrans[self.CFG][1] * input.shape[1]
+        scores[:, 1] = scores[:, 1] / self.inputTrans[self.CFG][0] * input.shape[0]
+        scores[:, 2] = scores[:, 2] / self.inputTrans[self.CFG][1] * input.shape[1]
+        scores[:, 3] = scores[:, 3] / self.inputTrans[self.CFG][0] * input.shape[0]
+        print('AFTER~~~~~~~~~~~~~~~~~~~~~~~~~\n\n', scores)
+        return scores[np.where(scores[:,5] > 60)]
 
     def deinitialize(self):
         return -1
