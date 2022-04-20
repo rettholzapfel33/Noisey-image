@@ -290,7 +290,7 @@ augList = {
     "Salt and Pepper": {"function": saltAndPapper_noise, "default": [0.01, 0.2, 0.3], "example":0.25},
     "Flip Axis": {"function": flipAxis, "default": [-1], "example": -1},
     "Fisheye Transformation": {"function": fisheye_transform, "default": [0.2, 0.3, 0.4], "example":0.4},
-    "WebP Compression": {"function": webp_transform, "default": [10], "example":10},
+    "WebP Compression": {"function": webp_transform, "default": [10, 20, 30], "example":10},
     "KMeans Transformation": {"function": kmeans_transform, "default": [10], "example":10},
     "ROI Compression": {"function": roiCompression, "default": [0.01, 0.2, 0.3], "example": 0.5}
 }

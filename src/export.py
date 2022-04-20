@@ -3,34 +3,51 @@ from os import access, R_OK
 from os.path import isfile
 import pandas as pd
 
-# Column titles for the dataframes
-indexes = ['Class', 'Confidence', 'Top X', 'Top Y', 'Bottom X', 'Bottom Y']
+def main():
 
-#df = pd.read_csv('exp_4/WebP_Compression_0/original.txt', sep=" ", engine='python')
+    current = os.getcwd()
 
-#df.columns = indexes
+    # Column titles for the dataframes
+    indexes = ['Class', 'Confidence', 'Top X', 'Top Y', 'Bottom X', 'Bottom Y']
 
-directory = 'data/tmp/runs/'
+    #df = pd.read_csv('data/tmp/runs/exp_2/Gaussian_Noise_JPEG_Compression_Salt_and_Pepper_2/original.txt', sep=" ", engine='python')
 
-# Loop through the runs directories
-for subdir, dirs, files in os.walk(directory):
+    #df.columns = indexes
 
-    for filename in files:
+    # Loop through the runs directories
+    for subdir, dirs, files in os.walk(current):
 
-        # Get the file path
-        filepath = subdir + os.sep + filename
+        for directory in dirs:
 
-        if filepath.endswith(".txt"):
+            # If in /runs directory
+            if directory == 'runs':
 
-            # Check if the file has content
-            if os.stat(filepath).st_size != 0:
+                # Loop through this directory until text file is found
+                for subdir2, dirs2, files2 in os.walk(subdir):
 
-                # Convert text file into dataframe
-                df = pd.read_csv(filepath, sep=" ", engine='python')
+                    for filename in files2:
 
-                df.columns = indexes
+                        # Get the file path
+                        filepath = subdir2 + os.sep + filename
 
-                toCSV = subdir + os.sep + 'original.csv'
+                        if filepath.endswith(".txt"):
 
-                # Export to csv
-                df.to_csv(toCSV, index=False)
+                            # Check if the file has content
+                            if os.stat(filepath).st_size != 0:
+
+                                # Convert text file into dataframe
+                                try:
+                                    df = pd.read_csv(filepath, sep=" ", engine='python')
+
+                                except pd.errors.ParserError:
+
+                                    continue
+
+                                df.columns = indexes
+
+                                toCSV = subdir2 + os.sep + 'original.csv'
+
+                                # Export to csv
+                                df.to_csv(toCSV, index=False)
+
+main()

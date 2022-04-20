@@ -27,6 +27,7 @@ import yaml
 
 # import utilities:
 import src.h264
+import src.export
 from src.utils.images import convert_cvimg_to_qimg, convertCV2QT
 from src.transforms import AugDialog, AugmentationPipeline, Augmentation, mainAug
 from src.experimentDialog import ExperimentConfig, ExperimentDialog
@@ -470,6 +471,8 @@ class mainWindow(QtWidgets.QMainWindow):
         #detectedNames = {"all": [255,255,255]}
         display_sep = self.ui.checkBox_2.isChecked()
         comboModelType = self.ui.comboBox.currentText()
+
+        src.export.main()
 
         self.worker.setup([noiseImg], display_sep, comboModelType, [qListItem])
         self.worker.moveToThread(self.thread)
