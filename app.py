@@ -86,20 +86,28 @@ class ThreadWorker(QThread):
         #src.h264.main()
 
         videoIn = cv2.VideoCapture(self.media_path)
+        videoIn2 = cv2.VideoCapture('vids/compressed/compressed.mp4')
         videoOut = None
+        videoOut2 = None
 
         while(self._run_flag):
             t1 = time.time()
             ret, frame = videoIn.read()
+            ret2, frame2 = videoIn2.read()
             if not ret:
+                break
+
+            if not ret2: 
                 break
 
             if type(videoOut) == type(None):
                 videoOut = cv2.VideoWriter(self.media_out_path, cv2.VideoWriter_fourcc(*"mp4v"), 30, (frame.shape[1], frame.shape[0]))
+                videoOut2 = cv2.VideoWriter(self.media_out_path, cv2.VideoWriter_fourcc(*"mp4v"), 30, (frame2.shape[1], frame2.shape[0]))
 
             videoOut.write(frame)
+            videoOut2.write(frame2)
 
-            self.change_pixmap_signal.emit((frame, t1))
+            self.change_pixmap_signal.emit((frame, frame2, t1))
 
         videoIn.release()
         videoOut.release()
@@ -572,38 +580,15 @@ class mainWindow(QtWidgets.QMainWindow):
         p = convert_to_Qt_format.scaled(1000, 1000, Qt.KeepAspectRatio)
         return QPixmap.fromImage(p)
 
-    '''
-    def displayVideo(self):
-
-        # Convert the original mp4 to JPG images
-        videoIn = cv2.VideoCapture('vids/default/test.mp4')
-        videoOut = None
-
-        while(self.run):
-            t1 = time.time()
-            ret, frame = videoIn.read()
-            if not ret:
-                break
-
-            if type(videoOut) == type(None):
-                videoOut = cv2.VideoWriter('vids/convert', cv2.VideoWriter_fourcc(*"mp4v"), 30, (frame.shape[1], frame.shape[0]))
-
-            videoOut.write(frame)
-
-            self.change_pixmap_signal.emit((frame, t1))
-
-        videoIn.release()
-        videoOut.release()
-    '''
-    
     @pyqtSlot(tuple)
     def __updateImage__(self, frame_tuple):
         
-        frame, t1 = frame_tuple
+        frame, frame2, t1 = frame_tuple
         
         qtFrame = self.convertCV(frame)
+        qtFrame2 = self.convertCV(frame2)
         self.ui.video_original.setPixmap(qtFrame)
-        self.ui.video_preview.setPixmap(qtFrame)
+        self.ui.video_preview.setPixmap(qtFrame2)
 
     def __launch__(self):
 
@@ -613,7 +598,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.videoWorker.stop()
         else:
 
-            media_path = 'vids/default/test.mp4'
+            media_path = 'vids/default/backtest.mp4'
             media_out_path = 'vids/convert/test.mp4'
 
         # Set up another thread for Video/Image I/O:
