@@ -70,10 +70,47 @@ class Worker(QtCore.QObject):
 
         self.finished.emit((result, self.listWidgets))
 
-
-class mainWindow(QtWidgets.QMainWindow):
+class ThreadWorker(QThread):
 
     change_pixmap_signal = pyqtSignal(tuple)
+
+    def __init__(self, media_path, media_out_path):
+        super().__init__()
+        self.media_path = media_path
+        self.media_out_path = media_out_path
+
+    def run(self):
+        self._run_flag = True
+
+        # Compress the first video 
+        #src.h264.main()
+
+        videoIn = cv2.VideoCapture(self.media_path)
+        videoOut = None
+
+        while(self._run_flag):
+            t1 = time.time()
+            ret, frame = videoIn.read()
+            if not ret:
+                break
+
+            if type(videoOut) == type(None):
+                videoOut = cv2.VideoWriter(self.media_out_path, cv2.VideoWriter_fourcc(*"mp4v"), 30, (frame.shape[1], frame.shape[0]))
+
+            videoOut.write(frame)
+
+            self.change_pixmap_signal.emit((frame, t1))
+
+        videoIn.release()
+        videoOut.release()
+
+    def stop(self):
+        """Sets run flag to False and waits for thread to finish"""
+        self._run_flag = False
+        self.wait()
+
+
+class mainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -81,13 +118,13 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        self.videoWorker = None
+
         self.addWindow = AugDialog(self.ui.listAugs)
         self.addWindow.setModal(True)
         self.addWindow.demoAug()
 
         self.run = True
-
-        self.change_pixmap_signal.connect(self.__updateImage__)
 
         # Set up media player
         #self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
@@ -535,6 +572,7 @@ class mainWindow(QtWidgets.QMainWindow):
         p = convert_to_Qt_format.scaled(1000, 1000, Qt.KeepAspectRatio)
         return QPixmap.fromImage(p)
 
+    '''
     def displayVideo(self):
 
         # Convert the original mp4 to JPG images
@@ -556,6 +594,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         videoIn.release()
         videoOut.release()
+    '''
     
     @pyqtSlot(tuple)
     def __updateImage__(self, frame_tuple):
@@ -565,6 +604,22 @@ class mainWindow(QtWidgets.QMainWindow):
         qtFrame = self.convertCV(frame)
         self.ui.video_original.setPixmap(qtFrame)
         self.ui.video_preview.setPixmap(qtFrame)
+
+    def __launch__(self):
+
+        if self.videoWorker is not None and self.videoWorker.isRunning():
+            # This is where the button will reset the worker from whatever it was working on:
+            # This does not kill the thread variable, only the thread allocation
+            self.videoWorker.stop()
+        else:
+
+            media_path = 'vids/default/test.mp4'
+            media_out_path = 'vids/convert/test.mp4'
+
+        # Set up another thread for Video/Image I/O:
+        self.videoWorker = ThreadWorker(media_path, media_out_path)
+        self.videoWorker.change_pixmap_signal.connect(self.__updateImage__)
+        self.videoWorker.start()
 
     def changeUI(self, _str):
 
@@ -596,7 +651,9 @@ class mainWindow(QtWidgets.QMainWindow):
             #src.h264.main() 
 
             # Convert MP4 files to individual frames and show in pixmap
-            self.displayVideo()
+            #self.displayVideo()
+            print("Calling launch")
+            self.__launch__()
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])

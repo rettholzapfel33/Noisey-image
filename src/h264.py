@@ -76,11 +76,11 @@ def main():
 
     print("Video read in done...")
     video = np.array(video)
-    bit_rates = [original_bitrate, original_bitrate/4]
+    bit_rates = [original_bitrate/4]
 
     for br in bit_rates:
 
-        videoout = "vids/compressed/out_%i.mp4"%(br)
+        videoout = "vids/compressed/compressed.mp4"
         new_video_clip_overlay = []
         for frame in video:
             new_frame = np.copy(frame)
