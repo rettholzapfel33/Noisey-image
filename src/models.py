@@ -469,9 +469,44 @@ class DETR(Model):
         np_img = detect._draw_and_return_output_image_single_class(img, pred, selected_class, self.classes)
         return {"overlay": np_img}
 
-    def report_accuracy(self, pred, pred_truth):
-        print('pred comparison', pred, pred_truth)
-        return
+    def report_accuracy(self, pred:list, gt:list, evalType='voc'):
+        """Function takes in prediction boxes and ground truth boxes and
+        returns the mean average precision (mAP) @ IOU 0.5 under VOC2007 criteria (default).
+
+        Args:
+            pred (list): A list of BoundingBox objects representing each detection from method
+            gt (list): A list of BoundingBox objects representing each object in the ground truth
+
+        Returns:
+            mAP: a number representing the mAP over all classes for a single image.
+        """        
+        if len(pred) == 0: return 0
+
+        allBoundingBoxes = BoundingBoxes()
+        evaluator = Evaluator()
+
+        # loop through gt:
+        for _gt in gt:
+            assert type(_gt) == BoundingBox, "_gt is not BoundingBox type. Instead is %s"%(str(type(_gt)))
+            allBoundingBoxes.addBoundingBox(_gt)
+
+        for _pred in pred:
+            assert type(_pred) == BoundingBox, "_gt is not BoundingBox type. Instead is %s"%(str(type(_pred)))
+            allBoundingBoxes.addBoundingBox(_pred)
+
+        image = np.zeros((1400,1607,3), dtype=np.uint8)
+        out_image = allBoundingBoxes.drawAllBoundingBoxes(image, '100faces')
+        cv2.imwrite('test.png', out_image)
+
+        #for box in allBoundingBoxes:
+        #    print(box.getAbsoluteBoundingBox(format=BBFormat.XYWH), box.getBBType()) 
+        if evalType == 'voc':
+            metrics = evaluator.GetPascalVOCMetrics(allBoundingBoxes)
+            print(metrics)
+        elif evalType == 'coco':
+            assert False
+        else: assert False, "evalType %s not supported"%(evalType) 
+        return metrics[0]['AP']
 
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
