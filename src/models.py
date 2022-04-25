@@ -339,6 +339,10 @@ class YOLOv3(Model):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
 
 class EfficientDetV2(Model):
+    '''
+    augmentation values
+    GN: 1,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,105
+    '''
     def __init__(self, *network_config) -> None:
         super(EfficientDetV2, self).__init__()
 
@@ -384,7 +388,7 @@ class EfficientDetV2(Model):
         scores[:, 1] = scores[:, 1] / self.inputTrans[self.CFG][0] * input.shape[0]
         scores[:, 2] = scores[:, 2] / self.inputTrans[self.CFG][1] * input.shape[1]
         scores[:, 3] = scores[:, 3] / self.inputTrans[self.CFG][0] * input.shape[0]
-        return scores[np.where(scores[:,4] > 0.17)]
+        return scores[np.where(scores[:,4] > 0.1)]
 
     def deinitialize(self):
         return -1
