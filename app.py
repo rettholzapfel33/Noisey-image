@@ -126,7 +126,6 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.videoWorker = None
 
         self.addWindow = AugDialog(self.ui.listAugs)
         self.addWindow.setModal(True)
@@ -134,8 +133,10 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.run = True
 
-        # Set up media player
-        #self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
+        # Code for video
+        self.videoWorker = None
+        self.onVideo = False
+        self.frames = []
 
         # Check status of configurations:
         weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights"}
@@ -534,7 +535,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.thread.start()
 
-    def startExperiment(self):
+    def startExperiment(self, isVideo=False):
         # fill image paths with dummy inputs for now
         comboModelType = self.ui.comboBox.currentText()
 
@@ -567,7 +568,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 return -1
             imgPaths.append(file_path)
             
-        config = ExperimentConfig(mainAug, self.ui.compoundAug.isChecked(), imgPaths, _model, comboModelType, labels=self.labels)
+        config = ExperimentConfig(mainAug, self.ui.compoundAug.isChecked(), imgPaths, _model, comboModelType, isVideo=isVideo, labels=self.labels)
         self.experiment = ExperimentDialog(config)
         self.experiment.startExperiment()
 
@@ -584,7 +585,12 @@ class mainWindow(QtWidgets.QMainWindow):
     def __updateImage__(self, frame_tuple):
         
         frame, frame2, t1 = frame_tuple
-        
+
+        #self.frames.append(frame2)
+        # Save frame as jpeg
+        im = Image.fromarray(frame2)
+        im.save("imgs/frames/frame{}.jpg".format(t1))
+
         qtFrame = self.convertCV(frame)
         qtFrame2 = self.convertCV(frame2)
         self.ui.video_original.setPixmap(qtFrame)
