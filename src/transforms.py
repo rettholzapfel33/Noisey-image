@@ -373,6 +373,7 @@ class AugmentationPipeline():
 
     def __getitem__(self, key):
         self.__pipeline__[key]
+        return self.__pipeline__[key]
 
     def __next__(self):
         self.__index__ += 1

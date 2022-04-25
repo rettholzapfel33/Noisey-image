@@ -173,7 +173,7 @@ class YOLOv3(Model):
         self.classes = load_classes(self.CLASSES)
 
     def run(self, input):
-        pred = detect.detect_image(self.yolo, input)
+        pred = detect.detect_image(self.yolo, input, conf_thres=0.3)
         return pred #[x1,y1,x2,y2,conf,class] <--- box
 
     def initialize(self, *kwargs):

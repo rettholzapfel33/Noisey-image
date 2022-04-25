@@ -13,3 +13,4 @@ jupyter_files/libtorch
 dev
 src/data/tmp/runs
 .vscode/
+drone/
