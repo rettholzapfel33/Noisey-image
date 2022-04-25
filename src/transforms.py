@@ -342,9 +342,9 @@ def alternate_mosaic(image, num_slices):
     return new_image
 
 augList = {
-    "Intensity": {"function": dim_intensity, "default": [0.5], "example":0.5},
+    "Intensity": {"function": dim_intensity, "default": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1], "example":0.5},
     "Gaussian Noise": {"function": gaussian_noise, "default": [1,10,15,20,25,30,35,40,45,50,55,60], "example":25},
-    "Gaussian Blur": {"function": gaussian_blur, "default": [30], "example":30},
+    "Gaussian Blur": {"function": gaussian_blur, "default": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], "example":30},
     "JPEG Compression": {"function": jpeg_comp, "default": [100,75,50], "example":20},
     "Normal Compression": {"function": normal_comp, "default": [20], "example":30},
     "Salt and Pepper": {"function": saltAndPapper_noise, "default": [0.01, 0.2, 0.3], "example":0.25},
@@ -353,7 +353,7 @@ augList = {
     "Barrel": {"function": barrel, "default": [0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.001, 0.002, 0.003, 0.004, 0.005, 0.01], "example":0.005},
     "Simple Mosaic": {"function": simple_mosaic, "default":[], "example":[]},
     "Black and White": {"function": black_white, "default":[0,1,2], "example":0}, 
-    "Speckle Noise": {"function": speckle_noise, "default": [1, 1.5, 2], "example":0.5},
+    "Speckle Noise": {"function": speckle_noise, "default": [0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007, 0.0008, 0.0009, 0.001, 0.002], "example":0.05},
     "Saturation" : {"function": saturation, "default":[50], "example":50},
     "Alternate Mosaic": {"function": alternate_mosaic, "default":[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "example":2} # 1x1 - 5x5
 }
