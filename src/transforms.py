@@ -302,8 +302,14 @@ def saturation (image, factor=50):
     img_sated = cv2.cvtColor(imghsv.astype("uint8"), cv2.COLOR_HSV2BGR)
     return img_sated
 
+alt_mos_dict = {}
+
 def alternate_mosaic(image, num_slices):
     if num_slices == 1: return image
+    if len(alt_mos_dict) == 0:
+        for i in range(2,14): alt_mos_dict[i] = []
+    dict_ref = alt_mos_dict.get(num_slices)
+    if len(dict_ref) != 0: return alt_mos_dict[num_slices]
     width, height = image.shape[0], image.shape[1]
     new_image = np.zeros_like(image)
     
@@ -339,6 +345,7 @@ def alternate_mosaic(image, num_slices):
             y += y_size
             i += 1
         x += x_size
+    alt_mos_dict[num_slices] = new_image
     return new_image
 
 augList = {
@@ -347,7 +354,7 @@ augList = {
     "Gaussian Blur": {"function": gaussian_blur, "default": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], "example":30},
     "JPEG Compression": {"function": jpeg_comp, "default": [100,75,50], "example":20},
     "Normal Compression": {"function": normal_comp, "default": [20], "example":30},
-    "Salt and Pepper": {"function": saltAndPapper_noise, "default": [0.01, 0.2, 0.3], "example":0.25},
+    "Salt and Pepper": {"function": saltAndPapper_noise, "default": [x/100 for x in range(12)], "example":0.25},
     "Flip Axis": {"function": flipAxis, "default": [-1], "example": -1},
     "Fisheye": {"function": fisheye, "default": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], "example":0.4},
     "Barrel": {"function": barrel, "default": [0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.001, 0.002, 0.003, 0.004, 0.005, 0.01], "example":0.005},
