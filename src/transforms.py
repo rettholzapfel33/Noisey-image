@@ -92,6 +92,16 @@ def gaussian_noise(image, std, seed=-1):
         return combined.astype('uint8')
     else: assert False
 
+def gaussian_blur(self, image, parameter):   
+    parameter = int(parameter)
+    image_copy = np.copy(image)
+    cols = image_copy.shape[0]
+    rows = image_copy.shape[1]
+    output_image = np.zeros((cols,rows,3))
+    output_image = cv2.GaussianBlur(image_copy, (parameter,parameter),0) # parameter is size of median kernel
+    return output_image.astype('uint8')
+
+'''
 def gaussian_blur(image, kernel_size_factor, stdX=0, stdY=0, seed=-1):
     if type(kernel_size_factor) == float or type(kernel_size_factor) == int:
         w = int((kernel_size_factor*2)+1)
@@ -109,6 +119,7 @@ def gaussian_blur(image, kernel_size_factor, stdX=0, stdY=0, seed=-1):
         blur_img = cv2.GaussianBlur(
             image, (w_r, h_r), cv2.BORDER_DEFAULT, stdX, stdY)
         return blur_img
+'''
 
 def jpeg_comp(image, quality):
     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
@@ -442,7 +453,7 @@ class AugmentationPipeline():
         return (self.__pipeline__[x] for x in range(len(self.__pipeline__)))
 
     def __getitem__(self, key):
-        self.__pipeline__[key]
+        return self.__pipeline__[key]
 
     def __next__(self):
         self.__index__ += 1
