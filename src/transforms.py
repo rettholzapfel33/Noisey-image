@@ -92,7 +92,7 @@ def gaussian_noise(image, std, seed=-1):
         return combined.astype('uint8')
     else: assert False
 
-def gaussian_blur(self, image, parameter):   
+def gaussian_blur(image, parameter):   
     parameter = int(parameter)
     image_copy = np.copy(image)
     cols = image_copy.shape[0]
