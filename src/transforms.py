@@ -530,11 +530,14 @@ class AugDialog(QDialog):
         _payload = aug.data(Qt.UserRole)
         augIndex = mainAug.__keys__.index(currentItem)
         augItem = mainAug.__augList__[augIndex]
-        
+            
         if _payload[1] == '': 
             strArgs = [ str(i) for i in augItem.args]
             parameters = ",".join(strArgs)
-        else: parameters = _payload[1]
+            print("HEre are the parameters", parameters)
+        else: 
+            parameters = _payload[1]
+            print('Here are new parameters', parameters)
         
         if _payload[2] == '':
             example = augItem.exampleParam
@@ -581,6 +584,9 @@ class AugDialog(QDialog):
         _payload = self.listWidget.item(cr).data(Qt.UserRole)
         _payload[1] = self.noiseRange.text()
         _payload[2] = self.exampleLine.text()
+        minimum = self.minimum.text()
+        maximum = self.maximum.text()
+        increment = self.increment.text()
         self.listWidget.item(cr).setData(Qt.UserRole, _payload)
 
         # get checks from listWidget:
@@ -591,8 +597,16 @@ class AugDialog(QDialog):
             _payload = listItem.data(Qt.UserRole)
             _noiseRange = _payload[1]
             _example = _payload[2]
+            _minimum = minimum
+            _maximum = maximum
+            _increment = increment
 
-            if _noiseRange != '':
+            if _maximum != '' and _minimum != '' and _increment != '':
+
+                rangeParams = list(range(int(_minimum), int(_maximum), int(_increment)))
+                _param = [float(i) for i in rangeParams]
+
+            elif _noiseRange != '':
                 try: _param = [float(i) for i in _noiseRange.split(',')]
                 except Exception as e: print("Failed to convert string to array of floats")
                 # probably do a signal here to update the UI

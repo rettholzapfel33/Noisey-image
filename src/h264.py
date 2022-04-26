@@ -53,9 +53,9 @@ class H264:
         frame_one.save("vids/gifs/" + str(name) + '.gif', format="GIF", append_images=frames,
                     save_all=True, duration=10, loop=0)
 
-def main():
+def main(video='vids/default/test.mp4'):
     
-    videoin = "vids/default/test.mp4"
+    videoin = video
 
     h264 = H264()
 
