@@ -320,7 +320,15 @@ alt_mos_dict = {}
 def alternate_mosaic(image, num_slices):
     if num_slices == 1: return image
     if len(alt_mos_dict) == 0:
-        for i in range(2,14): alt_mos_dict[i] = []
+        # keep a copy of the last image so we know if this is
+        # on a new one
+        alt_mos_dict['last_img'] = image.copy()
+        for i in range(2,100): alt_mos_dict[i] = []
+    else:
+        # if not the same image, clear out dictionary and save this one
+        if (image.shape != alt_mos_dict['last_img'].shape) or np.not_equal(image, alt_mos_dict['last_img']).any():
+            for i in range(2,100): alt_mos_dict[i] = []
+            alt_mos_dict['last_img'] = image.copy()
     dict_ref = alt_mos_dict.get(num_slices)
     if len(dict_ref) != 0: return alt_mos_dict[num_slices]
     width, height = image.shape[0], image.shape[1]
