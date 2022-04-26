@@ -290,9 +290,11 @@ def speckle_noise(image, std, seed=-1):
         random_std = np.random.uniform(lower, upper)
         gauss = np.random.normal(mean, random_std, size=image.shape)
 
-    gauss = gauss.reshape(image.shape[0],image.shape[1],image.shape[2]).astype('uint8')
+    #gauss = gauss.reshape(image.shape[0],image.shape[1],image.shape[2]).astype('uint8')
     noise = image + image * gauss
-    return noise
+    
+    np.clip(noise, 0, 255, out=noise)
+    return noise.astype('uint8')
 
 def saturation (image, factor=50):
     '''
@@ -371,7 +373,7 @@ augList = {
     "Barrel": {"function": barrel, "default": [0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.001, 0.002, 0.003, 0.004, 0.005, 0.01], "example":0.005},
     "Simple Mosaic": {"function": simple_mosaic, "default":[], "example":[]},
     "Black and White": {"function": black_white, "default":[0,1,2], "example":0}, 
-    "Speckle Noise": {"function": speckle_noise, "default": [0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007, 0.0008, 0.0009, 0.001, 0.002], "example":0.05},
+    "Speckle Noise": {"function": speckle_noise, "default": [1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2], "example":1.5},
     "Saturation" : {"function": saturation, "default":[50], "example":50},
     "Alternate Mosaic": {"function": alternate_mosaic, "default":[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "example":2} # 1x1 - 5x5
 }
