@@ -534,10 +534,8 @@ class AugDialog(QDialog):
         if _payload[1] == '': 
             strArgs = [ str(i) for i in augItem.args]
             parameters = ",".join(strArgs)
-            print("HEre are the parameters", parameters)
         else: 
             parameters = _payload[1]
-            print('Here are new parameters', parameters)
         
         if _payload[2] == '':
             example = augItem.exampleParam

@@ -12,5 +12,5 @@ src/jit/darknet_radar_cfg/
 jupyter_files/libtorch
 dev
 src/data/tmp/runs
-.vscode/
+.vscode/3
 drone/
