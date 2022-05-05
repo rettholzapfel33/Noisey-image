@@ -1,5 +1,5 @@
 # System libs
-import os
+import os, re, os.path
 import time
 from os.path import exists
 import glob
@@ -38,6 +38,10 @@ from src.utils.weights import Downloader
 CURRENT_PATH = str(Path(__file__).parent.absolute()) + '/'
 TEMP_PATH = CURRENT_PATH + 'src/tmp_results/'
 DEFAULT_PATH = CURRENT_PATH + 'imgs/default_imgs/'
+VIDEO_PATH = CURRENT_PATH + 'vids/default/test.mp4'
+OUT_PATH = CURRENT_PATH + 'vids/convert/test.mp4'
+COMPRESSED_PATH = CURRENT_PATH + 'vids/compressed/test.mp4'
+FRAMES_PATH = CURRENT_PATH + 'imgs/frames/'
 
 class Worker(QtCore.QObject):
     finished = QtCore.pyqtSignal(tuple)
@@ -74,24 +78,24 @@ class ThreadWorker(QThread):
 
     change_pixmap_signal = pyqtSignal(tuple)
 
-    def __init__(self, media_path, media_out_path):
+    def __init__(self, media_path, media_path2, media_out_path):
         super().__init__()
         self.media_path = media_path
+        self.media_path2 = media_path2
         self.media_out_path = media_out_path
 
     def run(self):
         self._run_flag = True
-
-        # Compress the first video 
-        #src.h264.main()
+        increment = 0
 
         videoIn = cv2.VideoCapture(self.media_path)
-        videoIn2 = cv2.VideoCapture('vids/compressed/compressed.mp4')
+        videoIn2 = cv2.VideoCapture(self.media_path2)
         videoOut = None
         videoOut2 = None
 
         while(self._run_flag):
             t1 = time.time()
+            increment += 1
             ret, frame = videoIn.read()
             ret2, frame2 = videoIn2.read()
             if not ret:
@@ -107,7 +111,7 @@ class ThreadWorker(QThread):
             videoOut.write(frame)
             videoOut2.write(frame2)
 
-            self.change_pixmap_signal.emit((frame, frame2, t1))
+            self.change_pixmap_signal.emit((frame, frame2, increment))
 
         videoIn.release()
         videoOut.release()
@@ -134,9 +138,15 @@ class mainWindow(QtWidgets.QMainWindow):
         self.run = True
 
         # Code for video
+        self.ui.faceVideo.hide()
+        self.ui.defaultVideo.hide()
         self.videoWorker = None
         self.onVideo = False
         self.frames = []
+        self.VIDEO_PATH = CURRENT_PATH + 'vids/default/test.mp4'
+        self.OUT_PATH = CURRENT_PATH + 'vids/convert/test.mp4'
+        self.COMPRESSED_PATH = CURRENT_PATH + 'vids/compressed/test.mp4'
+        self.FRAMES_PATH = CURRENT_PATH + 'imgs/frames/'
 
         # Check status of configurations:
         weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights"}
@@ -164,8 +174,10 @@ class mainWindow(QtWidgets.QMainWindow):
         # Buttons
         self.ui.pushButton.clicked.connect(self.run_model)  
         self.ui.pushButton_2.clicked.connect(self.startExperiment)
-        self.ui.pushButton_4.clicked.connect(quit)
+        self.ui.pushButton_4.clicked.connect(self.quitApp)
         self.ui.compoundAug.setChecked(True)
+        self.ui.faceVideo.clicked.connect(lambda:self.changeVideo('faces'))
+        self.ui.defaultVideo.clicked.connect(lambda:self.changeVideo('default'))
 
         # Radio Buttons
         self.ui.imageButton.setChecked(True)
@@ -586,10 +598,11 @@ class mainWindow(QtWidgets.QMainWindow):
         
         frame, frame2, t1 = frame_tuple
 
-        #self.frames.append(frame2)
         # Save frame as jpeg
-        im = Image.fromarray(frame2)
-        im.save("imgs/frames/frame{}.jpg".format(t1))
+        if t1 < 100:
+
+            im = Image.fromarray(frame2)
+            im.save("imgs/frames/frame{}.jpg".format(t1))
 
         qtFrame = self.convertCV(frame)
         qtFrame2 = self.convertCV(frame2)
@@ -598,19 +611,66 @@ class mainWindow(QtWidgets.QMainWindow):
 
     def __launch__(self):
 
+        media_path = self.VIDEO_PATH
+        media_path2 = self.COMPRESSED_PATH
+        media_out_path = self.OUT_PATH
+
         if self.videoWorker is not None and self.videoWorker.isRunning():
             # This is where the button will reset the worker from whatever it was working on:
             # This does not kill the thread variable, only the thread allocation
             self.videoWorker.stop()
         else:
 
-            media_path = 'vids/default/backtest.mp4'
-            media_out_path = 'vids/convert/test.mp4'
+            media_path = self.VIDEO_PATH
+            media_path2 = self.COMPRESSED_PATH
+            media_out_path = self.OUT_PATH
 
         # Set up another thread for Video/Image I/O:
-        self.videoWorker = ThreadWorker(media_path, media_out_path)
+        self.videoWorker = ThreadWorker(media_path, media_path2, media_out_path)
         self.videoWorker.change_pixmap_signal.connect(self.__updateImage__)
         self.videoWorker.start()
+
+    def changeVideo(self, _str):
+        
+        if _str == 'default': 
+
+            # Delete all files in frames folder
+            mypath = self.FRAMES_PATH
+            for root, dirs, files in os.walk(mypath):
+                for file in files:
+                    os.remove(os.path.join(root, file))
+
+            # Wait for 2 seconds
+            time.sleep(2)
+
+            # Change the paths
+            self.VIDEO_PATH = CURRENT_PATH + 'vids/default/test.mp4'
+            self.OUT_PATH = CURRENT_PATH + 'vids/convert/test.mp4'
+            self.COMPRESSED_PATH = CURRENT_PATH + 'vids/compressed/test.mp4'
+
+            # Call the frame worker
+            print("Calling launch")
+            self.__launch__()
+            
+        if _str == 'faces': 
+
+            # Delete all files in frames folder
+            mypath = self.FRAMES_PATH
+            for root, dirs, files in os.walk(mypath):
+                for file in files:
+                    os.remove(os.path.join(root, file))
+
+            # Wait for 2 seconds
+            time.sleep(2)
+
+            # Change the paths
+            self.VIDEO_PATH = CURRENT_PATH + 'vids/default/100faces_move.mp4'
+            self.OUT_PATH = CURRENT_PATH + 'vids/convert/100faces_move.mp4'
+            self.COMPRESSED_PATH = CURRENT_PATH + 'vids/compressed/100faces_move.mp4'
+
+            # Call the frame worker
+            print("Calling launch")
+            self.__launch__()
 
     def changeUI(self, _str):
 
@@ -621,10 +681,13 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.original.show()
             self.ui.preview_2.show()
             self.ui.original_2.show()
+            self.ui.tabWidget.show()
 
             # Hide the video labels
             self.ui.video_original.hide()
             self.ui.video_preview.hide()
+            self.ui.defaultVideo.hide()
+            self.ui.faceVideo.hide()
 
         if _str == 'video':
 
@@ -633,18 +696,35 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.original.hide()
             self.ui.preview_2.hide()
             self.ui.original_2.hide()
+            self.ui.tabWidget.hide()
 
             # Show the video labels
             self.ui.video_original.show()
             self.ui.video_preview.show()
+            self.ui.defaultVideo.show()
+            self.ui.faceVideo.show()
 
             # Compress default MP4
             #src.h264.main() 
 
             # Convert MP4 files to individual frames and show in pixmap
             #self.displayVideo()
-            print("Calling launch")
-            self.__launch__()
+            #print("Calling launch")
+            #self.__launch__()
+
+    def quitApp(self):
+        
+        # Delete all files in frames folder
+        mypath = self.FRAMES_PATH
+        for root, dirs, files in os.walk(mypath):
+            for file in files:
+                os.remove(os.path.join(root, file))
+
+        # Wait for 2 seconds
+        time.sleep(2)
+
+        quit()
+        
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])

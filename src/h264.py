@@ -53,14 +53,12 @@ class H264:
         frame_one.save("vids/gifs/" + str(name) + '.gif', format="GIF", append_images=frames,
                     save_all=True, duration=10, loop=0)
 
-def main(video='vids/default/test.mp4'):
+def main(videoName='vids/default/100faces_move.mp4'):
     
-    videoin = video
+    videoin = videoName
+    videoout = ''
 
     h264 = H264()
-
-    i = 0
-    name = ''
 
     cap = cv2.VideoCapture(videoin)
     probe = ffmpeg.probe(videoin)
@@ -80,7 +78,9 @@ def main(video='vids/default/test.mp4'):
 
     for br in bit_rates:
 
-        videoout = "vids/compressed/compressed.mp4"
+        if 'test' in videoName: videoout = 'vids/compressed/test.mp4'
+        if 'face' in videoName: videoout = 'vids/compressed/100faces_move.mp4'
+
         new_video_clip_overlay = []
         for frame in video:
             new_frame = np.copy(frame)

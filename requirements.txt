@@ -37,4 +37,4 @@ tqdm==4.62.3
 typing-extensions==3.10.0.2
 urllib3==1.26.7
 ffmpeg-python==0.2.0
-sklearn==0.24.2
+sklearn
