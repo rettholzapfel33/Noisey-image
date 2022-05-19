@@ -92,6 +92,16 @@ def gaussian_noise(image, std, seed=-1):
         return combined.astype('uint8')
     else: assert False
 
+def gaussian_blur(image, parameter):   
+    parameter = int(parameter)
+    image_copy = np.copy(image)
+    cols = image_copy.shape[0]
+    rows = image_copy.shape[1]
+    output_image = np.zeros((cols,rows,3))
+    output_image = cv2.GaussianBlur(image_copy, (parameter,parameter),0) # parameter is size of median kernel
+    return output_image.astype('uint8')
+
+'''
 def gaussian_blur(image, kernel_size_factor, stdX=0, stdY=0, seed=-1):
     if type(kernel_size_factor) == float or type(kernel_size_factor) == int:
         w = int((kernel_size_factor*2)+1)
@@ -109,6 +119,7 @@ def gaussian_blur(image, kernel_size_factor, stdX=0, stdY=0, seed=-1):
         blur_img = cv2.GaussianBlur(
             image, (w_r, h_r), cv2.BORDER_DEFAULT, stdX, stdY)
         return blur_img
+'''
 
 def jpeg_comp(image, quality):
     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
@@ -279,9 +290,11 @@ def speckle_noise(image, std, seed=-1):
         random_std = np.random.uniform(lower, upper)
         gauss = np.random.normal(mean, random_std, size=image.shape)
 
-    gauss = gauss.reshape(image.shape[0],image.shape[1],image.shape[2]).astype('uint8')
+    #gauss = gauss.reshape(image.shape[0],image.shape[1],image.shape[2]).astype('uint8')
     noise = image + image * gauss
-    return noise
+    
+    np.clip(noise, 0, 255, out=noise)
+    return noise.astype('uint8')
 
 def saturation (image, factor=50):
     '''
@@ -302,8 +315,22 @@ def saturation (image, factor=50):
     img_sated = cv2.cvtColor(imghsv.astype("uint8"), cv2.COLOR_HSV2BGR)
     return img_sated
 
+alt_mos_dict = {}
+
 def alternate_mosaic(image, num_slices):
     if num_slices == 1: return image
+    if len(alt_mos_dict) == 0:
+        # keep a copy of the last image so we know if this is
+        # on a new one
+        alt_mos_dict['last_img'] = image.copy()
+        for i in range(2,100): alt_mos_dict[i] = []
+    else:
+        # if not the same image, clear out dictionary and save this one
+        if (image.shape != alt_mos_dict['last_img'].shape) or np.not_equal(image, alt_mos_dict['last_img']).any():
+            for i in range(2,100): alt_mos_dict[i] = []
+            alt_mos_dict['last_img'] = image.copy()
+    dict_ref = alt_mos_dict.get(num_slices)
+    if len(dict_ref) != 0: return alt_mos_dict[num_slices]
     width, height = image.shape[0], image.shape[1]
     new_image = np.zeros_like(image)
     
@@ -339,23 +366,24 @@ def alternate_mosaic(image, num_slices):
             y += y_size
             i += 1
         x += x_size
+    alt_mos_dict[num_slices] = new_image
     return new_image
 
 augList = {
-    "Intensity": {"function": dim_intensity, "default": [0.5], "example":0.5},
+    "Intensity": {"function": dim_intensity, "default": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1], "example":0.5},
     "Gaussian Noise": {"function": gaussian_noise, "default": [1,10,15,20,25,30,35,40,45,50,55,60], "example":25},
-    "Gaussian Blur": {"function": gaussian_blur, "default": [30], "example":30},
+    "Gaussian Blur": {"function": gaussian_blur, "default": [3, 13, 23, 33, 43, 53, 63, 73, 83], "example":33},
     "JPEG Compression": {"function": jpeg_comp, "default": [100,75,50], "example":20},
     "Normal Compression": {"function": normal_comp, "default": [20], "example":30},
-    "Salt and Pepper": {"function": saltAndPapper_noise, "default": [0.01, 0.2, 0.3], "example":0.25},
+    "Salt and Pepper": {"function": saltAndPapper_noise, "default": [x/100 for x in range(12)], "example":0.25},
     "Flip Axis": {"function": flipAxis, "default": [-1], "example": -1},
-    "Fisheye": {"function": fisheye, "default": [0.2, 0.3, 0.4], "example":0.4},
-    "Barrel": {"function": barrel, "default": [0.05, 0.005, 0.0005], "example":0.005},
+    "Fisheye": {"function": fisheye, "default": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], "example":0.4},
+    "Barrel": {"function": barrel, "default": [0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.001, 0.002, 0.003, 0.004, 0.005, 0.01], "example":0.005},
     "Simple Mosaic": {"function": simple_mosaic, "default":[], "example":[]},
     "Black and White": {"function": black_white, "default":[0,1,2], "example":0}, 
-    "Speckle Noise": {"function": speckle_noise, "default": [1, 1.5, 2], "example":0.5},
+    "Speckle Noise": {"function": speckle_noise, "default": [1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2], "example":1.5},
     "Saturation" : {"function": saturation, "default":[50], "example":50},
-    "Alternate Mosaic": {"function": alternate_mosaic, "default":[1,2,3,4,5], "example":2} # 1x1 - 5x5
+    "Alternate Mosaic": {"function": alternate_mosaic, "default":[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "example":2} # 1x1 - 5x5
 }
 
 class Augmentation:
@@ -435,7 +463,7 @@ class AugmentationPipeline():
         return (self.__pipeline__[x] for x in range(len(self.__pipeline__)))
 
     def __getitem__(self, key):
-        self.__pipeline__[key]
+        return self.__pipeline__[key]
 
     def __next__(self):
         self.__index__ += 1

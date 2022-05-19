@@ -88,7 +88,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The pre-trained weights for YOLOv3 and MIT &lt;br&gt; Segmentation are not detected. To proceed &lt;br&gt; with the inferencing on the software, you &lt;br&gt; must download these weights. Please click &lt;br&gt; the button below to start autodownloading.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The pre-trained weights for at least one of the models are not detected. To proceed &lt;br&gt; with the inferencing on the software, you &lt;br&gt; must download these weights. Please click &lt;br&gt; the button below to start autodownloading.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
  </widget>

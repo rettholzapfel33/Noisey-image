@@ -91,6 +91,7 @@ def read_yaml(self, filePath):
 
         # Parses .xml annotation files and stores in dictionary as the following:
         # { filename: [width, height, [objects]] }
+        # For VOC datasets
         if documents["type"] == "voc":
             for label in labels:
                 file_content = []
@@ -99,32 +100,38 @@ def read_yaml(self, filePath):
                 
                 objects = []
                 for x in tree_root.findall("object"):
+                    base_name = tree_root[1].text
                     obj_class = [x[i].text for i in range(4)]
-                    coords = [x[4][i].text for i in range(len(x[4]))]
-                    obj_class.append(coords)
-                    objects.append(obj_class)
-                    
-                file_content = [tree_root[4][0].text, tree_root[4][1].text, objects]
-                labels_dic[tree_root[1].text] = file_content
-        # elif documents["type"] == "coco" -> parses .json files for this COCO dataset -> SKYLAR
+                    coords = [j[i].text for j in x.findall("bndbox") for i in range(len(j))]
+                    w = int(coords[2])-int(coords[0])
+                    h = int(coords[3])-int(coords[1])
+                    box = BoundingBox(base_name, obj_class[0], coords[0], coords[1], str(w), str(h))
+                    file_content.append(box)
+
+                labels_dic[base_name] = file_content
+        # Parses .json annotation files and stores in dictionary -> for COCO datasets
         elif documents["type"] == "coco":
            for label in labels:
                with open(label) as f:
                    instances = json.load(f)
                    for i in instances['images']:
+                       file_content.clear()
                        name = i['file_name']
-                       labels_dic[name] = {}
-                       labels_dic[name]['height'] = i['height']
-                       labels_dic[name]['width'] = i['width']
-                   for i in instances['annotations']:
-                       findid = i['image_id']
-                       fix_string = str(findid).zfill(12)
-                       fix_string = fix_string + '.jpg'
-                       labels_dic[fix_string]['category_id'] = i['category_id']
-                       labels_dic[fix_string]['bbox'] = i['bbox']
-           f.close()    
+                       for j in instances['annotations']:
+                           if(i['id'] == j['image_id']):
+                               classid = j['category_id']
+                               x1 = float(j['bbox'][0])
+                               y1 = float(j['bbox'][1])
+                               w = float(j['bbox'][2])
+                               h = float(j['bbox'][3])
+                               box = BoundingBox(name, classid, x1, y1, w, h)
+                               file_content.append(box)
+                               
+                   labels_dic[name] = file_content
+           f.close()
+           labels_content = labels_dic    
+        # Parses .txt annotation files
         else:
-            # Parses .txt annotation files
             for label in labels:
                 base=os.path.basename(label)
                 base_name = os.path.splitext(base)[0]
@@ -143,8 +150,8 @@ def read_yaml(self, filePath):
                 #print(file_content)
                 labels_dic[base_name] = file_content
             
-            labels_content = labels_dic
-            label_eval = "voc" # TODO: change to adapt for different eval
+        labels_content = labels_dic
+        label_eval = "voc" # TODO: change to adapt for different eval
 
         self.labels = labels_dic
 

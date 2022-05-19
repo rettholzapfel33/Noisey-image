@@ -269,7 +269,7 @@ def _draw_and_return_output_image(image, detections, img_size, classes):
     for x1, y1, x2, y2, conf, cls_pred in detections:
         # print("test: ", detections)
         # print("test2:", int(x1), int(y1), int(x2), int(y2))
-        print(f"\t+ Label: {classes[int(cls_pred)]} | Confidence: {conf.item():0.4f}")
+        # print(f"\t+ Label: {classes[int(cls_pred)]} | Confidence: {conf.item():0.4f}")
         p1, p2 = (int(x1), int(y1)), (int(x2), int(y2))
 
         box_clr = colors(cls_pred)
