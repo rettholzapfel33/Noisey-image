@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     pipeline = AugmentationPipeline(augList)
     pipeline.append('Gaussian Noise')
-    pipeline[0].setParam([1, 10, 15, 20, 25, 30, 35])
+    pipeline[0].setParam([10, 15, 20, 25])
 
     # generate tmp videos:
     for i, arg in enumerate(pipeline[0].args):

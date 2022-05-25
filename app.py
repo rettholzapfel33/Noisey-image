@@ -27,7 +27,7 @@ import yaml
 
 # import utilities:
 import src.h264
-import src.export
+#import src.export
 from src.utils.images import convert_cvimg_to_qimg, convertCV2QT
 from src.transforms import AugDialog, AugmentationPipeline, Augmentation, mainAug
 from src.experimentDialog import ExperimentConfig, ExperimentDialog
@@ -681,7 +681,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.original.show()
             self.ui.preview_2.show()
             self.ui.original_2.show()
-            self.ui.tabWidget.show()
+           # self.ui.tabWidget.show()
 
             # Hide the video labels
             self.ui.video_original.hide()
@@ -696,7 +696,7 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.original.hide()
             self.ui.preview_2.hide()
             self.ui.original_2.hide()
-            self.ui.tabWidget.hide()
+            #self.ui.tabWidget.hide()
 
             # Show the video labels
             self.ui.video_original.show()

@@ -282,17 +282,17 @@ def roiCompression(image, prob=0.01):
 
 
 augList = {
-    "Intensity": {"function": dim_intensity, "default": [0.5], "example":0.5},
-    "Gaussian Noise": {"function": gaussian_noise, "default": [1,25,50], "example":25},
-    "Gaussian Blur": {"function": gaussian_blur, "default": [30], "example":30},
-    "JPEG Compression": {"function": jpeg_comp, "default": [100,75,50], "example":20},
-    "Normal Compression": {"function": normal_comp, "default": [20], "example":30},
-    "Salt and Pepper": {"function": saltAndPapper_noise, "default": [0.01, 0.2, 0.3], "example":0.25},
+    "Intensity": {"function": dim_intensity, "default": [0.5,1.0,2.0,5.0,10.0], "example":0.5},
+    "Gaussian Noise": {"function": gaussian_noise, "default": [1,5,10,20,50], "example":25},
+    "Gaussian Blur": {"function": gaussian_blur, "default": [5,10,15,20,30], "example":30},
+    "JPEG Compression": {"function": jpeg_comp, "default": [100,75,50,25,10], "example":20},
+    "Normal Compression": {"function": normal_comp, "default": [1,5,10,20,50], "example":30},
+    "Salt and Pepper": {"function": saltAndPapper_noise, "default": [0.01,0.05,0.1,0.5,1], "example":0.25},
     "Flip Axis": {"function": flipAxis, "default": [-1], "example": -1},
-    "Fisheye Transformation": {"function": fisheye_transform, "default": [0.2, 0.3, 0.4], "example":0.4},
-    "WebP Compression": {"function": webp_transform, "default": [10, 20, 30], "example":10},
-    "KMeans Transformation": {"function": kmeans_transform, "default": [10], "example":10},
-    "ROI Compression": {"function": roiCompression, "default": [0.01, 0.2, 0.3], "example": 0.5}
+    "Fisheye Transformation": {"function": fisheye_transform, "default": [0.1,0.2,0.3,0.4,0.5], "example":0.4},
+    "WebP Compression": {"function": webp_transform, "default": [10,25,50,75,100], "example":10},
+    "KMeans Transformation": {"function": kmeans_transform, "default": [1,5,10,25,50], "example":10},
+    "ROI Compression": {"function": roiCompression, "default": [0.01,0.05,0.1,0.5,1], "example": 0.5}
 }
 
 class Augmentation:
