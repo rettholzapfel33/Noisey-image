@@ -26,7 +26,7 @@ from functools import partial
 import yaml
 
 # import utilities:
-import src.h264
+import src.videoTransform
 #import src.export
 from src.utils.images import convert_cvimg_to_qimg, convertCV2QT
 from src.transforms import AugDialog, AugmentationPipeline, Augmentation, mainAug
@@ -34,6 +34,10 @@ from src.experimentDialog import ExperimentConfig, ExperimentDialog
 from src import models
 from src.utils.qt5extra import CheckState
 from src.utils.weights import Downloader
+
+# Enable scaling 
+QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
 CURRENT_PATH = str(Path(__file__).parent.absolute()) + '/'
 TEMP_PATH = CURRENT_PATH + 'src/tmp_results/'

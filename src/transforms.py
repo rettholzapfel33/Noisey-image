@@ -125,6 +125,13 @@ def jpeg_comp(image, quality):
         dec_img = cv2.imdecode(enc_img, 1)
         return dec_img
 
+def jpeg2000(image, quality):
+    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
+    result, enc_img = cv2.imencode('.jp2', image, encode_param)
+    if result is True:
+        dec_img = cv2.imdecode(enc_img, 1)
+        return dec_img
+
 def normal_comp(image, scale_factor):
     original_shape = image.shape
     width = int(image.shape[1] * scale_factor / 100)
@@ -286,6 +293,7 @@ augList = {
     "Gaussian Noise": {"function": gaussian_noise, "default": [1,5,10,20,50], "example":25},
     "Gaussian Blur": {"function": gaussian_blur, "default": [5,10,15,20,30], "example":30},
     "JPEG Compression": {"function": jpeg_comp, "default": [100,75,50,25,10], "example":20},
+    "JPEG 2000 Compression": {"function": jpeg2000, "default": [100,75,50,25,10], "example":20},
     "Normal Compression": {"function": normal_comp, "default": [1,5,10,20,50], "example":30},
     "Salt and Pepper": {"function": saltAndPapper_noise, "default": [0.01,0.05,0.1,0.5,1], "example":0.25},
     "Flip Axis": {"function": flipAxis, "default": [-1], "example": -1},
