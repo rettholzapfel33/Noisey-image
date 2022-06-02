@@ -94,8 +94,8 @@ class ThreadWorker(QThread):
 
         videoIn = cv2.VideoCapture(self.media_path)
         videoIn2 = cv2.VideoCapture(self.media_path2)
-        videoOut = None
-        videoOut2 = None
+        #videoOut = None
+        #videoOut2 = None
 
         while(self._run_flag):
             t1 = time.time()
@@ -104,21 +104,25 @@ class ThreadWorker(QThread):
             ret2, frame2 = videoIn2.read()
             if not ret:
                 break
-
             if not ret2: 
                 break
 
-            if type(videoOut) == type(None):
-                videoOut = cv2.VideoWriter(self.media_out_path, cv2.VideoWriter_fourcc(*"mp4v"), 30, (frame.shape[1], frame.shape[0]))
-                videoOut2 = cv2.VideoWriter(self.media_out_path, cv2.VideoWriter_fourcc(*"mp4v"), 30, (frame2.shape[1], frame2.shape[0]))
+            # Only convert the first 100 frames of the video
+            if increment < 100:
+                resized = cv2.resize(frame, (1280,720))
+                cv2.imwrite(FRAMES_PATH + 'frame%d.jpg'%(increment), resized)
 
-            videoOut.write(frame)
-            videoOut2.write(frame2)
+            #if type(videoOut) == type(None):
+            #    videoOut = cv2.VideoWriter(self.media_out_path, cv2.VideoWriter_fourcc(*"mp4v"), 30, (frame.shape[1], frame.shape[0]))
+            #    videoOut2 = cv2.VideoWriter(self.media_out_path, cv2.VideoWriter_fourcc(*"mp4v"), 30, (frame2.shape[1], frame2.shape[0]))
+
+            #videoOut.write(frame)
+            #videoOut2.write(frame2)
 
             self.change_pixmap_signal.emit((frame, frame2, increment))
 
         videoIn.release()
-        videoOut.release()
+        #videoOut.release()
 
     def stop(self):
         """Sets run flag to False and waits for thread to finish"""
@@ -605,8 +609,9 @@ class mainWindow(QtWidgets.QMainWindow):
         # Save frame as jpeg
         if t1 < 100:
 
-            im = Image.fromarray(frame2)
-            im.save("imgs/frames/frame{}.jpg".format(t1))
+            im = Image.fromarray(frame2, mode='RGB')
+            #im.resize(1280, 720)
+            #im.save("imgs/frames/frame{}.jpg".format(t1), "JPEG")
 
         qtFrame = self.convertCV(frame)
         qtFrame2 = self.convertCV(frame2)
