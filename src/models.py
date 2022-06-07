@@ -87,7 +87,7 @@ class Model(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractclassmethod
-    def draw_single_class(self, pred):
+    def draw_single_class(self, pred, img, selected_class):
         raise NotImplementedError
 
     @abc.abstractclassmethod
@@ -562,7 +562,7 @@ class YOLOv4(Model):
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
         if torch.cuda.is_available():
-            pred = pred.cpu()
+            pred[0] = pred[0].cpu()
         pred = pred[0].detach().numpy()
         #print(self.yolo.training)
         return pred
@@ -652,6 +652,7 @@ class YOLOv3_Ultralytics(Model):
 
     def initialize(self, *kwargs):
         self.model = DetectMultiBackend(self.weight, device=self.device, dnn=False)
+        self.names = self.model.names
 
     def run(self, input):
         imageShape = input.shape
@@ -677,10 +678,10 @@ class YOLOv3_Ultralytics(Model):
         #    xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
         #    line = (cls, *xywh, conf) if save_conf else (cls, *xywh)  # label format
 
-    def draw(self, preds, im0):
+    def draw(self, preds, im0, class_filter=None):
         labels = {"all":[255,255,255]}
         if len(preds) > 0:
-            names = self.model.names
+            names = self.names
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             imc = im0  # for save_crop
             annotator = Annotator(im0, line_width=2)
@@ -691,7 +692,11 @@ class YOLOv3_Ultralytics(Model):
                 if not label in labels:
                     _c = list(_color)
                     labels[label] = [_c[2], _c[1], _c[0]]
-                annotator.box_label(xyxy, label, color=_color)
+                if class_filter:
+                    if class_filter == label:
+                        annotator.box_label(xyxy, label, color=_color)
+                else:
+                    annotator.box_label(xyxy, label, color=_color)
                 # Stream results
             im0 = annotator.result()
         #cv2.imshow('test', im0)
@@ -703,8 +708,9 @@ class YOLOv3_Ultralytics(Model):
     def deinitialize(self):
         del self.model
 
-    def draw_single_class(self):
-        return 0
+    def draw_single_class(self, preds, im0, selected_class):
+        res = self.draw(preds, im0, class_filter=selected_class)
+        return {"overlay": res["dst"]}
 
     @property
     def outputFormat(self):
