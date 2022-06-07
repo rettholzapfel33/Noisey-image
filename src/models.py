@@ -611,10 +611,6 @@ class YOLOv4(Model):
             assert type(_pred) == BoundingBox, "_gt is not BoundingBox type. Instead is %s"%(str(type(_pred)))
             allBoundingBoxes.addBoundingBox(_pred)
 
-        image = np.zeros((1400,1607,3), dtype=np.uint8)
-        out_image = allBoundingBoxes.drawAllBoundingBoxes(image, '100faces')
-        cv2.imwrite('test.png', out_image)
-
         #for box in allBoundingBoxes:
         #    print(box.getAbsoluteBoundingBox(format=BBFormat.XYWH), box.getBBType()) 
         if evalType == 'voc':
@@ -712,12 +708,41 @@ class YOLOv3_Ultralytics(Model):
         res = self.draw(preds, im0, class_filter=selected_class)
         return {"overlay": res["dst"]}
 
-    @property
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
 
-    def report_accuracy(self):
-        return 0
+    def report_accuracy(self, pred:list, gt:list, evalType='voc'):
+        """Function takes in prediction boxes and ground truth boxes and
+        returns the mean average precision (mAP) @ IOU 0.5 under VOC2007 criteria (default).
+        Args:
+            pred (list): A list of BoundingBox objects representing each detection from method
+            gt (list): A list of BoundingBox objects representing each object in the ground truth
+        Returns:
+            mAP: a number representing the mAP over all classes for a single image.
+        """        
+        if len(pred) == 0: return 0
+
+        allBoundingBoxes = BoundingBoxes()
+        evaluator = Evaluator()
+
+        # loop through gt:
+        for _gt in gt:
+            assert type(_gt) == BoundingBox, "_gt is not BoundingBox type. Instead is %s"%(str(type(_gt)))
+            allBoundingBoxes.addBoundingBox(_gt)
+
+        for _pred in pred:
+            assert type(_pred) == BoundingBox, "_gt is not BoundingBox type. Instead is %s"%(str(type(_pred)))
+            allBoundingBoxes.addBoundingBox(_pred)
+
+        #for box in allBoundingBoxes:
+        #    print(box.getAbsoluteBoundingBox(format=BBFormat.XYWH), box.getBBType()) 
+        if evalType == 'voc':
+            metrics = evaluator.GetPascalVOCMetrics(allBoundingBoxes)
+            print(metrics)
+        elif evalType == 'coco':
+            assert False
+        else: assert False, "evalType %s not supported"%(evalType) 
+        return metrics[0]['AP']
 
 '''
 class YOLOX(Model):

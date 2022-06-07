@@ -98,7 +98,7 @@ class ExperimentWorker(QObject):
                 raise NotImplementedError()
                 # do mAP calculation here
                 
-        elif self.config.modelName == 'Face Detection (YOLOv3)':
+        elif self.config.modelName == 'Face Detection (YOLOv3)' or 'Object Detection (YOLOv3-Ultra)':
             if len(self.config.labels) == 0:
                 if assembler is None: assembler = 0
                 assembler += len(dets)
@@ -146,7 +146,7 @@ class ExperimentWorker(QObject):
                 assembler += len(dets)
             else:
                 pass
-        else: raise Exception('model name is not recognized in _registry'%(self.config.modelName))
+        else: raise Exception('model name %s is not recognized in _registry'%(self.config.modelName))
         return assembler
 
     def run(self):
