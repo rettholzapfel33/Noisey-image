@@ -6,10 +6,15 @@ from PyQt5.QtCore import QObject
 import os, csv, torch, scipy.io
 import numpy as np
 
+from src.yolov4.utils.torch_utils import select_device
+
 if __name__ == '__main__':
     import sys
     sys.path.append('./')
 
+# move imports into their own __init__.py file
+
+# import seg network here:
 from src.predict_img import new_visualize_result, process_img, predict_img, load_model_from_cfg, visualize_result, transparent_overlays, get_color_palette
 from src.mit_semseg.utils import AverageMeter, accuracy, intersectionAndUnion
 
@@ -47,6 +52,13 @@ from src.yolov4.models.models import load_darknet_weights
 import src.yolov4.utils.utils as utils_v4
 from src.transforms import letterbox_image
 from src.yolov4.utils.general import (check_img_size, non_max_suppression, apply_classifier, scale_coords, xyxy2xywh, strip_optimizer)
+
+# import yolov3-ultralytics here:
+#from src.yolov3 import detect
+from src.yolov3.utils.plots import Annotator, Colors
+from src.yolov3.utils.augmentations import letterbox
+from src.yolov3.models.common import DetectMultiBackend
+import yaml
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 
@@ -616,6 +628,105 @@ class YOLOv4(Model):
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
 
+class YOLOv3_Ultralytics(Model):
+    def __init__(self, *network_config) -> None:
+        super().__init__(*network_config)
+        _yaml, self.weight = network_config
+        with open(_yaml, 'r') as stream:
+            self.YAML = yaml.safe_load(stream)
+
+        self.img_size = (416,416)
+        self.conf_threshold = 0.25
+        if torch.cuda.is_available():
+            self.device = select_device('0')
+        else:
+            self.device = select_device('cpu')
+        self.conf_thres = 0.5
+        self.iou_thres = 0.6
+        self.max_det = 1000
+        self.img_size = 416
+        
+        self.hide_conf = True
+        self.hide_labels = False
+        self.colors = Colors()  # create instance for 'from utils.plots import colors'
+
+    def initialize(self, *kwargs):
+        self.model = DetectMultiBackend(self.weight, device=self.device, dnn=False)
+
+    def run(self, input):
+        imageShape = input.shape
+        gn = torch.tensor(imageShape)[[1, 0, 1, 0]]  # normalization gain whwh
+        im = letterbox(input, self.img_size, stride=self.model.stride, auto=False)[0]
+        im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+        im = np.ascontiguousarray(im)
+        im = torch.from_numpy(im).to(self.device)
+        im = torch.unsqueeze(im, axis=0)
+        im = im.float()  # uint8 to fp16/32
+        im /= 255  # 0 - 255 to 0.0 - 1.0
+        pred = self.model(im, augment=False, visualize=False)
+        pred = non_max_suppression(pred, self.conf_thres, self.iou_thres, None, False)[0]
+
+        if pred.shape[0] > 0:
+            # Rescale boxes from img_size to im0 size
+            pred[:, :4] = scale_coords(im.shape[2:], pred[:, :4], imageShape).round()
+            return pred
+        else:
+            return []
+        # Write results
+        #for *xyxy, conf, cls in reversed(det):
+        #    xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
+        #    line = (cls, *xywh, conf) if save_conf else (cls, *xywh)  # label format
+
+    def draw(self, preds, im0):
+        labels = {"all":[255,255,255]}
+        if len(preds) > 0:
+            names = self.model.names
+            gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
+            imc = im0  # for save_crop
+            annotator = Annotator(im0, line_width=2)
+            for *xyxy, conf, cls in reversed(preds):
+                c = int(cls)  # integer class
+                label = None if self.hide_labels else (names[c] if self.hide_conf else f'{names[c]} {conf:.2f}')
+                _color = self.colors(c, True)
+                if not label in labels:
+                    _c = list(_color)
+                    labels[label] = [_c[2], _c[1], _c[0]]
+                annotator.box_label(xyxy, label, color=_color)
+                # Stream results
+            im0 = annotator.result()
+        #cv2.imshow('test', im0)
+        #cv2.imwrite('test.png', im0)
+        #cv2.waitKey(-1)
+        return {"dst": im0,
+                "listOfNames":labels}
+
+    def deinitialize(self):
+        del self.model
+
+    def draw_single_class(self):
+        return 0
+
+    @property
+    def outputFormat(self):
+        return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
+
+    def report_accuracy(self):
+        return 0
+
+'''
+class YOLOX(Model):
+    def __init__(self, *network_config) -> None:
+        super().__init__(*network_config)
+
+    def run(self):
+        return 0
+
+    def initialize(self):
+        return 0
+
+    def draw(self):
+        return 0
+'''
 
 _registry = {
     'Face Detection (YOLOv3)': YOLOv3(
@@ -649,7 +760,14 @@ _registry = {
         os.path.join(currPath, 'yolov4', 'data', 'coco.names'),
         os.path.join(currPath, 'yolov4', 'cfg', 'yolov4.cfg'),
         os.path.join(currPath,'yolov4', 'weights', 'yolov4.weights')
-    )
+    ),
+    'Object Detection (YOLOv3-Ultra)': YOLOv3_Ultralytics(
+        os.path.join(currPath, 'yolov3', 'models', 'yolov3.yaml'),
+        os.path.join(currPath, 'yolov3', 'yolov3.pt')
+    ),
+    # 'Object Detection (YOLOX)': YOLOX(
+
+    # )
 }
 
 
