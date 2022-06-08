@@ -60,6 +60,11 @@ from src.yolov3.utils.augmentations import letterbox
 from src.yolov3.models.common import DetectMultiBackend
 import yaml
 
+# YOLOX imports:
+from src.yolox.yolox.data.datasets import COCO_CLASSES
+
+
+
 currPath = str(Path(__file__).parent.absolute()) + '/'
 
 class Model(abc.ABC):
@@ -744,20 +749,142 @@ class YOLOv3_Ultralytics(Model):
         else: assert False, "evalType %s not supported"%(evalType) 
         return metrics[0]['AP']
 
-'''
 class YOLOX(Model):
-    def __init__(self, *network_config) -> None:
-        super().__init__(*network_config)
+    def __init__(self, *network_config) -> None:   
+        from src.yolox.yolox.data.data_augment import ValTransform
+        from src.yolox.yolox.exp import get_exp
+        exp_file, name, self.weight, self.classes = network_config
+        self.complexOutput = False
+        self.exp = get_exp(exp_file, name)
+        self.test_size = self.exp.test_size
+        self.preproc = ValTransform(legacy=False)
+        self.num_classes = self.exp.num_classes
+        #self.confthre = self.exp.test_conf
+        self.confthre = 0.5
+        self.nmsthre = self.exp.nmsthre
+        if torch.cuda.is_available():
+            self.device = "gpu"
+        else:
+            self.device = "cpu"
 
-    def run(self):
-        return 0
+    def run(self, img):
+        from src.yolox.yolox.utils import fuse_model, get_model_info, postprocess, vis
+        imgShape = img.shape
+        ratio = min(self.test_size[0] / img.shape[0], self.test_size[1] / img.shape[1])
+
+        with torch.no_grad():
+            img, _ = self.preproc(img, None, self.test_size)
+            img = torch.from_numpy(img).unsqueeze(0)
+            img = img.float()
+            if self.device == "gpu":
+                img = img.cuda()
+                self.model.cuda()
+            outputs = self.model(img)
+            outputs = postprocess(
+                outputs, self.num_classes, self.confthre,
+                self.nmsthre, class_agnostic=True
+            )
+
+            if outputs is None:
+                return torch.Tensor([])
+
+            outputs = outputs[0]
+            outputs = outputs.cpu()
+            bboxes = outputs[:, 0:4]
+            # preprocessing: resize
+            bboxes /= ratio
+            #bboxes[:, [0,2]] *= imgShape[1]
+            #bboxes[:, [1,3]] *= imgShape[0]
+            cls = outputs[:, 6]
+            cls = torch.unsqueeze(cls, axis=1)
+            scores = outputs[:, 4] * outputs[:, 5]
+            scores = torch.unsqueeze(scores, axis=1)
+            outputs = torch.cat((bboxes, scores, cls),axis=-1)
+        return outputs
 
     def initialize(self):
-        return 0
+        self.model = self.exp.get_model()
+        self.model.load_state_dict(torch.load(self.weight)["model"])
+        self.model.eval()
+        
+    def deinitialize(self):
+        del self.model
 
-    def draw(self):
-        return 0
-'''
+    def draw(self,  preds, im0, class_filter=None):
+        from src.yolox.yolox.utils.visualize import _COLORS
+
+        labels = {"all":[255,255,255]}
+
+        for i in range(preds.shape[0]):
+            bboxes = preds[i,:4].int().tolist()
+            cls_id = preds[i,5].int()
+            score = preds[i,4]
+            label = self.classes[cls_id]
+
+            color = (_COLORS[cls_id] * 255).astype(np.uint8).tolist()
+            text = '{}:{:.1f}%'.format(label, score * 100)
+            txt_color = (0, 0, 0) if np.mean(_COLORS[cls_id]) > 0.5 else (255, 255, 255)
+            font = cv2.FONT_HERSHEY_SIMPLEX
+
+            if class_filter:
+                if class_filter != label:
+                    continue
+
+            txt_size = cv2.getTextSize(text, font, 0.4, 1)[0]
+            im0 = cv2.rectangle(im0, (bboxes[0], bboxes[1]), (bboxes[2], bboxes[3]), color, thickness=2)
+            txt_bk_color = (_COLORS[cls_id] * 255 * 0.7).astype(np.uint8).tolist()
+            im0 = cv2.rectangle(
+                im0,
+                (bboxes[0], bboxes[1] + 1),
+                (bboxes[0] + txt_size[0] + 1, bboxes[1] + int(1.5*txt_size[1])),
+                txt_bk_color,
+                -1
+            )
+            im0 = cv2.putText(im0, text, (bboxes[0], bboxes[1] + txt_size[1]), font, 0.4, txt_color, thickness=1)
+            if not label in labels:
+                labels[label] = [color[2], color[1], color[0]]
+
+        return {"dst":im0, "listOfNames":labels}
+
+    def draw_single_class(self, preds, im0, selected_class):
+        res = self.draw(preds, im0, class_filter=selected_class)
+        return {"overlay": res["dst"]}
+
+    def outputFormat(self):
+        return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
+
+    def report_accuracy(self, pred:list, gt:list, evalType='voc'):
+        """Function takes in prediction boxes and ground truth boxes and
+        returns the mean average precision (mAP) @ IOU 0.5 under VOC2007 criteria (default).
+        Args:
+            pred (list): A list of BoundingBox objects representing each detection from method
+            gt (list): A list of BoundingBox objects representing each object in the ground truth
+        Returns:
+            mAP: a number representing the mAP over all classes for a single image.
+        """        
+        if len(pred) == 0: return 0
+
+        allBoundingBoxes = BoundingBoxes()
+        evaluator = Evaluator()
+
+        # loop through gt:
+        for _gt in gt:
+            assert type(_gt) == BoundingBox, "_gt is not BoundingBox type. Instead is %s"%(str(type(_gt)))
+            allBoundingBoxes.addBoundingBox(_gt)
+
+        for _pred in pred:
+            assert type(_pred) == BoundingBox, "_gt is not BoundingBox type. Instead is %s"%(str(type(_pred)))
+            allBoundingBoxes.addBoundingBox(_pred)
+
+        #for box in allBoundingBoxes:
+        #    print(box.getAbsoluteBoundingBox(format=BBFormat.XYWH), box.getBBType()) 
+        if evalType == 'voc':
+            metrics = evaluator.GetPascalVOCMetrics(allBoundingBoxes)
+            print(metrics)
+        elif evalType == 'coco':
+            assert False
+        else: assert False, "evalType %s not supported"%(evalType) 
+        return metrics[0]['AP']
 
 _registry = {
     'Face Detection (YOLOv3)': YOLOv3(
@@ -796,9 +923,12 @@ _registry = {
         os.path.join(currPath, 'yolov3', 'models', 'yolov3.yaml'),
         os.path.join(currPath, 'yolov3', 'yolov3.pt')
     ),
-    # 'Object Detection (YOLOX)': YOLOX(
-
-    # )
+    'Object Detection (YOLOX)': YOLOX(
+        os.path.join(currPath, "yolox/exps/default/yolox_m.py"),
+        "yolo-m",
+        os.path.join(currPath, "yolox/weights/yolox_m.pth"),
+        COCO_CLASSES
+    )
 }
 
 

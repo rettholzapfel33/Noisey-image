@@ -144,6 +144,15 @@ class DownloadWorker(QObject):
                 if not os.path.exists(_path_base):
                     print("YOLOv3 COCO weights not found. Attempting to download...")
                     self.downloadGoogleDriveWeights(_path_base, "https://drive.google.com/u/0/uc?id=1OcabdJV98TaPg6D6LjWSNc6pl0s9IIdr")
+            elif path[0] == 'yolox':
+                self.progress.emit(0)
+                _path_base = os.path.join('./src/yolox/weights', path[1])
+                print(_path_base)
+                if not os.path.exists('./src/yolox/weights'): os.mkdir('./src/yolox/weights')
+                if not os.path.exists(_path_base):
+                    print("YOLOvX COCO weights not found. Attempting to download...")
+                    self.downloadYOLOv3Weights(_path_base, host='https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_m.pth')
+
         self.logProgress.emit("Finished downloading all weights. Press Continue to proceed to main GUI\n")
 
 # Setup Dialog Window:
@@ -225,6 +234,10 @@ class Downloader(QDialog):
                     return True
             elif path[0] == 'yolov3-face':
                 _path_base = os.path.join('./src/obj_detector/weights', path[1])
+                if not os.path.exists(_path_base):
+                    return True
+            elif path[0] == 'yolox':
+                _path_base = os.path.join('./src/yolox/weights', path[1])
                 if not os.path.exists(_path_base):
                     return True
         return False
