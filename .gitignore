@@ -1,4 +1,4 @@
-*.gif
+*.mp4
 *.avi
 *.weights
 *.webp
@@ -12,5 +12,4 @@ src/jit/darknet_radar_cfg/
 jupyter_files/libtorch
 dev
 src/data/tmp/runs
-.vscode/3
-drone/
+.vscode/

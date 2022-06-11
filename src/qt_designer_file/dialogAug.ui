@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>645</width>
-    <height>430</height>
+    <width>640</width>
+    <height>477</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>380</y>
+     <y>430</y>
      <width>591</width>
      <height>32</height>
     </rect>
@@ -124,76 +124,23 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLineEdit" name="minimum">
+  <widget class="QLabel" name="info_label">
    <property name="geometry">
     <rect>
-     <x>300</x>
-     <y>330</y>
-     <width>71</width>
-     <height>22</height>
+     <x>30</x>
+     <y>320</y>
+     <width>591</width>
+     <height>101</height>
     </rect>
    </property>
-   <property name="inputMask">
+   <property name="text">
     <string/>
    </property>
-  </widget>
-  <widget class="QLineEdit" name="maximum">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>330</y>
-     <width>71</width>
-     <height>22</height>
-    </rect>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
    </property>
-  </widget>
-  <widget class="QLineEdit" name="increment">
-   <property name="geometry">
-    <rect>
-     <x>480</x>
-     <y>330</y>
-     <width>91</width>
-     <height>22</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_4">
-   <property name="geometry">
-    <rect>
-     <x>300</x>
-     <y>310</y>
-     <width>71</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Minimum</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_6">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>310</y>
-     <width>71</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Maximum</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_7">
-   <property name="geometry">
-    <rect>
-     <x>480</x>
-     <y>310</y>
-     <width>91</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Increment</string>
+   <property name="wordWrap">
+    <bool>true</bool>
    </property>
   </widget>
  </widget>

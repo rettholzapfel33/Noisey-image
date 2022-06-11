@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1554</width>
-    <height>932</height>
+    <width>1195</width>
+    <height>681</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,10 +29,7 @@
       <item row="0" column="1">
        <layout class="QVBoxLayout" name="verticalLayout_5">
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,5,0">
-          <item>
-           <widget class="Label" name="video_original"/>
-          </item>
+         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="5,0">
           <item>
            <widget class="Label" name="original">
             <property name="sizePolicy">
@@ -93,106 +90,27 @@
         </item>
        </layout>
       </item>
-      <item row="1" column="1">
-       <widget class="Line" name="line">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QPushButton" name="defaultVideo">
+      <item row="2" column="1">
+       <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Default</string>
+         <string>Augmentation Generator</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
-      <item row="0" column="2">
-       <layout class="QVBoxLayout" name="verticalLayout_7">
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,5,0">
-          <item>
-           <widget class="Label" name="video_preview"/>
-          </item>
-          <item>
-           <widget class="Label" name="preview">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="scaledContents">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_9">
-            <property name="text">
-             <string>Noisy</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_6" stretch="5,0">
-          <item>
-           <widget class="Label" name="preview_2">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="scaledContents">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_11">
-            <property name="text">
-             <string>Overlay</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
+      <item row="2" column="2">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Models</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
       </item>
-      <item row="5" column="0">
-       <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="0">
-         <widget class="QRadioButton" name="imageButton">
-          <property name="text">
-           <string>Images</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QRadioButton" name="videoButton">
-          <property name="text">
-           <string>Videos</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="5" column="2">
+      <item row="3" column="2">
        <layout class="QGridLayout" name="gridLayout_2" columnstretch="0">
         <item row="3" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="5,4,4,2,2,1">
@@ -317,6 +235,84 @@
         </item>
        </layout>
       </item>
+      <item row="1" column="1">
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="Line" name="line_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <layout class="QVBoxLayout" name="verticalLayout_7">
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_3" stretch="5,0">
+          <item>
+           <widget class="Label" name="preview">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="scaledContents">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>Noisy</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_6" stretch="5,0">
+          <item>
+           <widget class="Label" name="preview_2">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="scaledContents">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>Overlay</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
       <item row="0" column="0" rowspan="2">
        <widget class="QTabWidget" name="tabWidget">
         <property name="font">
@@ -349,24 +345,14 @@
         </widget>
        </widget>
       </item>
-      <item row="4" column="2">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Models</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
+      <item row="2" column="0">
        <widget class="QProgressBar" name="progressBar_2">
         <property name="value">
          <number>0</number>
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
+      <item row="3" column="1">
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0,0">
@@ -445,30 +431,6 @@
         </item>
        </layout>
       </item>
-      <item row="4" column="1">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Augmentation Generator</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="Line" name="line_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QPushButton" name="faceVideo">
-        <property name="text">
-         <string>100 Faces</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </item>
    </layout>
@@ -478,8 +440,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1554</width>
-     <height>17</height>
+     <width>1195</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

@@ -1,4 +1,4 @@
 {
     "restructuredtext.confPath": "",
-    "cmake.configureOnOpen": false
+    "esbonio.server.enabled": true
 }

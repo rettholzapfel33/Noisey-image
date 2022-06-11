@@ -7,6 +7,7 @@ from PyQt5.QtGui import QPixmap
 from src.mplwidget import MplWidget
 import matplotlib.pyplot as plt
 
+from makeBetterGraph import makemAPGraph
 from src.transforms import AugmentationPipeline, Augmentation
 import cv2
 import os
@@ -17,8 +18,11 @@ import yaml
 from src.utils.images import convertCV2QT
 import matplotlib.pyplot as plt
 
-# calculating stats:
-from src.evaluators.map_metric import driver
+# eval imports:
+from src.evaluators.map_metric.lib.BoundingBoxes import BoundingBox
+from src.evaluators.map_metric.lib import BoundingBoxes
+from src.evaluators.map_metric.lib.Evaluator import *
+from src.evaluators.map_metric.lib.utils import BBFormat
 
 def createExperimentName(savePath):
     _root_name = 'exp'
@@ -33,7 +37,7 @@ def createExperimentName(savePath):
         return "%s_%i"%(_root_name, _max_index+1)
 
 class ExperimentConfig:
-    def __init__(self, mainAug:AugmentationPipeline, isCompound:bool, imagePaths:list, model, modelName, shouldAug=True, labels=[]) -> None:
+    def __init__(self, mainAug:AugmentationPipeline, isCompound:bool, imagePaths:list, model, modelName, shouldAug=True, labels=[], labelType="voc") -> None:
         self.mainAug = mainAug
         self.isCompound = isCompound
         self.imagePaths = imagePaths
@@ -41,6 +45,7 @@ class ExperimentConfig:
         self.modelName = modelName
         self.shouldAug = shouldAug
         self.labels = labels
+        self.labelType = labelType
         self.expName = ''
         self.savePath = './src/data/tmp/runs'
 
@@ -78,8 +83,13 @@ class ExperimentWorker(QObject):
     def writeGraph(self, inData, outPath):
        #np.savetxt(os.path.join(outPath, 'graphing.csv'),inData,)
        np.save(os.path.join(outPath, 'graphing.npy'), inData)
+       title = ""
+       for aug in self.config.mainAug:
+           title = aug.title
+           break
+       makemAPGraph(outPath, title, self.config.modelName)
 
-    def calculateStat(self, dets, assembler, i):
+    def calculateStat(self, dets, assembler, i, filename):
         if self.config.modelName == 'Object Detection (YOLOv3)':
             if len(self.config.labels) == 0:
                 if assembler is None: assembler = 0
@@ -87,7 +97,24 @@ class ExperimentWorker(QObject):
             else:
                 raise NotImplementedError()
                 # do mAP calculation here
-                pass
+                
+        elif self.config.modelName == 'Face Detection (YOLOv3)' or 'Object Detection (YOLOv3-Ultra)':
+            if len(self.config.labels) == 0:
+                if assembler is None: assembler = 0
+                assembler += len(dets)
+            else:
+                if assembler is None: assembler = 0
+                # convert to boundingbox classes
+                #[x1,y1,x2,y2,conf,class] <--- box
+                if filename in self.config.labels:
+                    preds = [BoundingBox(filename, det[5], det[0], det[1], det[2]-det[0], det[3]-det[1], classConfidence=det[4], bbType=BBType.Detected) for det in dets]
+                    gt = self.config.labels[filename]
+                    #preds = [ BoundingBox(filename, 0, det.getAbsoluteBoundingBox(format=BBFormat.XYWH)[0], det.getAbsoluteBoundingBox(format=BBFormat.XYWH)[1], det.getAbsoluteBoundingBox(format=BBFormat.XYWH)[2], det.getAbsoluteBoundingBox(format=BBFormat.XYWH)[3], format=BBFormat.XYWH, bbType=BBType.Detected, classConfidence=0.99)  for det in self.config.labels[filename]]
+                    mAP50 = self.config.model.report_accuracy(preds, gt, self.config.labelType)
+                    # do mAP calculation here
+                    assembler += mAP50
+                else: print("WARNING: %s does not have key in labels! Ignoring for now.")
+                
         elif self.config.modelName == 'Semantic Segmentation':
             if len(self.config.labels) == 0:
                 if assembler is None: assembler = []
@@ -101,7 +128,25 @@ class ExperimentWorker(QObject):
             else:
                 raise NotImplementedError()
                 pass # do whatever segmentation needs for eval LOL IDK
-        else: raise Exception('model name is not recognized in _registry'%(self.config.modelName))
+        elif self.config.modelName == 'EfficientDetV2':
+            if len(self.config.labels) == 0:
+                if assembler is None: assembler = 0
+                assembler += len(dets)
+            else:
+                pass
+        elif self.config.modelName == 'Object Detection (DETR)':
+            if len(self.config.labels) == 0:
+                if assembler is None: assembler = 0
+                assembler += len(dets)
+            else:
+                pass
+        elif self.config.modelName == 'Object Detection (YOLOv4)':
+            if len(self.config.labels) == 0:
+                if assembler is None: assembler = 0
+                assembler += len(dets)
+            else:
+                pass
+        else: raise Exception('model name %s is not recognized in _registry'%(self.config.modelName))
         return assembler
 
     def run(self):
@@ -112,6 +157,11 @@ class ExperimentWorker(QObject):
         
         # write meta out for later loading and reference
         self.writeMeta(os.path.join(self.savePath, exp_path))
+
+        # map compute purposes:
+        if self.config.model.complexOutput:
+            old_thres = self.config.model.conf_thres
+            self.config.model.conf_thres = 0.00001
 
         if len(self.config.mainAug) == 0:
             for i, imgPath in enumerate(self.config.imagePaths):
@@ -175,14 +225,14 @@ class ExperimentWorker(QObject):
                             self.writeDets(dets, new_sub_dir, imgPath)
                             self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
                             self.progress.emit(i)
-                            _count = self.calculateStat(dets, _count, i)
+                            _count = self.calculateStat(dets, _count, i, os.path.splitext(imgPath.split('/')[-1])[0] ) # find the filename only
 
                         if type(_count) == int: _count /= len(self.config.imagePaths)
                         count_temp.append(_count)
                     counter.append(count_temp)
 
-        #print(len(counter[0]))
-        #exit() 
+        if self.config.model.complexOutput:
+            self.config.model.conf_thres = old_thres
 
         self.writeGraph(counter, os.path.join(self.savePath, exp_path))
         # clean up model
@@ -300,7 +350,7 @@ class ExperimentResultWorker(QObject):
             ax.set_title(_title)
             ax.plot(_x, _g, '-o')
 
-        plt.show()
+        # plt.show()
         
         self.finishedGraph.emit([fig, ax])
         self.finished.emit()
@@ -454,14 +504,18 @@ class ExperimentDialog(QDialog):
 
     def updateGraph(self, ax_list):
         fig, ax = ax_list
-        line = ax.lines[0]
-        x_data = line.get_xdata()
-        y_data = line.get_ydata()
-        self.graphWidget.canvas.axes.clear()
-        self.graphWidget.canvas.axes.plot(x_data, y_data, 'o-')
+        for i in range(len(ax.lines)):
+            line = ax.lines[i]
+            x_data = line.get_xdata()
+            y_data = line.get_ydata()
+            # self.graphWidget.canvas.axes.clear()
+            self.graphWidget.canvas.axes.plot(x_data, y_data, 'o-')
         self.graphWidget.canvas.axes.set_title(ax.get_title())
-        self.graphWidget.canvas.axes.set_xlabel(str(ax.xaxis.get_label()))
-        self.graphWidget.canvas.axes.set_ylabel(str(ax.yaxis.get_label()))
+        # self.graphWidget.canvas.axes.set_xlabel(str(ax.xaxis.get_label()))
+        # self.graphWidget.canvas.axes.set_ylabel(str(ax.yaxis.get_label()))
+        self.graphWidget.canvas.axes.set_xlabel("Augment Level")
+        self.graphWidget.canvas.axes.set_ylabel("Accuracy")
+        # self.graphWidget.canvas.axes.legend()
         self.graphWidget.canvas.draw()
 
     def refreshGraphResults(self,i):
@@ -494,5 +548,5 @@ class ExperimentDialog(QDialog):
     def changeOnGraphButton(self, i):
         if self.currentGraphIdx+i < self.totalGraphs and self.currentGraphIdx+i >= 0:
             self.currentGraphIdx += i
-            #self.label_4.setText(str(self.currentGraphIdx+1))
-            #self.refreshGraphResults(self.currentGraphIdx)
+            self.label_4.setText(str(self.currentGraphIdx+1))
+            self.refreshGraphResults(self.currentGraphIdx)

@@ -1,11 +1,11 @@
-import os
 import random
+import math
+import os
 from urllib import request
+from pathlib import Path
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
-from pyparsing import empty
 
 from numpy.lib.function_base import select
-from torchvision.transforms.functional import center_crop
 from src.utils.qt5extra import CheckState
 #import utils.qt5extra.CheckState
 
@@ -15,15 +15,12 @@ from PyQt5 import uic
 import cv2
 import numpy as np
 import time
+from PIL import Image
 from src.utils import images
 from src import models
-
-import PIL
-
-from skimage import io
-from sklearn.cluster import KMeans
-
 #import src.utils.images
+
+currPath = str(Path(__file__).parent.absolute()) + '/'
 
 def letterbox_image(image, size):
     '''
@@ -100,6 +97,16 @@ def gaussian_noise(image, std, seed=-1):
         return combined.astype('uint8')
     else: assert False
 
+def gaussian_blur(image, parameter):   
+    parameter = int(parameter)
+    image_copy = np.copy(image)
+    cols = image_copy.shape[0]
+    rows = image_copy.shape[1]
+    output_image = np.zeros((cols,rows,3))
+    output_image = cv2.GaussianBlur(image_copy, (parameter,parameter),0) # parameter is size of median kernel
+    return output_image.astype('uint8')
+
+'''
 def gaussian_blur(image, kernel_size_factor, stdX=0, stdY=0, seed=-1):
     if type(kernel_size_factor) == float or type(kernel_size_factor) == int:
         w = int((kernel_size_factor*2)+1)
@@ -117,17 +124,11 @@ def gaussian_blur(image, kernel_size_factor, stdX=0, stdY=0, seed=-1):
         blur_img = cv2.GaussianBlur(
             image, (w_r, h_r), cv2.BORDER_DEFAULT, stdX, stdY)
         return blur_img
+'''
 
 def jpeg_comp(image, quality):
     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
     result, enc_img = cv2.imencode('.jpg', image, encode_param)
-    if result is True:
-        dec_img = cv2.imdecode(enc_img, 1)
-        return dec_img
-
-def jpeg2000(image, quality):
-    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
-    result, enc_img = cv2.imencode('.jp2', image, encode_param)
     if result is True:
         dec_img = cv2.imdecode(enc_img, 1)
         return dec_img
@@ -176,7 +177,7 @@ def flipVertical(image):
     image = cv2.flip(image, 0)
     return image
     
-def fisheye_transform(image, factor=0.25):
+def fisheye(image, factor=0.25):
     '''
     Transform image using fisheye projection
     |Parameters: 
@@ -206,9 +207,172 @@ def fisheye_transform(image, factor=0.25):
             # if new pixel is in bounds copy from source pixel to destination pixel
             if 0 <= new_x and new_x < width and 0 <= new_y and new_y < height:
                 new_image[x][y] = image[new_x][new_y]
-
     return new_image
 
+def barrel(image, factor=0.005):
+    height, width, channel = image.shape
+    k1, k2, p1, p2 = factor, 0, 0, 0
+    dist_coeff = np.array([[k1],[k2],[p1],[p2]])
+    # assume unit matrix for camera
+    cam = np.eye(3,dtype=np.float32)
+    cam[0,2] = width/2.0  # define center x
+    cam[1,2] = height/2.0 # define center y
+    cam[0,0] = 10.        # define focal length x
+    cam[1,1] = 10.        # define focal length y
+    new_image = cv2.undistort(image, cam, dist_coeff)
+    return new_image
+
+def pick_img(start_dir):
+    curr_dir = os.listdir(os.path.join(start_dir))
+    # curr_dir.remove("LABELS")
+    curr_path = start_dir
+    
+    while True:
+        curr_file = random.choice(curr_dir)
+
+        if os.path.isfile(os.path.join(curr_path, curr_file)):
+            img = cv2.imread(os.path.join(curr_path, curr_file))
+            if img is None:
+                curr_dir = os.listdir(os.path.join(start_dir))
+                # curr_dir.remove("LABELS")
+                curr_path = start_dir
+            else:
+                return img
+        else:
+            curr_path = os.path.join(curr_path, curr_file)
+            curr_dir = os.listdir(os.path.join(curr_path))
+
+def simple_mosaic(image, dummy):
+    # pick three images
+    images = [pick_img('imgs') for x in range(4)]
+    # images += [image]
+
+    # find smallest image, resize others to fit
+    smallest = image.shape[0] * image.shape[1]
+    sm_shape = image.shape
+    for i in images:
+        curr_area = i.shape[0] * i.shape[1]
+        if curr_area < smallest:
+            smallest = curr_area
+            sm_shape = i.shape
+
+    # combine images into one big 2x2
+    resized = [cv2.resize(curr_im, (sm_shape[0], sm_shape[1])) for curr_im in images]
+    big_image = []
+    big_image = np.concatenate((resized[0], resized[1]), axis=1)
+    bottom = np.concatenate((resized[2], resized[3]), axis=1)
+    big_image = np.concatenate((big_image, bottom), axis=0)
+    
+    # pick random bounds to make the mosaic image
+    row_start = math.floor(random.random() * big_image.shape[0] / 2)
+    col_start = math.floor(random.random() * big_image.shape[1] / 2)
+    row_end = row_start + math.floor(big_image.shape[0] / 2)
+    col_end = col_start + math.floor(big_image.shape[1] / 2)
+    final_im = big_image[row_start:row_end][col_start:col_end]
+    return final_im
+
+def black_white(image, channel):
+    channel = int(channel)
+    image[:,:,0] = image[:,:,channel]
+    image[:,:,1] = image[:,:,channel]
+    image[:,:,2] = image[:,:,channel]
+    return image 
+
+def speckle_noise(image, std, seed=-1):
+    '''
+    Speckle is a granular noise that inherently exists in an image and degrades its quality. 
+    It can be generated by multiplying random pixel values with different pixels of an image.
+    '''
+    mean = 2
+    if type(std) == float or type(std) == int:
+        assert std > 0
+        # only control standard dev:
+        gauss = np.random.normal(mean, std, size=image.shape)
+    elif type(std) == tuple:
+        if seed != -1:
+            np.random.seed(seed)
+        lower, upper = std
+        random_std = np.random.uniform(lower, upper)
+        gauss = np.random.normal(mean, random_std, size=image.shape)
+
+    #gauss = gauss.reshape(image.shape[0],image.shape[1],image.shape[2]).astype('uint8')
+    noise = image + image * gauss
+    
+    np.clip(noise, 0, 255, out=noise)
+    return noise.astype('uint8')
+
+def saturation (image, factor=50):
+    '''
+    Saturation impacts the color intensity of the image, making it more vivid or muted depending
+    on the value.
+    '''
+    
+    hsvimg = cv2.cvtColor(image, cv2.COLOR_BGR2HSV).astype("float32")
+    
+    (h, s, v) = cv2.split(hsvimg)
+    fac = 6.5025
+    
+    s[:] = s * ((factor/100) * fac)
+
+    s = np.clip(s,0,255)
+    imghsv = cv2.merge([h,s,v])
+    
+    img_sated = cv2.cvtColor(imghsv.astype("uint8"), cv2.COLOR_HSV2BGR)
+    return img_sated
+
+alt_mos_dict = {}
+
+def alternate_mosaic(image, num_slices):
+    if num_slices == 1: return image
+    if len(alt_mos_dict) == 0:
+        # keep a copy of the last image so we know if this is
+        # on a new one
+        alt_mos_dict['last_img'] = image.copy()
+        for i in range(2,100): alt_mos_dict[i] = []
+    else:
+        # if not the same image, clear out dictionary and save this one
+        if (image.shape != alt_mos_dict['last_img'].shape) or np.not_equal(image, alt_mos_dict['last_img']).any():
+            for i in range(2,100): alt_mos_dict[i] = []
+            alt_mos_dict['last_img'] = image.copy()
+    dict_ref = alt_mos_dict.get(num_slices)
+    if len(dict_ref) != 0: return alt_mos_dict[num_slices]
+    width, height = image.shape[0], image.shape[1]
+    new_image = np.zeros_like(image)
+    
+    x_size = int(width/num_slices)
+    while(width % x_size != 0):
+        width -= 1
+    x_size = int(width/num_slices)
+
+    y_size = int(height/num_slices)
+    while(height % y_size != 0):
+        height -= 1
+    y_size = int(height/num_slices)
+    
+    mats = []
+    x,y = 0,0
+    while x < width:
+        y = 0
+        while y < height:
+            app = image[x:x+x_size,y:y+y_size,:]
+            if len(mats) != 0:
+                if app.shape != mats[0].shape: break
+            mats.append(app)
+            y += y_size
+        x += x_size
+    random.shuffle(mats)
+    x,y = 0,0
+    i = 0
+    while x < width:
+        y = 0
+        while y < height:
+            if i == len(mats):break
+            new_image[x:x+x_size,y:y+y_size,:] = mats[i]
+            y += y_size
+            i += 1
+        x += x_size
+    alt_mos_dict[num_slices] = new_image
+    return new_image
 
 def webp_transform(image, quality=10):
     
@@ -229,78 +393,68 @@ def webp_transform(image, quality=10):
         dec_img = cv2.imdecode(enc_img, 1)
         return dec_img
 
-def kmeans_transform(image, n_clusters=10):
+def bilinear(image, percent=50):
 
-    rows, cols = image.shape[0], image.shape[1]
-    image = image.reshape(rows * cols, 3)
+    """ 
+    Uses bilinear interpolation to resize the image.
+
+    Args:
+        image: The original input image
+        percent: The percentage of the original image to be resized
+
+    Returns:
+        numpy array: The resized image
+    """
+
+    orig_width = image.shape[1]
+    orig_height = image.shape[0]
     
-    # Initialize KMeans
-    kMeans = KMeans(int(n_clusters))
-    kMeans.fit(image)
+    new_width = int(orig_width * (percent / 100))
+    new_height = int(orig_height * (percent / 100))
 
-    compressed = kMeans.cluster_centers_[kMeans.labels_]
-    compressed = np.clip(compressed.astype('uint8'), 0, 255)
+    new_img = cv2.resize(image, (new_width, new_height), interpolation=cv2.INTER_LINEAR)
 
-    compressed = compressed.reshape(rows, cols, 3)
+    final_img = cv2.resize(new_img, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
 
-    return compressed
+    return final_img
 
-def roiCompression(image, prob=0.01):
 
-    # Initialize yolo
-    yolo = models.YOLOv3(
-        os.path.join('src', 'obj_detector/cfg', 'coco.names'),
-        os.path.join('src', 'obj_detector/cfg', 'yolov3.cfg'),
-        os.path.join('src','obj_detector/weights','yolov3.weights')
-    )
+def cae(image, patches=16):
+    
+    encoder = models.CompressiveAE()   
 
-    yolo.initialize()
+    # Load the autoencoder with the configuration file
+    encoder.initialize(currPath + '/cae/configs/test.yaml')
 
-    '''
-    box format:
-    [ [x1, y1, x2, y2, conf, cls], [x1, y1, x2, y2, conf, cls], ... ]
-                    ^                           ^
-                   obj1                        obj2
-    '''
+    # Run the autoencoder with the given image
+    encoder.run(image)
 
-    boxes = yolo.run(image)
-    boxes = boxes.numpy()
+    # Get the encoded image
+    img = encoder.draw()
+    
+    # Cut off half the image
+    cutImg = img[0:img.shape[0], int(img.shape[1]/2):img.shape[1]]
 
-    if boxes is not empty:
-
-        # Create black image the same size as the input
-        image2 = np.zeros(image.shape, dtype=np.uint8) 
-        #image2 = image 
-
-        # make some random box coordinate from center:
-        for i in boxes:
-
-            x1 = i[0]
-            y1 = i[1]
-            x2 = i[2]
-            y2 = i[3]
-
-            dummyBox = [int(y1), int(x1), int(y2), int(x2)]
-
-            image_chunk = image[dummyBox[0]:dummyBox[2], dummyBox[1]:dummyBox[3],:] # x1:x2, y1:y2, all three color channels
-            image2[dummyBox[0]:dummyBox[2], dummyBox[1]:dummyBox[3],:] = image_chunk # plunk this little guy into the new black canvas
-
-    return image2
-
+    return cutImg
 
 augList = {
-    "Intensity": {"function": dim_intensity, "default": [0.5,1.0,2.0,5.0,10.0], "example":0.5},
-    "Gaussian Noise": {"function": gaussian_noise, "default": [1,5,10,20,50], "example":25},
-    "Gaussian Blur": {"function": gaussian_blur, "default": [5,10,15,20,30], "example":30},
-    "JPEG Compression": {"function": jpeg_comp, "default": [100,75,50,25,10], "example":20},
-    "JPEG 2000 Compression": {"function": jpeg2000, "default": [100,75,50,25,10], "example":20},
-    "Normal Compression": {"function": normal_comp, "default": [1,5,10,20,50], "example":30},
-    "Salt and Pepper": {"function": saltAndPapper_noise, "default": [0.01,0.05,0.1,0.5,1], "example":0.25},
+    "Intensity": {"function": dim_intensity, "default": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1], "example":0.5},
+    "Gaussian Noise": {"function": gaussian_noise, "default": [1,10,15,20,25,30,35,40,45,50,55,60], "example":25},
+    "Gaussian Blur": {"function": gaussian_blur, "default": [3, 13, 23, 33, 43, 53, 63, 73, 83], "example":33},
+    "JPEG Compression": {"function": jpeg_comp, "default": [100,75,50], "example":20},
+    "Normal Compression": {"function": normal_comp, "default": [20], "example":30},
+    "Salt and Pepper": {"function": saltAndPapper_noise, "default": [x/100 for x in range(12)], "example":0.25},
     "Flip Axis": {"function": flipAxis, "default": [-1], "example": -1},
-    "Fisheye Transformation": {"function": fisheye_transform, "default": [0.1,0.2,0.3,0.4,0.5], "example":0.4},
+    "Fisheye": {"function": fisheye, "default": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], "example":0.4},
+    "Barrel": {"function": barrel, "default": [0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.001, 0.002, 0.003, 0.004, 0.005, 0.01], "example":0.005},
+    "Simple Mosaic": {"function": simple_mosaic, "default":[], "example":[]},
+    "Black and White": {"function": black_white, "default":[0,1,2], "example":0}, 
+    "Speckle Noise": {"function": speckle_noise, "default": [1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2], "example":1.5},
+    "Saturation" : {"function": saturation, "default":[50], "example":50},
+    "Alternate Mosaic": {"function": alternate_mosaic, "default":[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "example":2}, # 1x1 - 5x5
     "WebP Compression": {"function": webp_transform, "default": [10,25,50,75,100], "example":10},
-    "KMeans Transformation": {"function": kmeans_transform, "default": [1,5,10,25,50], "example":10},
-    "ROI Compression": {"function": roiCompression, "default": [0.01,0.05,0.1,0.5,1], "example": 0.5}
+    "Bilinear Resizing": {"function": bilinear, "default": [10,20,30,40,50,60,70,80,90,95], "example":10},
+    "Compressive Autoencoder": {"function": cae, "default": [8,16,32,64,128], "example":8}
 }
 
 class Augmentation:
@@ -380,7 +534,6 @@ class AugmentationPipeline():
         return (self.__pipeline__[x] for x in range(len(self.__pipeline__)))
 
     def __getitem__(self, key):
-        self.__pipeline__[key]
         return self.__pipeline__[key]
 
     def __next__(self):
@@ -491,7 +644,7 @@ class AugDialog(QDialog):
         uic.loadUi('./src/qt_designer_file/dialogAug.ui', self)
         self.__loadAugs__()
         self.__loadEvents__()
-        self.defaultImage = './src/data/tmp/car_detection_sample.png'
+        self.defaultImage = 'imgs/default_imgs/original.png'
         self.__loadInitialImage__()
         self.__loadExample__()
         self.savedAugPath = './src/data/saved_augs'
@@ -538,12 +691,11 @@ class AugDialog(QDialog):
         _payload = aug.data(Qt.UserRole)
         augIndex = mainAug.__keys__.index(currentItem)
         augItem = mainAug.__augList__[augIndex]
-            
+        
         if _payload[1] == '': 
             strArgs = [ str(i) for i in augItem.args]
             parameters = ",".join(strArgs)
-        else: 
-            parameters = _payload[1]
+        else: parameters = _payload[1]
         
         if _payload[2] == '':
             example = augItem.exampleParam
@@ -558,6 +710,52 @@ class AugDialog(QDialog):
         qtImage = images.convertCV2QT(_copy, 1000, 500)
         self.previewImage.setPixmap(qtImage)
         self.lastRow = augIndex
+        
+        if currentItem == "Intensity":
+            print(currentItem)
+            self.info_label.setText("Dims the intensity of the image by the given factor/range of factor.")
+        
+        if currentItem == "Gaussian Noise":
+            print(currentItem)
+            self.info_label.setText("Gaussian Noise is a statistical noise having a probability density function equal to normal distribution with a given standard deviation and the mean of 2, also known as Gaussian Distribution. Random Gaussian function is added to Image function to generate this noise.")
+        
+        if currentItem == "Gaussian Blur":
+            print(currentItem)
+            self.info_label.setText("It blurrs the image using the kernel of the given size. (A kernel, in this context, is a small matrix which is combined with the image using a mathematical technique: convolution). In a Gaussian blur, the pixels nearest the center of the kernel are given more weight than those far away from the center. This averaging is done on a channel-by-channel basis, and the average channel values become the new value for the pixel in the filtered image.")
+        
+        if currentItem == "JPEG Compression":
+            self.info_label.setText("The JPEG compression is a block based compression. The data reduction is done by the subsampling of the color information, the quantization of the DCT-coefficients and the Huffman-Coding (reorder and coding). The user can control the amount of image quality loss due to the data reduction by setting (or chose presets).")
+        
+        if currentItem == "Normal Compression":
+            self.info_label.setText("It resize an image, scale it along each axis (height and width), considering the specified scale factors")
+        
+        if currentItem == "Salt and Pepper":
+            self.info_label.setText("Add salt and pepper noise to image (ie. (makes some of the pixels completply black or white) with given probability of the noise (prob)")
+        
+        if currentItem == "Flip Axis":
+            self.info_label.setText("Based on the mode, it flips around the axis. If mode > 0, Flips along vertical axis. If mode = 0,  Flips along horizontal axis. If mode < 0, Flips along both axes")
+        
+        if currentItem == "Fisheye":
+            self.info_label.setText("Fisheye transformation distorts the image pixels weighted by the euclidean distance from the given center of the transformation. the distortion factor controls the amount of distortion used for the transformation.")
+        
+        if currentItem == "Barrel":
+            self.info_label.setText("Barrel Distortion folds the image inwards and introduces black regions on the outside where image information is missing. The given distortion factor controls the amount of distortion used for the transformation.")
+        
+        if currentItem == "Simple Mosaic":
+            self.info_label.setText("Simple mosaic combines 4 training images into one in certain ratios")
+        
+        if currentItem == "Black and White":
+            self.info_label.setText("Black and White noise changes the image into the corresponding gray scale image.")
+        
+        if currentItem == "Speckle Noise":
+            self.info_label.setText("Speckle is a granular noise that inherently exists in an image and degrades its quality. It can be generated by multiplying the noise values with different pixels of an image. Noise function has a probability density function equal to normal distribution with a given standard deviation and the mean of 2.")
+        
+        if currentItem == "Saturation":
+            self.info_label.setText("Saturation impacts the color intensity of the image, making it more vivid or muted depending on the value.")
+
+        if currentItem == "Alternate Mosaic":
+            self.info_label.setText("Alternate Mosaic slice the given image into n by n parts and generated the new image by shuffling those slices.")
+        
 
     # change GUI to match mainAug
     def __applyConfig__(self):
@@ -590,9 +788,6 @@ class AugDialog(QDialog):
         _payload = self.listWidget.item(cr).data(Qt.UserRole)
         _payload[1] = self.noiseRange.text()
         _payload[2] = self.exampleLine.text()
-        minimum = self.minimum.text()
-        maximum = self.maximum.text()
-        increment = self.increment.text()
         self.listWidget.item(cr).setData(Qt.UserRole, _payload)
 
         # get checks from listWidget:
@@ -603,16 +798,8 @@ class AugDialog(QDialog):
             _payload = listItem.data(Qt.UserRole)
             _noiseRange = _payload[1]
             _example = _payload[2]
-            _minimum = minimum
-            _maximum = maximum
-            _increment = increment
 
-            if _maximum != '' and _minimum != '' and _increment != '':
-
-                rangeParams = list(range(int(_minimum), int(_maximum), int(_increment)))
-                _param = [float(i) for i in rangeParams]
-
-            elif _noiseRange != '':
+            if _noiseRange != '':
                 try: _param = [float(i) for i in _noiseRange.split(',')]
                 except Exception as e: print("Failed to convert string to array of floats")
                 # probably do a signal here to update the UI
@@ -697,8 +884,8 @@ class AugDialog(QDialog):
     def demoAug(self):
         mainAug.clear()
         mainAug.append('Gaussian Noise')
-        mainAug.append('JPEG Compression')
-        mainAug.append('Salt and Pepper')
+        #mainAug.append('JPEG Compression')
+        #mainAug.append('Salt and Pepper')
         self.__updateViewer__()
 
 # Augmentation holder:

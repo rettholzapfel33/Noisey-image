@@ -1,11 +1,8 @@
 # System libs
-import os, re, os.path
-import time
-from os.path import exists
-import glob
+import os
 from pathlib import Path
+from tkinter import E
 import PIL.Image
-from PIL import Image
 import numpy as np
 
 # Sementic segmentation
@@ -13,9 +10,6 @@ from src.predict_img import new_visualize_result
 
 # PyQt5
 from PyQt5 import QtCore, QtWidgets, QtGui
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QThread
-from PyQt5.QtMultimedia import QMediaPlayer, QMediaPlaylist, QMediaContent
 from PyQt5.QtWidgets import QMessageBox
 from src.window import Ui_MainWindow
 from PyQt5.QtCore import Qt
@@ -26,26 +20,17 @@ from functools import partial
 import yaml
 
 # import utilities:
-import src.videoTransform
-#import src.export
-from src.utils.images import convert_cvimg_to_qimg, convertCV2QT
+from src.utils.images import convert_cvimg_to_qimg
 from src.transforms import AugDialog, AugmentationPipeline, Augmentation, mainAug
 from src.experimentDialog import ExperimentConfig, ExperimentDialog
 from src import models
 from src.utils.qt5extra import CheckState
 from src.utils.weights import Downloader
-
-# Enable scaling 
-QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
-QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+from src.dataParser import *
 
 CURRENT_PATH = str(Path(__file__).parent.absolute()) + '/'
 TEMP_PATH = CURRENT_PATH + 'src/tmp_results/'
 DEFAULT_PATH = CURRENT_PATH + 'imgs/default_imgs/'
-VIDEO_PATH = CURRENT_PATH + 'vids/default/test.mp4'
-OUT_PATH = CURRENT_PATH + 'vids/convert/test.mp4'
-COMPRESSED_PATH = CURRENT_PATH + 'vids/compressed/test.mp4'
-FRAMES_PATH = CURRENT_PATH + 'imgs/frames/'
 
 class Worker(QtCore.QObject):
     finished = QtCore.pyqtSignal(tuple)
@@ -78,86 +63,20 @@ class Worker(QtCore.QObject):
 
         self.finished.emit((result, self.listWidgets))
 
-class ThreadWorker(QThread):
-
-    change_pixmap_signal = pyqtSignal(tuple)
-
-    def __init__(self, media_path, media_path2, media_out_path):
-        super().__init__()
-        self.media_path = media_path
-        self.media_path2 = media_path2
-        self.media_out_path = media_out_path
-
-    def run(self):
-        self._run_flag = True
-        increment = 0
-
-        videoIn = cv2.VideoCapture(self.media_path)
-        videoIn2 = cv2.VideoCapture(self.media_path2)
-        #videoOut = None
-        #videoOut2 = None
-
-        while(self._run_flag):
-            t1 = time.time()
-            increment += 1
-            ret, frame = videoIn.read()
-            ret2, frame2 = videoIn2.read()
-            if not ret:
-                break
-            if not ret2: 
-                break
-
-            # Only convert the first 100 frames of the video
-            if increment < 100:
-                resized = cv2.resize(frame, (1280,720))
-                cv2.imwrite(FRAMES_PATH + 'frame%d.jpg'%(increment), resized)
-
-            #if type(videoOut) == type(None):
-            #    videoOut = cv2.VideoWriter(self.media_out_path, cv2.VideoWriter_fourcc(*"mp4v"), 30, (frame.shape[1], frame.shape[0]))
-            #    videoOut2 = cv2.VideoWriter(self.media_out_path, cv2.VideoWriter_fourcc(*"mp4v"), 30, (frame2.shape[1], frame2.shape[0]))
-
-            #videoOut.write(frame)
-            #videoOut2.write(frame2)
-
-            self.change_pixmap_signal.emit((frame, frame2, increment))
-
-        videoIn.release()
-        #videoOut.release()
-
-    def stop(self):
-        """Sets run flag to False and waits for thread to finish"""
-        self._run_flag = False
-        self.wait()
-
 
 class mainWindow(QtWidgets.QMainWindow):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-
         self.addWindow = AugDialog(self.ui.listAugs)
         self.addWindow.setModal(True)
         self.addWindow.demoAug()
 
-        self.run = True
-
-        # Code for video
-        self.ui.faceVideo.hide()
-        self.ui.defaultVideo.hide()
-        self.videoWorker = None
-        self.onVideo = False
-        self.frames = []
-        self.VIDEO_PATH = CURRENT_PATH + 'vids/default/test.mp4'
-        self.OUT_PATH = CURRENT_PATH + 'vids/convert/test.mp4'
-        self.COMPRESSED_PATH = CURRENT_PATH + 'vids/compressed/test.mp4'
-        self.FRAMES_PATH = CURRENT_PATH + 'imgs/frames/'
-
         # Check status of configurations:
-        weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights"}
+        weight_dict = {'mit_semseg':"ade20k-hrnetv2-c1", 'yolov3':"yolov3.weights", 'detr':"detr.weights", 'yolov4':"yolov4.weights", "yolov3-face":"yolov3-face_last.weights"}
         self.labels = []
 
         if Downloader.check(weight_dict):
@@ -173,7 +92,7 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.progressBar.hide()
         self.ui.progressBar_2.hide()
 
-        self.ui.comboBox.addItems(["Semantic Segmentation", "Object Detection (YOLOv3)"])
+        self.ui.comboBox.addItems(list(models._registry.keys()))
 
         # QActions
         # Default values (images, noise, etc.) are set up here:
@@ -182,15 +101,8 @@ class mainWindow(QtWidgets.QMainWindow):
         # Buttons
         self.ui.pushButton.clicked.connect(self.run_model)  
         self.ui.pushButton_2.clicked.connect(self.startExperiment)
-        self.ui.pushButton_4.clicked.connect(self.quitApp)
-        self.ui.compoundAug.setChecked(True)
-        self.ui.faceVideo.clicked.connect(lambda:self.changeVideo('faces'))
-        self.ui.defaultVideo.clicked.connect(lambda:self.changeVideo('default'))
-
-        # Radio Buttons
-        self.ui.imageButton.setChecked(True)
-        self.ui.imageButton.clicked.connect(lambda:self.changeUI('image'))
-        self.ui.videoButton.clicked.connect(lambda:self.changeUI('video'))
+        self.ui.pushButton_4.clicked.connect(quit)
+        #self.ui.compoundAug.setChecked(True)
 
         # Augmentation Generator:
         self.ui.addAug.clicked.connect(self.addWindow.show)
@@ -228,6 +140,7 @@ class mainWindow(QtWidgets.QMainWindow):
             QtWidgets.QAbstractItemView.ExtendedSelection
         )
         self.ui.listAugs.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        self.label_eval = None
 
     def listwidgetmenu(self, position):
         """menu for right clicking in the file list widget"""
@@ -314,18 +227,23 @@ class mainWindow(QtWidgets.QMainWindow):
                 continue
 
             if filePath.endswith(".yaml"):
+                if new_item is None:
+                    self.ui.fileList.clear()
                 # return_value = self.read_yaml(filePath)
-                # if(len(return_value) > 1 and type(return_value[1]) is dict):
-                #     filePaths.extend(return_value[0])
-                #     labels = return_value[1]
-                # else:
-                #     filePaths.extend(return_value)
-                filePaths.extend(self.read_yaml(filePath))
+                return_value = self.parseData(filePath)
+                if(len(return_value) > 1 and type(return_value[1]) is dict):
+                    filePaths.extend(return_value[0])
+                    labels = return_value[1]
+                else:
+                    filePaths.extend(return_value)
+                # filePaths.extend(self.read_yaml(filePath))
+                filePaths.extend(self.parseData(filePath))
                 continue
 
             new_item = QtWidgets.QListWidgetItem()
             new_item.setText(fileName)
             new_item.setData(QtCore.Qt.UserRole, {'filePath':filePath})
+        
             self.ui.fileList.addItem(new_item)
 
 
@@ -334,88 +252,12 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.fileList.setCurrentItem(new_item)
             self.ui.original_2.clear()
             self.ui.preview_2.clear()
-
-    def read_yaml(self, filePath):
-        #print(filePath[:filePath.rfind('/') + 1])
-        filePaths = []
-        with open(filePath) as file:
-            documents = yaml.full_load(file)
-            #print(documents)
-
-        trainVT = []
-        if("train" in documents):
-            trainVT.append("train")
-        if("val" in documents):
-            trainVT.append("val")
-        if("test" in documents):
-            trainVT.append("test")
-
-        if(len(trainVT) > 1):
-            dialogUI = Ui_Dialog()
-            dialog = QtWidgets.QDialog()
-            dialogUI.setupUi(dialog)
-
-            for x in trainVT:
-                item = QtWidgets.QListWidgetItem()
-                item.setText(x)
-                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-                item.setCheckState(Qt.Unchecked)
-                dialogUI.listWidget.addItem(item)
-
-            dialog.exec_()
-
-            if(dialog.result() == 0):
-                return []
-
-            checkedItems = []
-            for index in range(dialogUI.listWidget.count()):
-                if dialogUI.listWidget.item(index).checkState() == Qt.Checked:
-                    checkedItems.append(dialogUI.listWidget.item(index).text())
-        else:
-            checkedItems = trainVT
-
-        for x in checkedItems:
-            if(isinstance(documents[x], list)):
-                filePaths.extend(documents[x])
-            else:
-                filePaths.append(documents[x])
-
-        root = filePath[:filePath.rfind('/') + 1]
-
-        if "path" in documents:
-            root = os.path.join(root, documents["path"])
-
-        filePaths = list(map(lambda path: root + path, filePaths))
-
-        for file in filePaths:
-            if(os.path.isdir(file)):
-                onlyfiles = [f for f in os.listdir(file) if os.path.isfile(os.path.join(file, f))]
-                onlyfiles = list(map(lambda path: os.path.join(file, path), onlyfiles))
-        
-                filePaths.remove(file)
-                filePaths.extend(onlyfiles)
-
-        if "labels" in documents:
-            labels_folder = os.path.join(root, documents["labels"])
-            onlylabels = [f for f in os.listdir(labels_folder) if os.path.isfile(os.path.join(labels_folder, f))]
-            labels = list(map(lambda path: os.path.join(labels_folder, path), onlylabels))
-
-            labels_dic = {}
-            for label in labels:
-                file_content = []
-                with open(label) as f:
-                    for line in f:
-                        _list = line.split()
-                        if type(_list) == list:
-                            _list = list(map(float, _list))
-                        file_content.append(_list)
-                #print(file_content)
-                base=os.path.basename(label)
-                labels_dic[os.path.splitext(base)[0]] = file_content
-
-            self.labels = labels_dic
-        
+            
+    def parseData(self, filePath):
+        if filePath.endswith(".yaml"):
+            filePaths, (self.label, self.label_eval) = read_yaml(self, filePath)
         return filePaths
+
 
     def reportProgress2(self, n):
         if(n == 3):
@@ -425,17 +267,19 @@ class mainWindow(QtWidgets.QMainWindow):
         self.ui.progressBar.setValue(n)
 
     def change_file_selection(self, qListItem):
-        originalImg = cv2.imread(qListItem.data(QtCore.Qt.UserRole)['filePath'])
+        if not qListItem is None:
+            originalImg = cv2.imread(qListItem.data(QtCore.Qt.UserRole)['filePath'])
 
-        self.ui.listWidget.clear()
-        self.ui.original_2.clear()
-        self.ui.preview_2.clear()
+            self.ui.listWidget.clear()
+            self.ui.original_2.clear()
+            self.ui.preview_2.clear()
 
-        originalQtImg = convert_cvimg_to_qimg(originalImg)
-        self.ui.original.setPixmap(QtGui.QPixmap.fromImage(originalQtImg))
+            originalQtImg = convert_cvimg_to_qimg(originalImg)
+            self.ui.original.setPixmap(QtGui.QPixmap.fromImage(originalQtImg))
 
-        self.changePreviewImage()
-
+            self.changePreviewImage()
+        else:
+            print("INFO: qListItem was None (was it cleared by YAML read function?)")
 
     def change_seg_selection(self, current):
         if(current == None):
@@ -472,9 +316,7 @@ class mainWindow(QtWidgets.QMainWindow):
                 qImg_segmentation= convert_cvimg_to_qimg(imgs["segmentation"])
                 self.ui.original_2.setPixmap(QtGui.QPixmap.fromImage(qImg_segmentation))
         
-
     def display_result(self, result):
-        comboModelType = self.ui.comboBox.currentText()
         qListItems = result[1]
         model_results = result[0]
 
@@ -538,8 +380,6 @@ class mainWindow(QtWidgets.QMainWindow):
         display_sep = self.ui.checkBox_2.isChecked()
         comboModelType = self.ui.comboBox.currentText()
 
-        src.export.main()
-
         self.worker.setup([noiseImg], display_sep, comboModelType, [qListItem])
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
@@ -555,7 +395,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.thread.start()
 
-    def startExperiment(self, isVideo=False):
+    def startExperiment(self):
         # fill image paths with dummy inputs for now
         comboModelType = self.ui.comboBox.currentText()
 
@@ -588,152 +428,10 @@ class mainWindow(QtWidgets.QMainWindow):
                 return -1
             imgPaths.append(file_path)
             
-        config = ExperimentConfig(mainAug, self.ui.compoundAug.isChecked(), imgPaths, _model, comboModelType, labels=self.labels)
+        config = ExperimentConfig(mainAug, self.ui.compoundAug.isChecked(), imgPaths, _model, comboModelType, labels=self.labels, labelType=self.label_eval)
         self.experiment = ExperimentDialog(config)
         self.experiment.startExperiment()
 
-    def convertCV(self, cv_img):
-        
-        rgb_image = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
-        h, w, ch = rgb_image.shape
-        bytes_per_line = ch * w
-        convert_to_Qt_format = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
-        p = convert_to_Qt_format.scaled(1000, 1000, Qt.KeepAspectRatio)
-        return QPixmap.fromImage(p)
-
-    @pyqtSlot(tuple)
-    def __updateImage__(self, frame_tuple):
-        
-        frame, frame2, t1 = frame_tuple
-
-        # Save frame as jpeg
-        if t1 < 100:
-
-            im = Image.fromarray(frame2, mode='RGB')
-            #im.resize(1280, 720)
-            #im.save("imgs/frames/frame{}.jpg".format(t1), "JPEG")
-
-        qtFrame = self.convertCV(frame)
-        qtFrame2 = self.convertCV(frame2)
-        self.ui.video_original.setPixmap(qtFrame)
-        self.ui.video_preview.setPixmap(qtFrame2)
-
-    def __launch__(self):
-
-        media_path = self.VIDEO_PATH
-        media_path2 = self.COMPRESSED_PATH
-        media_out_path = self.OUT_PATH
-
-        if self.videoWorker is not None and self.videoWorker.isRunning():
-            # This is where the button will reset the worker from whatever it was working on:
-            # This does not kill the thread variable, only the thread allocation
-            self.videoWorker.stop()
-        else:
-
-            media_path = self.VIDEO_PATH
-            media_path2 = self.COMPRESSED_PATH
-            media_out_path = self.OUT_PATH
-
-        # Set up another thread for Video/Image I/O:
-        self.videoWorker = ThreadWorker(media_path, media_path2, media_out_path)
-        self.videoWorker.change_pixmap_signal.connect(self.__updateImage__)
-        self.videoWorker.start()
-
-    def changeVideo(self, _str):
-        
-        if _str == 'default': 
-
-            # Delete all files in frames folder
-            mypath = self.FRAMES_PATH
-            for root, dirs, files in os.walk(mypath):
-                for file in files:
-                    os.remove(os.path.join(root, file))
-
-            # Wait for 2 seconds
-            time.sleep(2)
-
-            # Change the paths
-            self.VIDEO_PATH = CURRENT_PATH + 'vids/default/test.mp4'
-            self.OUT_PATH = CURRENT_PATH + 'vids/convert/test.mp4'
-            self.COMPRESSED_PATH = CURRENT_PATH + 'vids/compressed/test.mp4'
-
-            # Call the frame worker
-            print("Calling launch")
-            self.__launch__()
-            
-        if _str == 'faces': 
-
-            # Delete all files in frames folder
-            mypath = self.FRAMES_PATH
-            for root, dirs, files in os.walk(mypath):
-                for file in files:
-                    os.remove(os.path.join(root, file))
-
-            # Wait for 2 seconds
-            time.sleep(2)
-
-            # Change the paths
-            self.VIDEO_PATH = CURRENT_PATH + 'vids/default/100faces_move.mp4'
-            self.OUT_PATH = CURRENT_PATH + 'vids/convert/100faces_move.mp4'
-            self.COMPRESSED_PATH = CURRENT_PATH + 'vids/compressed/100faces_move.mp4'
-
-            # Call the frame worker
-            print("Calling launch")
-            self.__launch__()
-
-    def changeUI(self, _str):
-
-        if _str == 'image':
-
-            # Show the image labels
-            self.ui.preview.show()
-            self.ui.original.show()
-            self.ui.preview_2.show()
-            self.ui.original_2.show()
-           # self.ui.tabWidget.show()
-
-            # Hide the video labels
-            self.ui.video_original.hide()
-            self.ui.video_preview.hide()
-            self.ui.defaultVideo.hide()
-            self.ui.faceVideo.hide()
-
-        if _str == 'video':
-
-            # Hide the image labels
-            self.ui.preview.hide()
-            self.ui.original.hide()
-            self.ui.preview_2.hide()
-            self.ui.original_2.hide()
-            #self.ui.tabWidget.hide()
-
-            # Show the video labels
-            self.ui.video_original.show()
-            self.ui.video_preview.show()
-            self.ui.defaultVideo.show()
-            self.ui.faceVideo.show()
-
-            # Compress default MP4
-            #src.h264.main() 
-
-            # Convert MP4 files to individual frames and show in pixmap
-            #self.displayVideo()
-            #print("Calling launch")
-            #self.__launch__()
-
-    def quitApp(self):
-        
-        # Delete all files in frames folder
-        mypath = self.FRAMES_PATH
-        for root, dirs, files in os.walk(mypath):
-            for file in files:
-                os.remove(os.path.join(root, file))
-
-        # Wait for 2 seconds
-        time.sleep(2)
-
-        quit()
-        
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])

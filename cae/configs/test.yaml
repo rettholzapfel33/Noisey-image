@@ -1,7 +1,0 @@
-exp_name: testing
-checkpoint: C:\Users\retth\Dropbox\Code\Noisey-image\cae\experiments\training\checkpoint\model_1.pth
-batch_every: 100
-shuffle: true
-dataset_path: C:\Users\retth\Desktop\Frames
-num_workers: 4
-device: cuda
