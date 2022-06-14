@@ -88,6 +88,8 @@ class DETRdemo(nn.Module):
     def detect(self, im, model, transform):
         # mean-std normalize the input image (batch-size: 1)
         img = transform(im).unsqueeze(0)
+        if torch.cuda.is_available():
+            img = img.cuda()
 
         # demo model only support by default images with aspect ratio between 0.5 and 2
         # if you want to use images with an aspect ratio outside this range
@@ -98,7 +100,7 @@ class DETRdemo(nn.Module):
         outputs = model(img)
 
         # keep only predictions with 0.7+ confidence
-        probas = outputs['pred_logits'].softmax(-1)[0, :, :-1]
+        probas = (outputs['pred_logits'].softmax(-1)[0, :, :-1]).cpu()
         keep = probas.max(-1).values > 0.7
 
         # convert boxes from [0; 1] to image scales
