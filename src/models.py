@@ -50,7 +50,7 @@ import src.yolov4.detect as detect_v4
 from src.yolov4.models.models import Darknet
 from src.yolov4.models.models import load_darknet_weights
 import src.yolov4.utils.utils as utils_v4
-#from src.transforms import letterbox_image
+from src.transforms import letterbox_image
 from src.yolov4.utils.general import (check_img_size, non_max_suppression, apply_classifier, scale_coords, xyxy2xywh, strip_optimizer)
 
 # import yolov3-ultralytics here:
@@ -62,6 +62,8 @@ import yaml
 
 # import compressive autoendcoding here:
 from src.cae.src import detecter
+# YOLOX imports:
+from src.yolox.yolox.data.datasets import COCO_CLASSES
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 
@@ -433,7 +435,7 @@ class EfficientDetV2(Model):
         for i, _iou in enumerate(iou):
             class_ious[i] = _iou
         return iou.mean(), acc_meter.average(), class_ious
-
+      
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
 
@@ -526,6 +528,190 @@ class DETR(Model):
             assert False
         else: assert False, "evalType %s not supported"%(evalType) 
         return metrics[0]['AP']
+
+    def outputFormat(self):
+        return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
+
+class YOLOv4(Model):
+    """
+    YOLOv4 Model that inherits the Model class
+    It specifies its four main functions: run, initialize, deinitialize, and draw. 
+    """
+    def __init__(self, *network_config) -> None:
+        super(YOLOv4, self).__init__()
+        # network_config: CLASSES, CFG, WEIGHTS
+        self.CLASSES, self.CFG, self.WEIGHTS = network_config
+        self.img_size = (416,416)
+        print(self.CLASSES, self.CFG, self.WEIGHTS)
+        self.classes = load_classes(self.CLASSES)
+        self.conf_threshold = 0.25
+
+    def run(self, input):
+        im0 = np.copy(input)
+        img = letterbox_image(input, self.img_size)[0]
+        img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
+        img = np.ascontiguousarray(img)
+        if torch.cuda.is_available():
+            img = torch.from_numpy(img).cuda()
+        else:
+            img = torch.from_numpy(img).cpu()
+        img = img.float()
+        img /= 255.0
+        if img.ndimension() == 3:
+            img = img.unsqueeze(0)
+        pred = self.yolo(img, augment=False)[0]
+        pred = non_max_suppression(pred, self.conf_threshold, 0.6, classes=None, agnostic=False)
+        #return pred #[x1,y1,x2,y2,conf,class] <--- box
+        for i, det in enumerate(pred):  # detections per image
+            if det is not None and len(det):
+                # Rescale boxes from img_size to im0 size
+                det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
+        if torch.cuda.is_available():
+            pred[0] = pred[0].cpu()
+        pred = pred[0].detach().numpy()
+        #print(self.yolo.training)
+        return pred
+
+    def initialize(self, *kwargs):
+        self.yolo = Darknet(self.CFG, self.img_size)
+        if torch.cuda.is_available():
+            self.yolo = self.yolo.cuda()
+        else:
+            self.yolo = self.yolo.cpu()
+        load_darknet_weights(self.yolo, self.WEIGHTS)
+        self.yolo.eval()
+    
+    def deinitialize(self):
+        return -1
+    
+    def draw(self, pred, img):
+        np_img, detectedNames = detect._draw_and_return_output_image(img, pred, 416, self.classes)
+        return {"dst": np_img,
+                "listOfNames":detectedNames}
+
+    def draw_single_class(self, pred, img, selected_class):
+        np_img = detect._draw_and_return_output_image_single_class(img, pred, selected_class, self.classes)
+        return {"overlay": np_img}
+
+    def report_accuracy(self, pred:list, gt:list, evalType='voc'):
+        """Function takes in prediction boxes and ground truth boxes and
+        returns the mean average precision (mAP) @ IOU 0.5 under VOC2007 criteria (default).
+        Args:
+            pred (list): A list of BoundingBox objects representing each detection from method
+            gt (list): A list of BoundingBox objects representing each object in the ground truth
+        Returns:
+            mAP: a number representing the mAP over all classes for a single image.
+        """        
+        if len(pred) == 0: return 0
+
+        allBoundingBoxes = BoundingBoxes()
+        evaluator = Evaluator()
+
+        # loop through gt:
+        for _gt in gt:
+            assert type(_gt) == BoundingBox, "_gt is not BoundingBox type. Instead is %s"%(str(type(_gt)))
+            allBoundingBoxes.addBoundingBox(_gt)
+
+        for _pred in pred:
+            assert type(_pred) == BoundingBox, "_gt is not BoundingBox type. Instead is %s"%(str(type(_pred)))
+            allBoundingBoxes.addBoundingBox(_pred)
+
+        #for box in allBoundingBoxes:
+        #    print(box.getAbsoluteBoundingBox(format=BBFormat.XYWH), box.getBBType()) 
+        if evalType == 'voc':
+            metrics = evaluator.GetPascalVOCMetrics(allBoundingBoxes)
+            print(metrics)
+        elif evalType == 'coco':
+            assert False
+        else: assert False, "evalType %s not supported"%(evalType) 
+        return metrics[0]['AP']
+
+    def outputFormat(self):
+        return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
+
+class YOLOv3_Ultralytics(Model):
+    def __init__(self, *network_config) -> None:
+        super().__init__(*network_config)
+        _yaml, self.weight = network_config
+        with open(_yaml, 'r') as stream:
+            self.YAML = yaml.safe_load(stream)
+
+        self.img_size = (416,416)
+        self.conf_threshold = 0.25
+        if torch.cuda.is_available():
+            self.device = select_device('0')
+        else:
+            self.device = select_device('cpu')
+        self.conf_thres = 0.5
+        self.iou_thres = 0.6
+        self.max_det = 1000
+        self.img_size = 416
+        
+        self.hide_conf = True
+        self.hide_labels = False
+        self.colors = Colors()  # create instance for 'from utils.plots import colors'
+
+    def initialize(self, *kwargs):
+        self.model = DetectMultiBackend(self.weight, device=self.device, dnn=False)
+        self.names = self.model.names
+
+    def run(self, input):
+        imageShape = input.shape
+        gn = torch.tensor(imageShape)[[1, 0, 1, 0]]  # normalization gain whwh
+        im = letterbox(input, self.img_size, stride=self.model.stride, auto=False)[0]
+        im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+        im = np.ascontiguousarray(im)
+        im = torch.from_numpy(im).to(self.device)
+        im = torch.unsqueeze(im, axis=0)
+        im = im.float()  # uint8 to fp16/32
+        im /= 255  # 0 - 255 to 0.0 - 1.0
+        pred = self.model(im, augment=False, visualize=False)
+        pred = non_max_suppression(pred, self.conf_thres, self.iou_thres, None, False)[0]
+
+        if pred.shape[0] > 0:
+            # Rescale boxes from img_size to im0 size
+            pred[:, :4] = scale_coords(im.shape[2:], pred[:, :4], imageShape).round()
+            return pred
+        else:
+            return []
+        # Write results
+        #for *xyxy, conf, cls in reversed(det):
+        #    xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
+        #    line = (cls, *xywh, conf) if save_conf else (cls, *xywh)  # label format
+
+    def draw(self, preds, im0, class_filter=None):
+        labels = {"all":[255,255,255]}
+        if len(preds) > 0:
+            names = self.names
+            gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
+            imc = im0  # for save_crop
+            annotator = Annotator(im0, line_width=2)
+            for *xyxy, conf, cls in reversed(preds):
+                c = int(cls)  # integer class
+                label = None if self.hide_labels else (names[c] if self.hide_conf else f'{names[c]} {conf:.2f}')
+                _color = self.colors(c, True)
+                if not label in labels:
+                    _c = list(_color)
+                    labels[label] = [_c[2], _c[1], _c[0]]
+                if class_filter:
+                    if class_filter == label:
+                        annotator.box_label(xyxy, label, color=_color)
+                else:
+                    annotator.box_label(xyxy, label, color=_color)
+                # Stream results
+            im0 = annotator.result()
+        #cv2.imshow('test', im0)
+        #cv2.imwrite('test.png', im0)
+        #cv2.waitKey(-1)
+        return {"dst": im0,
+                "listOfNames":labels}
+
+    def deinitialize(self):
+        del self.model
+
+    def draw_single_class(self, preds, im0, selected_class):
+        res = self.draw(preds, im0, class_filter=selected_class)
+        return {"overlay": res["dst"]}
 
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
@@ -725,6 +911,103 @@ class YOLOv3_Ultralytics(Model):
     def deinitialize(self):
         del self.model
 
+class YOLOX(Model):
+    def __init__(self, *network_config) -> None:   
+        from src.yolox.yolox.data.data_augment import ValTransform
+        from src.yolox.yolox.exp import get_exp
+        exp_file, name, self.weight, self.classes = network_config
+        self.complexOutput = False
+        self.exp = get_exp(exp_file, name)
+        self.test_size = self.exp.test_size
+        self.preproc = ValTransform(legacy=False)
+        self.num_classes = self.exp.num_classes
+        #self.confthre = self.exp.test_conf
+        self.confthre = 0.5
+        self.nmsthre = self.exp.nmsthre
+        if torch.cuda.is_available():
+            self.device = "gpu"
+        else:
+            self.device = "cpu"
+
+    def run(self, img):
+        from src.yolox.yolox.utils import fuse_model, get_model_info, postprocess, vis
+        imgShape = img.shape
+        ratio = min(self.test_size[0] / img.shape[0], self.test_size[1] / img.shape[1])
+
+        with torch.no_grad():
+            img, _ = self.preproc(img, None, self.test_size)
+            img = torch.from_numpy(img).unsqueeze(0)
+            img = img.float()
+            if self.device == "gpu":
+                img = img.cuda()
+                self.model.cuda()
+            outputs = self.model(img)
+            outputs = postprocess(
+                outputs, self.num_classes, self.confthre,
+                self.nmsthre, class_agnostic=True
+            )
+
+            if outputs is None:
+                return torch.Tensor([])
+
+            outputs = outputs[0]
+            outputs = outputs.cpu()
+            bboxes = outputs[:, 0:4]
+            # preprocessing: resize
+            bboxes /= ratio
+            #bboxes[:, [0,2]] *= imgShape[1]
+            #bboxes[:, [1,3]] *= imgShape[0]
+            cls = outputs[:, 6]
+            cls = torch.unsqueeze(cls, axis=1)
+            scores = outputs[:, 4] * outputs[:, 5]
+            scores = torch.unsqueeze(scores, axis=1)
+            outputs = torch.cat((bboxes, scores, cls),axis=-1)
+        return outputs
+
+    def initialize(self):
+        self.model = self.exp.get_model()
+        self.model.load_state_dict(torch.load(self.weight)["model"])
+        self.model.eval()
+        
+    def deinitialize(self):
+        del self.model
+
+    def draw(self,  preds, im0, class_filter=None):
+        from src.yolox.yolox.utils.visualize import _COLORS
+
+        labels = {"all":[255,255,255]}
+
+        for i in range(preds.shape[0]):
+            bboxes = preds[i,:4].int().tolist()
+            cls_id = preds[i,5].int()
+            score = preds[i,4]
+            label = self.classes[cls_id]
+
+            color = (_COLORS[cls_id] * 255).astype(np.uint8).tolist()
+            text = '{}:{:.1f}%'.format(label, score * 100)
+            txt_color = (0, 0, 0) if np.mean(_COLORS[cls_id]) > 0.5 else (255, 255, 255)
+            font = cv2.FONT_HERSHEY_SIMPLEX
+
+            if class_filter:
+                if class_filter != label:
+                    continue
+
+            txt_size = cv2.getTextSize(text, font, 0.4, 1)[0]
+            im0 = cv2.rectangle(im0, (bboxes[0], bboxes[1]), (bboxes[2], bboxes[3]), color, thickness=2)
+            txt_bk_color = (_COLORS[cls_id] * 255 * 0.7).astype(np.uint8).tolist()
+            im0 = cv2.rectangle(
+                im0,
+                (bboxes[0], bboxes[1] + 1),
+                (bboxes[0] + txt_size[0] + 1, bboxes[1] + int(1.5*txt_size[1])),
+                txt_bk_color,
+                -1
+            )
+            im0 = cv2.putText(im0, text, (bboxes[0], bboxes[1] + txt_size[1]), font, 0.4, txt_color, thickness=1)
+            if not label in labels:
+                labels[label] = [color[2], color[1], color[0]]
+
+        return {"dst":im0, "listOfNames":labels}
+
     def draw_single_class(self, preds, im0, selected_class):
         res = self.draw(preds, im0, class_filter=selected_class)
         return {"overlay": res["dst"]}
@@ -764,21 +1047,6 @@ class YOLOv3_Ultralytics(Model):
             assert False
         else: assert False, "evalType %s not supported"%(evalType) 
         return metrics[0]['AP']
-
-'''
-class YOLOX(Model):
-    def __init__(self, *network_config) -> None:
-        super().__init__(*network_config)
-
-    def run(self):
-        return 0
-
-    def initialize(self):
-        return 0
-
-    def draw(self):
-        return 0
-'''
 
 class CompressiveAE(Model):
 
@@ -858,9 +1126,12 @@ _registry = {
         os.path.join(currPath, 'yolov3', 'models', 'yolov3.yaml'),
         os.path.join(currPath, 'yolov3', 'yolov3.pt')
     ),
-    # 'Object Detection (YOLOX)': YOLOX(
-
-    # )
+    'Object Detection (YOLOX)': YOLOX(
+        os.path.join(currPath, "yolox/exps/default/yolox_m.py"),
+        "yolo-m",
+        os.path.join(currPath, "yolox/weights/yolox_m.pth"),
+        COCO_CLASSES
+    )
 }
 
 
