@@ -2,6 +2,7 @@ import random
 import math
 import os
 from urllib import request
+from pathlib import Path
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
 
 from numpy.lib.function_base import select
@@ -14,8 +15,12 @@ from PyQt5 import uic
 import cv2
 import numpy as np
 import time
+from PIL import Image
 from src.utils import images
+from src import models
 #import src.utils.images
+
+currPath = str(Path(__file__).parent.absolute()) + '/'
 
 def letterbox_image(image, size):
     '''
@@ -369,6 +374,69 @@ def alternate_mosaic(image, num_slices):
     alt_mos_dict[num_slices] = new_image
     return new_image
 
+def webp_transform(image, quality=10):
+    
+    """
+    Encodes the image using Webp image compression. 
+    
+        |Parameters: 
+            |image (numpy array): The original input image
+            |quality (float): The quality factor for the image
+        
+        |Returns: 
+            |image (numpy array): The dimed image  
+    """
+    
+    encode_param = [int(cv2.IMWRITE_WEBP_QUALITY), quality]
+    result, enc_img = cv2.imencode('.webp', image, encode_param)
+    if result is True:
+        dec_img = cv2.imdecode(enc_img, 1)
+        return dec_img
+
+def bilinear(image, percent=50):
+
+    """ 
+    Uses bilinear interpolation to resize the image.
+
+    Args:
+        image: The original input image
+        percent: The percentage of the original image to be resized
+
+    Returns:
+        numpy array: The resized image
+    """
+
+    orig_width = image.shape[1]
+    orig_height = image.shape[0]
+    
+    new_width = int(orig_width * (percent / 100))
+    new_height = int(orig_height * (percent / 100))
+
+    new_img = cv2.resize(image, (new_width, new_height), interpolation=cv2.INTER_LINEAR)
+
+    final_img = cv2.resize(new_img, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
+
+    return final_img
+
+
+def cae(image, patches=16):
+    
+    encoder = models.CompressiveAE()   
+
+    # Load the autoencoder with the configuration file
+    encoder.initialize(currPath + '/cae/configs/test.yaml')
+
+    # Run the autoencoder with the given image
+    encoder.run(image)
+
+    # Get the encoded image
+    img = encoder.draw()
+    
+    # Cut off half the image
+    cutImg = img[0:img.shape[0], int(img.shape[1]/2):img.shape[1]]
+
+    return cutImg
+
 augList = {
     "Intensity": {"function": dim_intensity, "default": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1], "example":0.5},
     "Gaussian Noise": {"function": gaussian_noise, "default": [1,10,15,20,25,30,35,40,45,50,55,60], "example":25},
@@ -383,7 +451,10 @@ augList = {
     "Black and White": {"function": black_white, "default":[0,1,2], "example":0}, 
     "Speckle Noise": {"function": speckle_noise, "default": [1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2], "example":1.5},
     "Saturation" : {"function": saturation, "default":[50], "example":50},
-    "Alternate Mosaic": {"function": alternate_mosaic, "default":[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "example":2} # 1x1 - 5x5
+    "Alternate Mosaic": {"function": alternate_mosaic, "default":[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "example":2}, # 1x1 - 5x5
+    "WebP Compression": {"function": webp_transform, "default": [10,25,50,75,100], "example":10},
+    "Bilinear Resizing": {"function": bilinear, "default": [10,20,30,40,50,60,70,80,90,95], "example":10},
+    "Compressive Autoencoder": {"function": cae, "default": [8,16,32,64,128], "example":8}
 }
 
 class Augmentation:

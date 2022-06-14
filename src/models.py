@@ -60,10 +60,10 @@ from src.yolov3.utils.augmentations import letterbox
 from src.yolov3.models.common import DetectMultiBackend
 import yaml
 
+# import compressive autoendcoding here:
+from src.cae.src import detecter
 # YOLOX imports:
 from src.yolox.yolox.data.datasets import COCO_CLASSES
-
-
 
 currPath = str(Path(__file__).parent.absolute()) + '/'
 
@@ -435,7 +435,7 @@ class EfficientDetV2(Model):
         for i, _iou in enumerate(iou):
             class_ious[i] = _iou
         return iou.mean(), acc_meter.average(), class_ious
-
+      
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
 
@@ -716,6 +716,85 @@ class YOLOv3_Ultralytics(Model):
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
 
+class YOLOv4(Model):
+    """
+    YOLOv4 Model that inherits the Model class
+    It specifies its four main functions: run, initialize, deinitialize, and draw. 
+    """
+    def __init__(self, *network_config) -> None:
+        super(YOLOv4, self).__init__()
+        # network_config: CLASSES, CFG, WEIGHTS
+        self.CLASSES, self.CFG, self.WEIGHTS = network_config
+        self.img_size = (416,416)
+        print(self.CLASSES, self.CFG, self.WEIGHTS)
+        self.classes = load_classes(self.CLASSES)
+        self.conf_threshold = 0.25
+
+    def letterbox_image(image, size):
+        '''
+        Resize image with unchanged aspect ratio using padding.
+        This function replaces "letterbox" and enforces non-rectangle static inferencing only
+        '''
+        ih, iw, _ = image.shape
+        w, h = size
+        scale = min(w/iw, h/ih)
+        nw = int(iw*scale)
+        nh = int(ih*scale)
+
+        image = cv2.resize(image, (nw, nh), interpolation=cv2.INTER_LINEAR)
+        new_image = np.ones((h, w, 3), np.uint8) * 114
+        h_start = (h-nh)//2
+        w_start = (w-nw)//2
+        new_image[h_start:h_start+nh, w_start:w_start+nw, :] = image
+        return new_image, (nh, nw)
+    
+    def run(self, input):
+        im0 = np.copy(input)
+        img = self.letterbox_image(input, self.img_size)[0]
+        img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
+        img = np.ascontiguousarray(img)
+        if torch.cuda.is_available():
+            img = torch.from_numpy(img).cuda()
+        else:
+            img = torch.from_numpy(img).cpu()
+        img = img.float()
+        img /= 255.0
+        if img.ndimension() == 3:
+            img = img.unsqueeze(0)
+        pred = self.yolo(img, augment=False)[0]
+        pred = non_max_suppression(pred, self.conf_threshold, 0.6, classes=None, agnostic=False)
+        #return pred #[x1,y1,x2,y2,conf,class] <--- box
+        for i, det in enumerate(pred):  # detections per image
+            if det is not None and len(det):
+                # Rescale boxes from img_size to im0 size
+                det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
+        if torch.cuda.is_available():
+            pred[0] = pred[0].cpu()
+        pred = pred[0].detach().numpy()
+        #print(self.yolo.training)
+        return pred
+
+    def initialize(self, *kwargs):
+        self.yolo = Darknet(self.CFG, self.img_size)
+        if torch.cuda.is_available():
+            self.yolo = self.yolo.cuda()
+        else:
+            self.yolo = self.yolo.cpu()
+        load_darknet_weights(self.yolo, self.WEIGHTS)
+        self.yolo.eval()
+    
+    def deinitialize(self):
+        return -1
+    
+    def draw(self, pred, img):
+        np_img, detectedNames = detect._draw_and_return_output_image(img, pred, 416, self.classes)
+        return {"dst": np_img,
+                "listOfNames":detectedNames}
+
+    def draw_single_class(self, pred, img, selected_class):
+        np_img = detect._draw_and_return_output_image_single_class(img, pred, selected_class, self.classes)
+        return {"overlay": np_img}
+
     def report_accuracy(self, pred:list, gt:list, evalType='voc'):
         """Function takes in prediction boxes and ground truth boxes and
         returns the mean average precision (mAP) @ IOU 0.5 under VOC2007 criteria (default).
@@ -748,6 +827,89 @@ class YOLOv3_Ultralytics(Model):
             assert False
         else: assert False, "evalType %s not supported"%(evalType) 
         return metrics[0]['AP']
+
+    def outputFormat(self):
+        return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
+
+class YOLOv3_Ultralytics(Model):
+    def __init__(self, *network_config) -> None:
+        super().__init__(*network_config)
+        _yaml, self.weight = network_config
+        with open(_yaml, 'r') as stream:
+            self.YAML = yaml.safe_load(stream)
+
+        self.img_size = (416,416)
+        self.conf_threshold = 0.25
+        if torch.cuda.is_available():
+            self.device = select_device('0')
+        else:
+            self.device = select_device('cpu')
+        self.conf_thres = 0.5
+        self.iou_thres = 0.6
+        self.max_det = 1000
+        self.img_size = 416
+        
+        self.hide_conf = True
+        self.hide_labels = False
+        self.colors = Colors()  # create instance for 'from utils.plots import colors'
+
+    def initialize(self, *kwargs):
+        self.model = DetectMultiBackend(self.weight, device=self.device, dnn=False)
+        self.names = self.model.names
+
+    def run(self, input):
+        imageShape = input.shape
+        gn = torch.tensor(imageShape)[[1, 0, 1, 0]]  # normalization gain whwh
+        im = letterbox(input, self.img_size, stride=self.model.stride, auto=False)[0]
+        im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+        im = np.ascontiguousarray(im)
+        im = torch.from_numpy(im).to(self.device)
+        im = torch.unsqueeze(im, axis=0)
+        im = im.float()  # uint8 to fp16/32
+        im /= 255  # 0 - 255 to 0.0 - 1.0
+        pred = self.model(im, augment=False, visualize=False)
+        pred = non_max_suppression(pred, self.conf_thres, self.iou_thres, None, False)[0]
+
+        if pred.shape[0] > 0:
+            # Rescale boxes from img_size to im0 size
+            pred[:, :4] = scale_coords(im.shape[2:], pred[:, :4], imageShape).round()
+            return pred
+        else:
+            return []
+        # Write results
+        #for *xyxy, conf, cls in reversed(det):
+        #    xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
+        #    line = (cls, *xywh, conf) if save_conf else (cls, *xywh)  # label format
+
+    def draw(self, preds, im0, class_filter=None):
+        labels = {"all":[255,255,255]}
+        if len(preds) > 0:
+            names = self.names
+            gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
+            imc = im0  # for save_crop
+            annotator = Annotator(im0, line_width=2)
+            for *xyxy, conf, cls in reversed(preds):
+                c = int(cls)  # integer class
+                label = None if self.hide_labels else (names[c] if self.hide_conf else f'{names[c]} {conf:.2f}')
+                _color = self.colors(c, True)
+                if not label in labels:
+                    _c = list(_color)
+                    labels[label] = [_c[2], _c[1], _c[0]]
+                if class_filter:
+                    if class_filter == label:
+                        annotator.box_label(xyxy, label, color=_color)
+                else:
+                    annotator.box_label(xyxy, label, color=_color)
+                # Stream results
+            im0 = annotator.result()
+        #cv2.imshow('test', im0)
+        #cv2.imwrite('test.png', im0)
+        #cv2.waitKey(-1)
+        return {"dst": im0,
+                "listOfNames":labels}
+
+    def deinitialize(self):
+        del self.model
 
 class YOLOX(Model):
     def __init__(self, *network_config) -> None:   
@@ -885,6 +1047,47 @@ class YOLOX(Model):
             assert False
         else: assert False, "evalType %s not supported"%(evalType) 
         return metrics[0]['AP']
+
+class CompressiveAE(Model):
+
+    def __init__(self, *network_config) -> None:
+        super().__init__(*network_config)
+
+    def run(self, image, size=None):
+
+        # Run the detect.py script
+        detecter.main(self.config, image, size)
+    
+    def initialize(self, config):
+    
+        # Intialize the configuraiton file
+        self.config = config
+
+    def deinitialize(self):
+        
+        pass
+    
+    def draw(self):
+
+        # Path to experiments folder
+        experiment = currPath + '/cae/experiments/testing/out/'
+
+        # Grab the image from the testing folder 
+        image = cv2.imread(experiment + 'custom.png')
+
+        return image
+
+    def draw_single_class(self):
+
+        pass
+
+    def outputFormat(self):
+        
+        pass
+    
+    def report_accuracy(self):
+        
+        pass
 
 _registry = {
     'Face Detection (YOLOv3)': YOLOv3(
