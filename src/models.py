@@ -367,6 +367,7 @@ class EfficientDetV2(Model):
         self.CLASSES, self.CFG = network_config
         self.numClasses = len(self.CLASSES)
         print(self.CLASSES, self.CFG)
+        self.conf = 0.25
         self.classes = load_classes(self.CLASSES)
         self.inputTrans = {
             'efficientdetv2_dt': (768, 768),
@@ -405,7 +406,7 @@ class EfficientDetV2(Model):
         scores[:, 1] = scores[:, 1] / self.inputTrans[self.CFG][0] * input.shape[0]
         scores[:, 2] = scores[:, 2] / self.inputTrans[self.CFG][1] * input.shape[1]
         scores[:, 3] = scores[:, 3] / self.inputTrans[self.CFG][0] * input.shape[0]
-        return scores[np.where(scores[:,4] > 0.25)]
+        return scores[np.where(scores[:,4] > self.conf)]
 
     def deinitialize(self):
         return -1
