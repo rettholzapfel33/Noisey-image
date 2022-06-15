@@ -31,8 +31,6 @@ sip==4.19.8
 six==1.16.0
 soupsieve==2.2.1
 tifffile==2020.9.3
-torch==1.9.1
-torchvision==0.10.1
 tqdm==4.62.3
 typing-extensions==3.10.0.2
 urllib3==1.26.7

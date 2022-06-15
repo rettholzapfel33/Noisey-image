@@ -2,6 +2,7 @@
 import os
 import yaml
 import json
+import argparse
 import xml.etree.ElementTree as ET
 
 # PyQt5
@@ -13,6 +14,9 @@ from src.yamlDialog import Ui_Dialog
 
 # eval:
 from src.evaluators.map_metric.lib.BoundingBox import BoundingBox
+
+# COCO:
+from pycocotools.coco import COCO
 
 def read_yaml(self, filePath):
     filePaths = []
@@ -78,6 +82,8 @@ def read_yaml(self, filePath):
         if(os.path.isdir(file)):
             onlyfiles = [f for f in os.listdir(file) if os.path.isfile(os.path.join(file, f))]
             onlyfiles = list(map(lambda path: os.path.join(file, path), onlyfiles))
+
+            print(onlyfiles)
     
             filePaths.remove(file)
             filePaths.extend(onlyfiles)
@@ -111,6 +117,22 @@ def read_yaml(self, filePath):
                 labels_dic[base_name] = file_content
         # Parses .json annotation files and stores in dictionary -> for COCO datasets
         elif documents["type"] == "coco":
+
+            # Load COCO dataset
+            dataDir = root
+            dataType = 'val2017'
+            annFile = '{}/annotations/instances_{}.json'.format(dataDir, dataType)
+
+            # Intialize COCO api for instance annotations
+            coco = COCO(annFile)
+
+            # Print all categories in COCO dataset
+            cats = coco.loadCats(coco.getCatIds())
+            nms=[cat['name'] for cat in cats]
+            #print('COCO categories: \n{}\n'.format(' '.join(nms)))
+
+
+            '''
            for label in labels:
                with open(label) as f:
                    instances = json.load(f)
@@ -129,7 +151,9 @@ def read_yaml(self, filePath):
                                
                    labels_dic[name] = file_content
            f.close()
+           
            labels_content = labels_dic    
+           '''
         # Parses .txt annotation files
         else:
             for label in labels:
@@ -156,3 +180,11 @@ def read_yaml(self, filePath):
         self.labels = labels_dic
 
     return filePaths, (labels_content, label_eval)
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--filepath', type=str, required=True, default=None, help='Path to file or folder')
+    args = parser.parse_args()
+    
+    read_yaml(args.filepath)    
