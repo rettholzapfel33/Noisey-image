@@ -393,7 +393,7 @@ def webp_transform(image, quality=10):
         dec_img = cv2.imdecode(enc_img, 1)
         return dec_img
 
-def bilinear(image, percent=50):
+def bilinear(image, percent):
 
     """ 
     Uses bilinear interpolation to resize the image.
@@ -419,7 +419,7 @@ def bilinear(image, percent=50):
     return final_img
 
 
-def cae(image, patches=16):
+def cae(image, patches):
     
     encoder = models.CompressiveAE()   
 
@@ -427,15 +427,15 @@ def cae(image, patches=16):
     encoder.initialize(currPath + '/cae/configs/test.yaml')
 
     # Run the autoencoder with the given image
-    encoder.run(image)
+    encoder.run(image, patches)
 
     # Get the encoded image
     img = encoder.draw()
-    
-    # Cut off half the image
-    cutImg = img[0:img.shape[0], int(img.shape[1]/2):img.shape[1]]
 
-    return cutImg
+    # Cut off half the image
+    #cutImg = img[0:img.shape[0], int(img.shape[1]/2):img.shape[1]]
+
+    return img
 
 augList = {
     "Intensity": {"function": dim_intensity, "default": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1], "example":0.5},
@@ -453,8 +453,8 @@ augList = {
     "Saturation" : {"function": saturation, "default":[50], "example":50},
     "Alternate Mosaic": {"function": alternate_mosaic, "default":[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "example":2}, # 1x1 - 5x5
     "WebP Compression": {"function": webp_transform, "default": [10,25,50,75,100], "example":10},
-    "Bilinear Resizing": {"function": bilinear, "default": [10,20,30,40,50,60,70,80,90,95], "example":10},
-    "Compressive Autoencoder": {"function": cae, "default": [8,16,32,64,128], "example":8}
+    "Bilinear Resizing": {"function": bilinear, "default": [10,20,30,40,50,60,70,80,90,95], "example":25},
+    "Compressive Autoencoder": {"function": cae, "default": [16,32,64,128,256,512,1024], "example":16}
 }
 
 class Augmentation:

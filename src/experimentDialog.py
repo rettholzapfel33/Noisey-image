@@ -11,7 +11,9 @@ from makeBetterGraph import makemAPGraph
 from src.transforms import AugmentationPipeline, Augmentation
 import cv2
 import os
+import re
 import time
+import json 
 import numpy as np
 import yaml
 
@@ -57,7 +59,8 @@ class ExperimentWorker(QObject):
     def __init__(self, config, savePath) -> None:
         super(ExperimentWorker, self).__init__()
         self.config = config
-        self.savePath = savePath
+        self.savePath = savePath 
+        self.cocoJSON = ''
 
     def writeDets(self, detections, exp_path, filename):
         _file = filename.split('/')[-1]
@@ -67,6 +70,41 @@ class ExperimentWorker(QObject):
             detections = detections.tobytes()
             with open( os.path.join(exp_path, _txt_file), 'wb') as f:
                 f.write(detections)
+
+        # If running the COCO dataset
+        elif self.config.labelType == 'coco':
+
+            _json = []
+
+            # Count for testing so you dont go through the entire cocodataset
+            count = 0
+
+            # Properly format the output 
+            _format = self.config.model.outputFormat()
+
+            # Loop through the detections
+            for det in detections:
+
+                if count == 100:
+                    break
+
+                # Split up the output into multiple strings
+                split = re.split(' ', _format.format(*det))
+
+                # Create dictionary 
+                result = {
+                    'image_id': 0,
+                    'category_id': 0,
+                    'bbox': [float(split[2]), float(split[3]), float(split[4]), float(split[5])],
+                    'score': float("{:.3f}".format(float(split[1])))
+                }
+
+                _json.append(result)
+
+                count += 1
+
+            #print(json.dumps(_json))
+
         else:
             _format = self.config.model.outputFormat() + '\n'
             with open( os.path.join(exp_path, _txt_file), 'w') as f:

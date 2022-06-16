@@ -3,6 +3,7 @@ import os
 import yaml
 import json
 import argparse
+import numpy as np
 import xml.etree.ElementTree as ET
 
 # PyQt5
@@ -17,9 +18,11 @@ from src.evaluators.map_metric.lib.BoundingBox import BoundingBox
 
 # COCO:
 from pycocotools.coco import COCO
+from pycocotools.cocoeval import COCOeval
 
 def read_yaml(self, filePath):
     filePaths = []
+    label_eval = 'voc'
 
     # Parse user-created YAML file to dataset
     with open(filePath) as file:
@@ -83,8 +86,6 @@ def read_yaml(self, filePath):
             onlyfiles = [f for f in os.listdir(file) if os.path.isfile(os.path.join(file, f))]
             onlyfiles = list(map(lambda path: os.path.join(file, path), onlyfiles))
 
-            print(onlyfiles)
-    
             filePaths.remove(file)
             filePaths.extend(onlyfiles)
 
@@ -124,13 +125,9 @@ def read_yaml(self, filePath):
             annFile = '{}/annotations/instances_{}.json'.format(dataDir, dataType)
 
             # Intialize COCO api for instance annotations
-            coco = COCO(annFile)
+            labels_content = COCO(annFile)
 
-            # Print all categories in COCO dataset
-            cats = coco.loadCats(coco.getCatIds())
-            nms=[cat['name'] for cat in cats]
-            #print('COCO categories: \n{}\n'.format(' '.join(nms)))
-
+            label_eval = 'coco'
 
             '''
            for label in labels:
@@ -175,7 +172,6 @@ def read_yaml(self, filePath):
                 labels_dic[base_name] = file_content
             
         labels_content = labels_dic
-        label_eval = "voc" # TODO: change to adapt for different eval
 
         self.labels = labels_dic
 
