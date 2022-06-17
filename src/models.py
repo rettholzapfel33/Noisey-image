@@ -839,7 +839,7 @@ class YOLOv3_Ultralytics(Model):
     def testCOCO(self, pred):
         
         pass
-
+      
     def report_accuracy(self, pred:list, gt:list, evalType='voc'):
         """Function takes in prediction boxes and ground truth boxes and
         returns the mean average precision (mAP) @ IOU 0.5 under VOC2007 criteria (default).
@@ -869,6 +869,7 @@ class YOLOv3_Ultralytics(Model):
         if evalType == 'voc':
             metrics = evaluator.GetPascalVOCMetrics(allBoundingBoxes)
             print('Printing metrics for YOLOv3_Ultralytics', metrics)
+
         elif evalType == 'coco':
             assert False
         else: assert False, "evalType %s not supported"%(evalType) 
