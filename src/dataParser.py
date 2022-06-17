@@ -2,6 +2,8 @@
 import os
 import yaml
 import json
+import argparse
+import numpy as np
 import xml.etree.ElementTree as ET
 
 # PyQt5
@@ -14,8 +16,13 @@ from src.yamlDialog import Ui_Dialog
 # eval:
 from src.evaluators.map_metric.lib.BoundingBox import BoundingBox
 
+# COCO:
+from pycocotools.coco import COCO
+from pycocotools.cocoeval import COCOeval
+
 def read_yaml(self, filePath):
     filePaths = []
+    label_eval = 'voc'
 
     # Parse user-created YAML file to dataset
     with open(filePath) as file:
@@ -78,7 +85,7 @@ def read_yaml(self, filePath):
         if(os.path.isdir(file)):
             onlyfiles = [f for f in os.listdir(file) if os.path.isfile(os.path.join(file, f))]
             onlyfiles = list(map(lambda path: os.path.join(file, path), onlyfiles))
-    
+
             filePaths.remove(file)
             filePaths.extend(onlyfiles)
 
@@ -111,6 +118,18 @@ def read_yaml(self, filePath):
                 labels_dic[base_name] = file_content
         # Parses .json annotation files and stores in dictionary -> for COCO datasets
         elif documents["type"] == "coco":
+
+            # Load COCO dataset
+            dataDir = root
+            dataType = 'val2017'
+            annFile = '{}/annotations/instances_{}.json'.format(dataDir, dataType)
+
+            # Intialize COCO api for instance annotations
+            labels_content = COCO(annFile)
+
+            label_eval = 'coco'
+
+            '''
            for label in labels:
                with open(label) as f:
                    instances = json.load(f)
@@ -129,7 +148,9 @@ def read_yaml(self, filePath):
                                
                    labels_dic[name] = file_content
            f.close()
+           
            labels_content = labels_dic    
+           '''
         # Parses .txt annotation files
         else:
             for label in labels:
@@ -151,8 +172,15 @@ def read_yaml(self, filePath):
                 labels_dic[base_name] = file_content
             
         labels_content = labels_dic
-        label_eval = "voc" # TODO: change to adapt for different eval
 
         self.labels = labels_dic
 
     return filePaths, (labels_content, label_eval)
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--filepath', type=str, required=True, default=None, help='Path to file or folder')
+    args = parser.parse_args()
+    
+    read_yaml(args.filepath)    

@@ -61,7 +61,7 @@ from src.yolov3.models.common import DetectMultiBackend
 import yaml
 
 # import compressive autoendcoding here:
-from src.cae.src import detecter
+from src.cae.src import detect as detector
 # YOLOX imports:
 from src.yolox.yolox.data.datasets import COCO_CLASSES
 
@@ -766,6 +766,9 @@ class YOLOv3_Ultralytics(Model):
         self.hide_labels = False
         self.colors = Colors()  # create instance for 'from utils.plots import colors'
 
+        # Stuff for COCO
+        self.predictions = []
+
     def initialize(self, *kwargs):
         self.model = DetectMultiBackend(self.weight, device=self.device, dnn=False)
         self.names = self.model.names
@@ -786,6 +789,8 @@ class YOLOv3_Ultralytics(Model):
         if pred.shape[0] > 0:
             # Rescale boxes from img_size to im0 size
             pred[:, :4] = scale_coords(im.shape[2:], pred[:, :4], imageShape).round()
+            self.predictions = pred
+
             return pred
         else:
             return []
@@ -831,6 +836,10 @@ class YOLOv3_Ultralytics(Model):
     def outputFormat(self):
         return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
 
+    def testCOCO(self, pred):
+        
+        pass
+      
     def report_accuracy(self, pred:list, gt:list, evalType='voc'):
         """Function takes in prediction boxes and ground truth boxes and
         returns the mean average precision (mAP) @ IOU 0.5 under VOC2007 criteria (default).
@@ -853,12 +862,14 @@ class YOLOv3_Ultralytics(Model):
         for _pred in pred:
             assert type(_pred) == BoundingBox, "_gt is not BoundingBox type. Instead is %s"%(str(type(_pred)))
             allBoundingBoxes.addBoundingBox(_pred)
+            print("prediction", _pred)
 
         #for box in allBoundingBoxes:
         #    print(box.getAbsoluteBoundingBox(format=BBFormat.XYWH), box.getBBType()) 
         if evalType == 'voc':
             metrics = evaluator.GetPascalVOCMetrics(allBoundingBoxes)
-            print(metrics)
+            print('Printing metrics for YOLOv3_Ultralytics', metrics)
+
         elif evalType == 'coco':
             assert False
         else: assert False, "evalType %s not supported"%(evalType) 
@@ -1009,7 +1020,7 @@ class CompressiveAE(Model):
     def run(self, image, size=None):
 
         # Run the detect.py script
-        detecter.main(self.config, image, size)
+        detector.main(self.config, image, size)
     
     def initialize(self, config):
     
