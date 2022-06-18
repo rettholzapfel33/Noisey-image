@@ -1,0 +1,7 @@
+checkpoint: src\cae\model\model_yt_small_final.state
+exp_name: testing
+batch_every: 100
+shuffle: false
+dataset_path: /
+num_workers: 1
+device: cuda

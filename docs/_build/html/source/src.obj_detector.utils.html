@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.obj_detector.utils package &mdash; Noisey-Image  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Noisey-Image
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p><span class="caption-text">Modules:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="main_tutorial_guide.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="src.html">Submodules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="src.mit_semseg.html">Mit Semseg Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="src.obj_detector.html">Object Detector Module</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Noisey-Image</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>src.obj_detector.utils package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/src.obj_detector.utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="src-obj-detector-utils-package">
+<h1>src.obj_detector.utils package<a class="headerlink" href="#src-obj-detector-utils-package" title="Permalink to this headline">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="src-obj-detector-utils-augmentations-module">
+<h2>src.obj_detector.utils.augmentations module<a class="headerlink" href="#src-obj-detector-utils-augmentations-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-src.obj_detector.utils.datasets">
+<span id="src-obj-detector-utils-datasets-module"></span><h2>src.obj_detector.utils.datasets module<a class="headerlink" href="#module-src.obj_detector.utils.datasets" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="src.obj_detector.utils.datasets.ImageFolder">
+<em class="property">class </em><code class="sig-prename descclassname">src.obj_detector.utils.datasets.</code><code class="sig-name descname">ImageFolder</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwds</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.datasets.ImageFolder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.dataset.Dataset</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.obj_detector.utils.datasets.ListDataset">
+<em class="property">class </em><code class="sig-prename descclassname">src.obj_detector.utils.datasets.</code><code class="sig-name descname">ListDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwds</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.datasets.ListDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.dataset.Dataset</span></code></p>
+<dl class="py method">
+<dt id="src.obj_detector.utils.datasets.ListDataset.collate_fn">
+<code class="sig-name descname">collate_fn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.datasets.ListDataset.collate_fn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.datasets.pad_to_square">
+<code class="sig-prename descclassname">src.obj_detector.utils.datasets.</code><code class="sig-name descname">pad_to_square</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img</span></em>, <em class="sig-param"><span class="n">pad_value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.datasets.pad_to_square" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.datasets.resize">
+<code class="sig-prename descclassname">src.obj_detector.utils.datasets.</code><code class="sig-name descname">resize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em>, <em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.datasets.resize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-src.obj_detector.utils.logger">
+<span id="src-obj-detector-utils-logger-module"></span><h2>src.obj_detector.utils.logger module<a class="headerlink" href="#module-src.obj_detector.utils.logger" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="src.obj_detector.utils.logger.Logger">
+<em class="property">class </em><code class="sig-prename descclassname">src.obj_detector.utils.logger.</code><code class="sig-name descname">Logger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">log_dir</span></em>, <em class="sig-param"><span class="n">log_hist</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.logger.Logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="src.obj_detector.utils.logger.Logger.list_of_scalars_summary">
+<code class="sig-name descname">list_of_scalars_summary</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tag_value_pairs</span></em>, <em class="sig-param"><span class="n">step</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.logger.Logger.list_of_scalars_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log scalar variables.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.obj_detector.utils.logger.Logger.scalar_summary">
+<code class="sig-name descname">scalar_summary</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tag</span></em>, <em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">step</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.logger.Logger.scalar_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log a scalar variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-src.obj_detector.utils.loss">
+<span id="src-obj-detector-utils-loss-module"></span><h2>src.obj_detector.utils.loss module<a class="headerlink" href="#module-src.obj_detector.utils.loss" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="src.obj_detector.utils.loss.BCEBlurWithLogitsLoss">
+<em class="property">class </em><code class="sig-prename descclassname">src.obj_detector.utils.loss.</code><code class="sig-name descname">BCEBlurWithLogitsLoss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">alpha</span><span class="o">=</span><span class="default_value">0.05</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.loss.BCEBlurWithLogitsLoss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="py method">
+<dt id="src.obj_detector.utils.loss.BCEBlurWithLogitsLoss.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pred</span></em>, <em class="sig-param"><span class="n">true</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.loss.BCEBlurWithLogitsLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.obj_detector.utils.loss.BCEBlurWithLogitsLoss.training">
+<code class="sig-name descname">training</code><em class="property">: bool</em><a class="headerlink" href="#src.obj_detector.utils.loss.BCEBlurWithLogitsLoss.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.obj_detector.utils.loss.FocalLoss">
+<em class="property">class </em><code class="sig-prename descclassname">src.obj_detector.utils.loss.</code><code class="sig-name descname">FocalLoss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss_fcn</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">1.5</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="o">=</span><span class="default_value">0.25</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.loss.FocalLoss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="py method">
+<dt id="src.obj_detector.utils.loss.FocalLoss.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pred</span></em>, <em class="sig-param"><span class="n">true</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.loss.FocalLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.obj_detector.utils.loss.FocalLoss.training">
+<code class="sig-name descname">training</code><em class="property">: bool</em><a class="headerlink" href="#src.obj_detector.utils.loss.FocalLoss.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.obj_detector.utils.loss.QFocalLoss">
+<em class="property">class </em><code class="sig-prename descclassname">src.obj_detector.utils.loss.</code><code class="sig-name descname">QFocalLoss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss_fcn</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">1.5</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="o">=</span><span class="default_value">0.25</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.loss.QFocalLoss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="py method">
+<dt id="src.obj_detector.utils.loss.QFocalLoss.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pred</span></em>, <em class="sig-param"><span class="n">true</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.loss.QFocalLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.obj_detector.utils.loss.QFocalLoss.training">
+<code class="sig-name descname">training</code><em class="property">: bool</em><a class="headerlink" href="#src.obj_detector.utils.loss.QFocalLoss.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.loss.bbox_iou">
+<code class="sig-prename descclassname">src.obj_detector.utils.loss.</code><code class="sig-name descname">bbox_iou</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">box1</span></em>, <em class="sig-param"><span class="n">box2</span></em>, <em class="sig-param"><span class="n">x1y1x2y2</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">GIoU</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">DIoU</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">CIoU</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">eps</span><span class="o">=</span><span class="default_value">1e-09</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.loss.bbox_iou" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.loss.build_targets">
+<code class="sig-prename descclassname">src.obj_detector.utils.loss.</code><code class="sig-name descname">build_targets</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p</span></em>, <em class="sig-param"><span class="n">targets</span></em>, <em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.loss.build_targets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.loss.compute_loss">
+<code class="sig-prename descclassname">src.obj_detector.utils.loss.</code><code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">predictions</span></em>, <em class="sig-param"><span class="n">targets</span></em>, <em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.loss.compute_loss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.loss.smooth_BCE">
+<code class="sig-prename descclassname">src.obj_detector.utils.loss.</code><code class="sig-name descname">smooth_BCE</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">eps</span><span class="o">=</span><span class="default_value">0.1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.loss.smooth_BCE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-src.obj_detector.utils.parse_config">
+<span id="src-obj-detector-utils-parse-config-module"></span><h2>src.obj_detector.utils.parse_config module<a class="headerlink" href="#module-src.obj_detector.utils.parse_config" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="src.obj_detector.utils.parse_config.parse_data_config">
+<code class="sig-prename descclassname">src.obj_detector.utils.parse_config.</code><code class="sig-name descname">parse_data_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.parse_config.parse_data_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses the data configuration file</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.parse_config.parse_model_config">
+<code class="sig-prename descclassname">src.obj_detector.utils.parse_config.</code><code class="sig-name descname">parse_model_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.parse_config.parse_model_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses the yolo-v3 layer configuration file and returns module definitions</p>
+</dd></dl>
+
+</section>
+<section id="module-src.obj_detector.utils.transforms">
+<span id="src-obj-detector-utils-transforms-module"></span><h2>src.obj_detector.utils.transforms module<a class="headerlink" href="#module-src.obj_detector.utils.transforms" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="src.obj_detector.utils.transforms.AbsoluteLabels">
+<em class="property">class </em><code class="sig-prename descclassname">src.obj_detector.utils.transforms.</code><code class="sig-name descname">AbsoluteLabels</code><a class="headerlink" href="#src.obj_detector.utils.transforms.AbsoluteLabels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.obj_detector.utils.transforms.ImgAug">
+<em class="property">class </em><code class="sig-prename descclassname">src.obj_detector.utils.transforms.</code><code class="sig-name descname">ImgAug</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">augmentations</span><span class="o">=</span><span class="default_value">[]</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.transforms.ImgAug" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.obj_detector.utils.transforms.PadSquare">
+<em class="property">class </em><code class="sig-prename descclassname">src.obj_detector.utils.transforms.</code><code class="sig-name descname">PadSquare</code><a class="headerlink" href="#src.obj_detector.utils.transforms.PadSquare" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#src.obj_detector.utils.transforms.ImgAug" title="src.obj_detector.utils.transforms.ImgAug"><code class="xref py py-class docutils literal notranslate"><span class="pre">src.obj_detector.utils.transforms.ImgAug</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.obj_detector.utils.transforms.RelativeLabels">
+<em class="property">class </em><code class="sig-prename descclassname">src.obj_detector.utils.transforms.</code><code class="sig-name descname">RelativeLabels</code><a class="headerlink" href="#src.obj_detector.utils.transforms.RelativeLabels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.obj_detector.utils.transforms.Resize">
+<em class="property">class </em><code class="sig-prename descclassname">src.obj_detector.utils.transforms.</code><code class="sig-name descname">Resize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.transforms.Resize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.obj_detector.utils.transforms.ToTensor">
+<em class="property">class </em><code class="sig-prename descclassname">src.obj_detector.utils.transforms.</code><code class="sig-name descname">ToTensor</code><a class="headerlink" href="#src.obj_detector.utils.transforms.ToTensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+</section>
+<section id="module-src.obj_detector.utils.utils">
+<span id="src-obj-detector-utils-utils-module"></span><h2>src.obj_detector.utils.utils module<a class="headerlink" href="#module-src.obj_detector.utils.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="src.obj_detector.utils.utils.ap_per_class">
+<code class="sig-prename descclassname">src.obj_detector.utils.utils.</code><code class="sig-name descname">ap_per_class</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tp</span></em>, <em class="sig-param"><span class="n">conf</span></em>, <em class="sig-param"><span class="n">pred_cls</span></em>, <em class="sig-param"><span class="n">target_cls</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.utils.ap_per_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the average precision, given the recall and precision curves.
+Source: <a class="reference external" href="https://github.com/rafaelpadilla/Object-Detection-Metrics">https://github.com/rafaelpadilla/Object-Detection-Metrics</a>.
+# Arguments</p>
+<blockquote>
+<div><p>tp:    True positives (list).
+conf:  Objectness value from 0-1 (list).
+pred_cls: Predicted object classes (list).
+target_cls: True object classes (list).</p>
+</div></blockquote>
+<dl class="simple">
+<dt># Returns</dt><dd><p>The average precision as computed in py-faster-rcnn.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.utils.bbox_iou">
+<code class="sig-prename descclassname">src.obj_detector.utils.utils.</code><code class="sig-name descname">bbox_iou</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">box1</span></em>, <em class="sig-param"><span class="n">box2</span></em>, <em class="sig-param"><span class="n">x1y1x2y2</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.utils.bbox_iou" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the IoU of two bounding boxes</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.utils.bbox_wh_iou">
+<code class="sig-prename descclassname">src.obj_detector.utils.utils.</code><code class="sig-name descname">bbox_wh_iou</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wh1</span></em>, <em class="sig-param"><span class="n">wh2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.utils.bbox_wh_iou" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.utils.box_iou">
+<code class="sig-prename descclassname">src.obj_detector.utils.utils.</code><code class="sig-name descname">box_iou</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">box1</span></em>, <em class="sig-param"><span class="n">box2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.utils.box_iou" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return intersection-over-union (Jaccard index) of boxes.
+Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
+Arguments:</p>
+<blockquote>
+<div><p>box1 (Tensor[N, 4])
+box2 (Tensor[M, 4])</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>iou (Tensor[N, M]): the NxM matrix containing the pairwise</dt><dd><p>IoU values for every element in boxes1 and boxes2</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.utils.compute_ap">
+<code class="sig-prename descclassname">src.obj_detector.utils.utils.</code><code class="sig-name descname">compute_ap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">recall</span></em>, <em class="sig-param"><span class="n">precision</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.utils.compute_ap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the average precision, given the recall and precision curves.
+Code originally from <a class="reference external" href="https://github.com/rbgirshick/py-faster-rcnn">https://github.com/rbgirshick/py-faster-rcnn</a>.</p>
+<dl class="simple">
+<dt># Arguments</dt><dd><p>recall:    The recall curve (list).
+precision: The precision curve (list).</p>
+</dd>
+<dt># Returns</dt><dd><p>The average precision as computed in py-faster-rcnn.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.utils.get_batch_statistics">
+<code class="sig-prename descclassname">src.obj_detector.utils.utils.</code><code class="sig-name descname">get_batch_statistics</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outputs</span></em>, <em class="sig-param"><span class="n">targets</span></em>, <em class="sig-param"><span class="n">iou_threshold</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.utils.get_batch_statistics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute true positives, predicted scores and predicted labels per sample</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.utils.load_classes">
+<code class="sig-prename descclassname">src.obj_detector.utils.utils.</code><code class="sig-name descname">load_classes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.utils.load_classes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads class labels at ‘path’</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.utils.non_max_suppression">
+<code class="sig-prename descclassname">src.obj_detector.utils.utils.</code><code class="sig-name descname">non_max_suppression</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">prediction</span></em>, <em class="sig-param"><span class="n">conf_thres</span><span class="o">=</span><span class="default_value">0.25</span></em>, <em class="sig-param"><span class="n">iou_thres</span><span class="o">=</span><span class="default_value">0.45</span></em>, <em class="sig-param"><span class="n">classes</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.utils.non_max_suppression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs Non-Maximum Suppression (NMS) on inference results
+Returns:</p>
+<blockquote>
+<div><p>detections with shape: nx6 (x1, y1, x2, y2, conf, cls)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.utils.print_environment_info">
+<code class="sig-prename descclassname">src.obj_detector.utils.utils.</code><code class="sig-name descname">print_environment_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.utils.print_environment_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints infos about the environment and the system.
+This should help when people make issues containg the printout.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.utils.provide_determinism">
+<code class="sig-prename descclassname">src.obj_detector.utils.utils.</code><code class="sig-name descname">provide_determinism</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">seed</span><span class="o">=</span><span class="default_value">42</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.utils.provide_determinism" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.utils.rescale_boxes">
+<code class="sig-prename descclassname">src.obj_detector.utils.utils.</code><code class="sig-name descname">rescale_boxes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">boxes</span></em>, <em class="sig-param"><span class="n">current_dim</span></em>, <em class="sig-param"><span class="n">original_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.utils.rescale_boxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rescales bounding boxes to the original shape</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.utils.to_cpu">
+<code class="sig-prename descclassname">src.obj_detector.utils.utils.</code><code class="sig-name descname">to_cpu</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tensor</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.utils.to_cpu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.utils.weights_init_normal">
+<code class="sig-prename descclassname">src.obj_detector.utils.utils.</code><code class="sig-name descname">weights_init_normal</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">m</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.utils.weights_init_normal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.utils.worker_seed_set">
+<code class="sig-prename descclassname">src.obj_detector.utils.utils.</code><code class="sig-name descname">worker_seed_set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">worker_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.utils.worker_seed_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.utils.xywh2xyxy">
+<code class="sig-prename descclassname">src.obj_detector.utils.utils.</code><code class="sig-name descname">xywh2xyxy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.utils.xywh2xyxy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.obj_detector.utils.utils.xywh2xyxy_np">
+<code class="sig-prename descclassname">src.obj_detector.utils.utils.</code><code class="sig-name descname">xywh2xyxy_np</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.obj_detector.utils.utils.xywh2xyxy_np" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-src.obj_detector.utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-src.obj_detector.utils" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Vijay, Rus.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,17 @@
+*.mp4
+*.avi
+*.weights
+*.webp
+*.Identifier
+__pycache__/
+ckpt/
+tmp_results/
+jupyter_files/.ipynb_checkpoints/
+src/jit/yolo_test/build
+src/jit/darknet_radar_cfg/
+jupyter_files/libtorch
+imgs/COCO/annotations/
+imgs/COCO/val2017/
+dev
+src/data/tmp/runs
+.vscode/
