@@ -3,6 +3,7 @@ from PyQt5.uic.uiparser import QtCore
 from PyQt5 import uic
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, Qt
 from PyQt5.QtGui import QPixmap
+from charset_normalizer import detect
 #from charset_normalizer import detect
 from src.mplwidget import MplWidget
 import matplotlib.pyplot as plt
@@ -26,8 +27,14 @@ from src.evaluators.map_metric.lib import BoundingBoxes
 from src.evaluators.map_metric.lib.Evaluator import *
 from src.evaluators.map_metric.lib.utils import BBFormat
 
+# coco api import
+from pycocotools.cocoeval import COCOeval
+from src.utils.coco_utils import coco80_to_coco91_class
+coco_remap = coco80_to_coco91_class()
+
 def createExperimentName(savePath):
     _root_name = 'exp'
+    if not os.path.exists(savePath): os.mkdir(savePath)
     _folders = os.listdir(savePath)
     if len(_folders) == 0:
         return "%s_%i"%(_root_name, 1)
@@ -62,8 +69,33 @@ class ExperimentWorker(QObject):
         self.savePath = savePath 
         self.cocoJSON = ''
 
-    def writeDets(self, detections, exp_path, filename):
-        _file = filename.split('/')[-1]
+    def writeDets(self, detections, exp_path, filename, outObject=None):
+        # x1, y1, x2, y2, conf, cls
+        # If running the COCO dataset
+        if self.config.labelType == 'coco':
+            assert type(outObject) == list, "outObject for labelType coco needs to be a list!"
+            # Properly format the output 
+            _format = self.config.model.outputFormat()
+            
+            # Loop through the detections
+            for det in detections:
+                # Split up the output into multiple strings
+                split = re.split(' ', _format.format(*det))
+                if not self.config.model.isCOCO91:
+                    det[5] = coco_remap[int(det[5])] # convert coco91 to 80
+
+                # Create dictionary 
+                result = {
+                    'image_id': filename, # filename -> the given coco imgid
+                    'category_id': int(det[5]),
+                    'bbox': [float(split[2]), float(split[3]), float(split[4]), float(split[5])],
+                    'score': float("{:.3f}".format(float(split[1])))
+                }
+                outObject.append(result)
+            _file = self.config.labels['coco'].loadImgs(filename)[0]['file_name']
+            #_file = os.path.join(self.config.labels['root'], _file)
+        else:
+            _file = filename.split('/')[-1]
         _txt_file = "%s.txt"%_file.split('.')[0]
         if self.config.model.complexOutput: # for multi-dimensional, complex matrices
             _format = self.config.model.outputFormat()
@@ -71,45 +103,15 @@ class ExperimentWorker(QObject):
             with open( os.path.join(exp_path, _txt_file), 'wb') as f:
                 f.write(detections)
 
-        # If running the COCO dataset
-        elif self.config.labelType == 'coco':
-
-            _json = []
-
-            # Count for testing so you dont go through the entire cocodataset
-            count = 0
-
-            # Properly format the output 
-            _format = self.config.model.outputFormat()
-
-            # Loop through the detections
+        _format = self.config.model.outputFormat() + '\n'
+        with open( os.path.join(exp_path, _txt_file), 'w') as f:
             for det in detections:
-
-                if count == 100:
-                    break
-
-                # Split up the output into multiple strings
-                split = re.split(' ', _format.format(*det))
-
-                # Create dictionary 
-                result = {
-                    'image_id': 0,
-                    'category_id': 0,
-                    'bbox': [float(split[2]), float(split[3]), float(split[4]), float(split[5])],
-                    'score': float("{:.3f}".format(float(split[1])))
-                }
-
-                _json.append(result)
-
-                count += 1
-
-            #print(json.dumps(_json))
-
-        else:
-            _format = self.config.model.outputFormat() + '\n'
-            with open( os.path.join(exp_path, _txt_file), 'w') as f:
-                for det in detections:
-                    f.write(_format.format(*det))
+                #print(det)
+                if self.config.labelType == 'coco':
+                    if len(det) > 0:
+                        det[[2,3]] += det[[0,1]]
+                
+                f.write(_format.format(*det))
 
     def writeMeta(self, outPath):
         with open(os.path.join(outPath, 'meta.yaml'), 'w') as f:
@@ -197,15 +199,25 @@ class ExperimentWorker(QObject):
         self.writeMeta(os.path.join(self.savePath, exp_path))
 
         # map compute purposes:
-        if self.config.model.complexOutput:
-            old_thres = self.config.model.conf_thres
-            self.config.model.conf_thres = 0.00001
+        #if self.config.model.complexOutput:
+        old_thres = self.config.model.conf_thres
+        
+        self.config.model.conf_thres = 0.0001
 
         if len(self.config.mainAug) == 0:
             for i, imgPath in enumerate(self.config.imagePaths):
-                _img = cv2.imread(imgPath)
-                dets = self.config.model.run(_img)
-                self.writeDets(dets, os.path.join(self.savePath, exp_path), imgPath)
+                if self.config.labelType == 'coco':
+                    imgID = imgPath
+                    imgPath = self.config.labels['coco'].loadImgs(imgPath)[0]
+                    imgPath = imgPath['file_name']
+                    imgPath = os.path.join(self.config.labels['root'], imgPath)
+                    _img = cv2.imread(imgPath)
+                    dets = self.config.model.run(_img)
+                    self.writeDets(dets, os.path.join(self.savePath, exp_path), imgID, outObject=_json)
+                else:
+                    _img = cv2.imread(imgPath)
+                    dets = self.config.model.run(_img)
+                    self.writeDets(dets, os.path.join(self.savePath, exp_path), imgPath)
                 self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
                 self.progress.emit(i)
         else:
@@ -248,6 +260,10 @@ class ExperimentWorker(QObject):
                     self.logProgress.emit('Augmentation: %s'%(aug.title))
                     
                     for j in range(len(aug.args)):
+                        if self.config.labelType == 'coco':
+                            _json = []
+                            _filter_id = []
+
                         _count = None
                         # create subdirectory here for each augmentation
                         new_sub_dir = os.path.join(self.config.savePath, exp_path, "%s_%i"%(
@@ -257,22 +273,62 @@ class ExperimentWorker(QObject):
                         except FileExistsError: print("Folder already exists...")
 
                         for i, imgPath in enumerate(self.config.imagePaths):
-                            _img = cv2.imread(imgPath)
-                            _img = aug(_img, request_param=aug.args[j])
-                            dets = self.config.model.run(_img)
-                            self.writeDets(dets, new_sub_dir, imgPath)
+                            if self.config.labelType == 'coco':
+                                imgID = imgPath
+                                imgPath = self.config.labels['coco'].loadImgs(imgPath)[0]
+                                imgPath = imgPath['file_name']
+                                imgPath = os.path.join(self.config.labels['root'], imgPath)
+                                _img = cv2.imread(imgPath)
+                                _img = aug(_img, request_param=aug.args[j])
+                                dets = self.config.model.run(_img)
+                                
+                                if i > 50:
+                                    break
+                                _filter_id.append(imgID)
+                                
+
+                                # convert from xyxy to xywh:
+                                if len(dets) > 0:
+                                    dets[:,[2,3]] = dets[:, [2,3]] - dets[:, [0,1]]  
+                                    self.writeDets(dets, new_sub_dir, imgID, outObject=_json)
+                            else:
+                                _img = cv2.imread(imgPath)
+                                _img = aug(_img, request_param=aug.args[j])
+                                dets = self.config.model.run(_img)
+                                self.writeDets(dets, new_sub_dir, imgPath)
+                            
                             self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
                             self.progress.emit(i)
-                            _count = self.calculateStat(dets, _count, i, os.path.splitext(imgPath.split('/')[-1])[0] ) # find the filename only
+                            if self.config.labelType != 'coco':
+                                _count = self.calculateStat(dets, _count, i, os.path.splitext(imgPath.split('/')[-1])[0] ) # find the filename only
 
-                        if type(_count) == int: _count /= len(self.config.imagePaths)
-                        count_temp.append(_count)
+                        # finish COCO output and calculate mAP:
+                        if self.config.labelType == 'coco':
+                            self.logProgress.emit("\tCreating json output...")
+                            _jsonObj = json.dumps(_json)
+                            with open( os.path.join(new_sub_dir, "cocoRes.json") , "w") as outfile:
+                                outfile.write(_jsonObj)
+                            cocoDets = self.config.labels['coco'].loadRes( os.path.join(new_sub_dir, "cocoRes.json") )
+                            cocoEval = COCOeval(self.config.labels['coco'],cocoDets,'bbox')
+                            self.logProgress.emit("\tEvaluating with COCO metric...")
+                            cocoEval.params.imgIds  = _filter_id
+                            cocoEval.evaluate()
+                            cocoEval.accumulate()
+                            cocoEval.summarize()
+                            map_list = cocoEval.stats
+                            with open(os.path.join(new_sub_dir, "map.txt"), 'w') as f:
+                                for _map in map_list:
+                                    f.write("%f\n"%(_map))
+                            count_temp.append(map_list[1])
+                        else:
+                            if type(_count) == int: _count /= len(self.config.imagePaths)
+                            count_temp.append(_count)
                     counter.append(count_temp)
 
-        if self.config.model.complexOutput:
-            self.config.model.conf_thres = old_thres
-
+        #if self.config.model.complexOutput:
+        self.config.model.conf_thres = old_thres
         self.writeGraph(counter, os.path.join(self.savePath, exp_path))
+
         # clean up model
         self.config.model.deinitialize()
         self.finished.emit()
@@ -286,12 +342,17 @@ class ExperimentResultWorker(QObject):
         super(ExperimentResultWorker, self).__init__()
         self.imagePath = imagePath # a single image
         self.config = config
+        if self.imagePath:
+            if self.config.labelType == 'coco': 
+                self.imgID = self.imagePath
+                _filename = self.config.labels['coco'].loadImgs(self.imagePath)[0]['file_name']
+                self.imagePath = os.path.join(self.config.labels['root'], _filename)
         self.expName = expName
         self.augPosition = augPosition # only used when augmentations are not compounded, need 2 know position of wanted aug
         self.argPosition = argPosition # only used when aug's compounded
         self.parentPath = os.path.join(self.config.savePath, self.expName)
         self.folders = next(os.walk(self.parentPath))[1]
-    
+
     def run(self):
         if self.config.isCompound:
             _folder_path = os.path.join(self.parentPath, self.folders[self.argPosition])
@@ -302,6 +363,7 @@ class ExperimentResultWorker(QObject):
             _folder_path = self.parentPath
 
         _img = cv2.imread(self.imagePath)
+        assert not _img is None
 
         if len(self.config.mainAug) > 0:
             if self.config.isCompound:
@@ -313,6 +375,24 @@ class ExperimentResultWorker(QObject):
         
         # read in detection:
         _imgRoot = self.imagePath.split('/')[-1].split('.')[0]
+
+        '''
+        if self.config.labelType == 'coco':
+            f = open( os.path.join(_folder_path, 'cocoRes.json') )
+            _f = json.load(f)
+            dets = []
+            for item in _f:
+                if self.imgID == item['image_id']:
+                    _det = list(map(int, item['bbox']))
+                    _conf = item['score']
+                    _det = [_det[0], _det[1], _det[2]+_det[0], _det[3]+_det[1]]
+                    if _conf > self.config.model.conf_thres:
+                        _img = cv2.rectangle(_img, (_det[0],_det[1]), (_det[2],_det[3]), (0,0,255), thickness=3)
+            self.finishedImage.emit(convertCV2QT(_img, 391, 231))
+            self.finished.emit()
+            return
+        '''
+
         txt_file = os.path.join(_folder_path, "%s.txt"%(_imgRoot))
         assert os.path.exists(txt_file), txt_file
 
@@ -334,7 +414,8 @@ class ExperimentResultWorker(QObject):
             
             # apply bbox:
             for d in dets:
-                _img = cv2.rectangle(_img, (d[2], d[3]), (d[4], d[5]), (0,0,255), thickness=3)
+                if d[1] > self.config.model.conf_thres: 
+                    _img = cv2.rectangle(_img, (d[2], d[3]), (d[4], d[5]), (0,0,255), thickness=3)
 
         self.finishedImage.emit(convertCV2QT(_img, 391, 231))
         self.finished.emit()
@@ -558,7 +639,6 @@ class ExperimentDialog(QDialog):
 
     def refreshGraphResults(self,i):
         augPosition = self.augComboBox.currentIndex()
-        #worker = ExperimentResultWorker(self.config.imagePaths[i], self.config, self.config.expName)
         # graphing:
         self.workerGraph = ExperimentResultWorker(None, self.config, self.config.expName, argPosition=self.currentArgIdx, augPosition=augPosition)
         self.afterGraphExpThread.started.connect(self.workerGraph.runGraph)
@@ -566,9 +646,6 @@ class ExperimentDialog(QDialog):
         self.workerGraph.finished.connect(self.afterGraphExpThread.wait)
         self.workerGraph.finished.connect(self.workerGraph.deleteLater)
         self.workerGraph.finishedGraph.connect(self.updateGraph)
-        #self.worker.finishedImage.connect(self.updateImage)
-        #self.afterExpThread.finished.connect(self.afterExpThread.deleteLater)
-        #worker.progress.connect()
         self.afterGraphExpThread.start()
 
     def changeOnImageButton(self, i):

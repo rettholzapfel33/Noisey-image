@@ -421,12 +421,17 @@ class mainWindow(QtWidgets.QMainWindow):
         lw = self.ui.fileList
         items = [lw.item(x) for x in range(lw.count())]
         imgPaths = []
-        for qListItem in items:
-            file_path = qListItem.data(QtCore.Qt.UserRole).get('filePath')
-            if(file_path is None):
-                self.ui.statusbar.showMessage("Import an image first!", 3000)
-                return -1
-            imgPaths.append(file_path)
+
+        if self.label_eval == 'coco':
+            # ask coco api:
+            imgPaths = self.label['coco'].getImgIds()
+        else:
+            for qListItem in items:
+                file_path = qListItem.data(QtCore.Qt.UserRole).get('filePath')
+                if(file_path is None):
+                    self.ui.statusbar.showMessage("Import an image first!", 3000)
+                    return -1
+                imgPaths.append(file_path)
 
         config = ExperimentConfig(mainAug, self.ui.compoundAug.isChecked(), imgPaths, _model, comboModelType, labels=self.labels, labelType=self.label_eval)
         self.experiment = ExperimentDialog(config)

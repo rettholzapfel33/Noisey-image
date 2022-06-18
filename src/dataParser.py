@@ -22,7 +22,7 @@ from pycocotools.cocoeval import COCOeval
 
 def read_yaml(self, filePath):
     filePaths = []
-    label_eval = 'voc'
+    label_eval = 'voc' # default label type
 
     # Parse user-created YAML file to dataset
     with open(filePath) as file:
@@ -30,13 +30,9 @@ def read_yaml(self, filePath):
 
     # Track what needs to be trained, validated, and tested
     trainVT = []        
-    if("train" in documents):
-        trainVT.append("train")
-    if("val" in documents):
-        trainVT.append("val")
-    if("test" in documents):
-        trainVT.append("test")
-    
+    if("images" in documents):
+        trainVT.append("images")
+
     if(len(trainVT) > 1):
         dialogUI = Ui_Dialog()
         dialog = QtWidgets.QDialog()
@@ -116,41 +112,26 @@ def read_yaml(self, filePath):
                     file_content.append(box)
 
                 labels_dic[base_name] = file_content
+            labels_content = labels_dic
         # Parses .json annotation files and stores in dictionary -> for COCO datasets
         elif documents["type"] == "coco":
-
             # Load COCO dataset
             dataDir = root
-            dataType = 'val2017'
+            dataType = documents["images"]
             annFile = '{}/annotations/instances_{}.json'.format(dataDir, dataType)
 
             # Intialize COCO api for instance annotations
-            labels_content = COCO(annFile)
-
+            labels_dic['coco'] = COCO(annFile)
+            labels_dic['root'] = os.path.join(root, dataType)
+            #img_ids = labels_content.getImgIds()
+            #print(img_ids)
+            #img = labels_content.loadImgs(img_ids[0])[0]
+            #print(img_ids[0])
+            #print(img['file_name'])
+            #print(img)
+            #exit()
             label_eval = 'coco'
-
-            '''
-           for label in labels:
-               with open(label) as f:
-                   instances = json.load(f)
-                   for i in instances['images']:
-                       file_content.clear()
-                       name = i['file_name']
-                       for j in instances['annotations']:
-                           if(i['id'] == j['image_id']):
-                               classid = j['category_id']
-                               x1 = float(j['bbox'][0])
-                               y1 = float(j['bbox'][1])
-                               w = float(j['bbox'][2])
-                               h = float(j['bbox'][3])
-                               box = BoundingBox(name, classid, x1, y1, w, h)
-                               file_content.append(box)
-                               
-                   labels_dic[name] = file_content
-           f.close()
-           
-           labels_content = labels_dic    
-           '''
+            labels_content = labels_dic
         # Parses .txt annotation files
         else:
             for label in labels:
@@ -170,9 +151,9 @@ def read_yaml(self, filePath):
 
                 #print(file_content)
                 labels_dic[base_name] = file_content
-            
-        labels_content = labels_dic
-
+            label_eval = 'voc'
+            labels_content = labels_dic
+        
         self.labels = labels_dic
 
     return filePaths, (labels_content, label_eval)

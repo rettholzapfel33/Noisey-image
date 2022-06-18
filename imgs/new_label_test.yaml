@@ -1,5 +1,5 @@
 type: voc
 # User needs to set root directory of dataset
 root: #/path/to/dataset
-train: JPEGImages/
+images: JPEGImages/
 labels: Annotations/

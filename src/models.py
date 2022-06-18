@@ -50,7 +50,7 @@ import src.yolov4.detect as detect_v4
 from src.yolov4.models.models import Darknet
 from src.yolov4.models.models import load_darknet_weights
 import src.yolov4.utils.utils as utils_v4
-#from src.transforms import letterbox_image
+import src.yolov4.utils.datasets as yolov4_datasets
 from src.yolov4.utils.general import (check_img_size, non_max_suppression, apply_classifier, scale_coords, xyxy2xywh, strip_optimizer)
 
 # import yolov3-ultralytics here:
@@ -74,6 +74,7 @@ class Model(abc.ABC):
     """
     def __init__(self, *network_config) -> None:
         self.complexOutput = False
+        self.isCOCO91 = False
     
     @abc.abstractclassmethod
     def run(self, input):
@@ -113,6 +114,7 @@ class MTCNN(Model):
         super().__init__(*network_config)
         self.network_config = network_config
         self.complexOutput = False
+        self.isCOCO91 = False
     
     def run(self, input):
         _img = Image.fromarray(input)
@@ -183,6 +185,7 @@ class Segmentation(Model):
         super().__init__(network_config)
         
         self.complexOutput = True
+        self.isCOCO91 = False
         self.cfg, self.colors = network_config
         #self.cfg = str(Path(__file__).parent.absolute()) + "/config/ade20k-hrnetv2.yaml"
         # colors
@@ -284,6 +287,7 @@ class YOLOv3(Model):
         super(YOLOv3, self).__init__()
         # network_config: CLASSES, CFG, WEIGHTS
         self.CLASSES, self.CFG, self.WEIGHTS = network_config
+        self.isCOCO91 = False
         # self.CLASSES = os.path.join(currPath, 'obj_detector/cfg', 'coco.names')
         # self.CFG = os.path.join(currPath, 'obj_detector/cfg', 'yolov3.cfg')
         # self.WEIGHTS = os.path.join(currPath,'obj_detector/weights','yolov3.weights')
@@ -364,10 +368,11 @@ class EfficientDetV2(Model):
         super(EfficientDetV2, self).__init__()
 
         # network_config: CLASSES, CFG, WEIGHTS
+        self.isCOCO91 = True
         self.CLASSES, self.CFG = network_config
         self.numClasses = len(self.CLASSES)
         print(self.CLASSES, self.CFG)
-        self.conf = 0.25
+        self.conf_thres = 0.25
         self.classes = load_classes(self.CLASSES)
         self.inputTrans = {
             'efficientdetv2_dt': (768, 768),
@@ -393,20 +398,22 @@ class EfficientDetV2(Model):
         self.bench.eval()
 
     def run(self, input):
-        # transform image and predict
-        self.transforms = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Resize(size=self.inputTrans[self.CFG]),])
-            #transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
-        scores = self.bench(self.transforms(input).unsqueeze(0))
+        with torch.no_grad():
+            # transform image and predict
+            self.transforms = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Resize(size=self.inputTrans[self.CFG]),])
+                #transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
+            scores = self.bench(self.transforms(input).unsqueeze(0))
 
-        # resize to match original image
-        scores = scores[0].detach().numpy()
-        scores[:, 0] = scores[:, 0] / self.inputTrans[self.CFG][1] * input.shape[1]
-        scores[:, 1] = scores[:, 1] / self.inputTrans[self.CFG][0] * input.shape[0]
-        scores[:, 2] = scores[:, 2] / self.inputTrans[self.CFG][1] * input.shape[1]
-        scores[:, 3] = scores[:, 3] / self.inputTrans[self.CFG][0] * input.shape[0]
-        return scores[np.where(scores[:,4] > self.conf)]
+            # resize to match original image
+            scores = scores[0].detach().numpy()
+            scores[:, 0] = scores[:, 0] / self.inputTrans[self.CFG][1] * input.shape[1]
+            scores[:, 1] = scores[:, 1] / self.inputTrans[self.CFG][0] * input.shape[0]
+            scores[:, 2] = scores[:, 2] / self.inputTrans[self.CFG][1] * input.shape[1]
+            scores[:, 3] = scores[:, 3] / self.inputTrans[self.CFG][0] * input.shape[0]
+            scores = scores.cpu()
+            return scores[np.where(scores[:,4] > self.conf_thres)]
 
     def deinitialize(self):
         return -1
@@ -446,10 +453,12 @@ class DETR(Model):
     It specifies its four main functions: run, initialize, deinitialize, and draw.
     """
     def __init__(self, *network_config) -> None:
-        super(DETR, self).__init__()
+        super(DETR, self).__init__(network_config)
         self.CLASSES, self.WEIGHTS = network_config[0], network_config[1]
         print(self.CLASSES, self.WEIGHTS)
         self.classes = load_classes(self.CLASSES)
+        self.conf_thres = 0.25
+        self.isCOCO91 = True
     
     def initialize(self, *kwargs):
         self.model = DETRdemo(num_classes=len(self.classes))
@@ -469,14 +478,16 @@ class DETR(Model):
         return 0
 
     def run(self, input):
-        img = Image.fromarray(input)
-        #if self.on_gpu: img = img.cuda()
-        scores, boxes = self.model.detect(img, self.model, self.transform)
-        _confidences, _classes = torch.max(scores, axis=1)
-        _cls_conf = torch.cat((torch.unsqueeze(_confidences, axis=0), torch.unsqueeze(_classes, axis=0)))
-        _cls_conf = torch.transpose(_cls_conf, 0,1)
-        pred = torch.cat((boxes, _cls_conf), axis=1) #[x1,y1,x2,y2,conf,class] <--- box
-        return pred
+        with torch.no_grad():
+            img = Image.fromarray(input)
+            #if self.on_gpu: img = img.cuda()
+            scores, boxes = self.model.detect(img, self.model, self.transform, threshold=self.conf_thres)
+            _confidences, _classes = torch.max(scores, axis=1)
+            _cls_conf = torch.cat((torch.unsqueeze(_confidences, axis=0), torch.unsqueeze(_classes, axis=0)))
+            _cls_conf = torch.transpose(_cls_conf, 0,1)
+            pred = torch.cat((boxes, _cls_conf), axis=1) #[x1,y1,x2,y2,conf,class] <--- box
+            pred = pred.cpu()
+            return pred
 
     def deinitialize(self):
         return -1
@@ -540,15 +551,16 @@ class YOLOv4(Model):
     def __init__(self, *network_config) -> None:
         super(YOLOv4, self).__init__()
         # network_config: CLASSES, CFG, WEIGHTS
+        self.isCOCO91 = False
         self.CLASSES, self.CFG, self.WEIGHTS = network_config
         self.img_size = (416,416)
         print(self.CLASSES, self.CFG, self.WEIGHTS)
         self.classes = load_classes(self.CLASSES)
-        self.conf_threshold = 0.25
+        self.conf_thres = 0.25
 
     def run(self, input):
         im0 = np.copy(input)
-        img = letterbox_image(input, self.img_size)[0]
+        img = yolov4_datasets.letterbox(input, self.img_size)[0]
         img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
         img = np.ascontiguousarray(img)
         if torch.cuda.is_available():
@@ -560,122 +572,7 @@ class YOLOv4(Model):
         if img.ndimension() == 3:
             img = img.unsqueeze(0)
         pred = self.yolo(img, augment=False)[0]
-        pred = non_max_suppression(pred, self.conf_threshold, 0.6, classes=None, agnostic=False)
-        #return pred #[x1,y1,x2,y2,conf,class] <--- box
-        for i, det in enumerate(pred):  # detections per image
-            if det is not None and len(det):
-                # Rescale boxes from img_size to im0 size
-                det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
-        if torch.cuda.is_available():
-            pred[0] = pred[0].cpu()
-        pred = pred[0].detach().numpy()
-        #print(self.yolo.training)
-        return pred
-
-    def initialize(self, *kwargs):
-        self.yolo = Darknet(self.CFG, self.img_size)
-        if torch.cuda.is_available():
-            self.yolo = self.yolo.cuda()
-        else:
-            self.yolo = self.yolo.cpu()
-        load_darknet_weights(self.yolo, self.WEIGHTS)
-        self.yolo.eval()
-    
-    def deinitialize(self):
-        return -1
-    
-    def draw(self, pred, img):
-        np_img, detectedNames = detect._draw_and_return_output_image(img, pred, 416, self.classes)
-        return {"dst": np_img,
-                "listOfNames":detectedNames}
-
-    def draw_single_class(self, pred, img, selected_class):
-        np_img = detect._draw_and_return_output_image_single_class(img, pred, selected_class, self.classes)
-        return {"overlay": np_img}
-
-    def report_accuracy(self, pred:list, gt:list, evalType='voc'):
-        """Function takes in prediction boxes and ground truth boxes and
-        returns the mean average precision (mAP) @ IOU 0.5 under VOC2007 criteria (default).
-        Args:
-            pred (list): A list of BoundingBox objects representing each detection from method
-            gt (list): A list of BoundingBox objects representing each object in the ground truth
-        Returns:
-            mAP: a number representing the mAP over all classes for a single image.
-        """        
-        if len(pred) == 0: return 0
-
-        allBoundingBoxes = BoundingBoxes()
-        evaluator = Evaluator()
-
-        # loop through gt:
-        for _gt in gt:
-            assert type(_gt) == BoundingBox, "_gt is not BoundingBox type. Instead is %s"%(str(type(_gt)))
-            allBoundingBoxes.addBoundingBox(_gt)
-
-        for _pred in pred:
-            assert type(_pred) == BoundingBox, "_gt is not BoundingBox type. Instead is %s"%(str(type(_pred)))
-            allBoundingBoxes.addBoundingBox(_pred)
-
-        #for box in allBoundingBoxes:
-        #    print(box.getAbsoluteBoundingBox(format=BBFormat.XYWH), box.getBBType()) 
-        if evalType == 'voc':
-            metrics = evaluator.GetPascalVOCMetrics(allBoundingBoxes)
-            print(metrics)
-        elif evalType == 'coco':
-            assert False
-        else: assert False, "evalType %s not supported"%(evalType) 
-        return metrics[0]['AP']
-
-    def outputFormat(self):
-        return "{5:.0f} {4:f} {0:.0f} {1:.0f} {2:.0f} {3:.0f}"
-
-class YOLOv4(Model):
-    """
-    YOLOv4 Model that inherits the Model class
-    It specifies its four main functions: run, initialize, deinitialize, and draw. 
-    """
-    def __init__(self, *network_config) -> None:
-        super(YOLOv4, self).__init__()
-        # network_config: CLASSES, CFG, WEIGHTS
-        self.CLASSES, self.CFG, self.WEIGHTS = network_config
-        self.img_size = (416,416)
-        print(self.CLASSES, self.CFG, self.WEIGHTS)
-        self.classes = load_classes(self.CLASSES)
-        self.conf_threshold = 0.25
-
-    def letterbox_image(self, image, size):
-        '''
-        Resize image with unchanged aspect ratio using padding.
-        This function replaces "letterbox" and enforces non-rectangle static inferencing only
-        '''
-        ih, iw, _ = image.shape
-        w, h = size
-        scale = min(w/iw, h/ih)
-        nw = int(iw*scale)
-        nh = int(ih*scale)
-
-        image = cv2.resize(image, (nw, nh), interpolation=cv2.INTER_LINEAR)
-        new_image = np.ones((h, w, 3), np.uint8) * 114
-        h_start = (h-nh)//2
-        w_start = (w-nw)//2
-        new_image[h_start:h_start+nh, w_start:w_start+nw, :] = image
-        return new_image, (nh, nw)
-    
-    def run(self, input):
-        im0 = np.copy(input)
-        img = self.letterbox_image(input, self.img_size)[0]
-        img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
-        img = np.ascontiguousarray(img)
-        if torch.cuda.is_available():
-            img = torch.from_numpy(img).cuda()
-        else:
-            img = torch.from_numpy(img).cpu()
-        img = img.float()
-        img /= 255.0
-        if img.ndimension() == 3:
-            img = img.unsqueeze(0)
-        pred = self.yolo(img, augment=False)[0]
-        pred = non_max_suppression(pred, self.conf_threshold, 0.6, classes=None, agnostic=False)
+        pred = non_max_suppression(pred, self.conf_thres, 0.6, classes=None, agnostic=False)
         #return pred #[x1,y1,x2,y2,conf,class] <--- box
         for i, det in enumerate(pred):  # detections per image
             if det is not None and len(det):
@@ -748,11 +645,11 @@ class YOLOv3_Ultralytics(Model):
     def __init__(self, *network_config) -> None:
         super().__init__(*network_config)
         _yaml, self.weight = network_config
+        self.isCOCO91 = False
         with open(_yaml, 'r') as stream:
             self.YAML = yaml.safe_load(stream)
 
         self.img_size = (416,416)
-        self.conf_threshold = 0.25
         if torch.cuda.is_available():
             self.device = select_device('0')
         else:
@@ -774,30 +671,27 @@ class YOLOv3_Ultralytics(Model):
         self.names = self.model.names
 
     def run(self, input):
-        imageShape = input.shape
-        gn = torch.tensor(imageShape)[[1, 0, 1, 0]]  # normalization gain whwh
-        im = letterbox(input, self.img_size, stride=self.model.stride, auto=False)[0]
-        im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
-        im = np.ascontiguousarray(im)
-        im = torch.from_numpy(im).to(self.device)
-        im = torch.unsqueeze(im, axis=0)
-        im = im.float()  # uint8 to fp16/32
-        im /= 255  # 0 - 255 to 0.0 - 1.0
-        pred = self.model(im, augment=False, visualize=False)
-        pred = non_max_suppression(pred, self.conf_thres, self.iou_thres, None, False)[0]
+        with torch.no_grad():
+            imageShape = input.shape
+            gn = torch.tensor(imageShape)[[1, 0, 1, 0]]  # normalization gain whwh
+            im = letterbox(input, self.img_size, stride=self.model.stride, auto=False)[0]
+            im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+            im = np.ascontiguousarray(im)
+            im = torch.from_numpy(im).to(self.device)
+            im = torch.unsqueeze(im, axis=0)
+            im = im.float()  # uint8 to fp16/32
+            im /= 255  # 0 - 255 to 0.0 - 1.0
+            pred = self.model(im, augment=False, visualize=False)
+            pred = pred.cpu()
+            pred = non_max_suppression(pred, self.conf_thres, self.iou_thres, None, False)[0]
 
-        if pred.shape[0] > 0:
-            # Rescale boxes from img_size to im0 size
-            pred[:, :4] = scale_coords(im.shape[2:], pred[:, :4], imageShape).round()
-            self.predictions = pred
-
-            return pred
-        else:
-            return []
-        # Write results
-        #for *xyxy, conf, cls in reversed(det):
-        #    xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
-        #    line = (cls, *xywh, conf) if save_conf else (cls, *xywh)  # label format
+            if pred.shape[0] > 0:
+                # Rescale boxes from img_size to im0 size
+                pred[:, :4] = scale_coords(im.shape[2:], pred[:, :4], imageShape).round()
+                #self.predictions = pred
+                return pred
+            else:
+                return []
 
     def draw(self, preds, im0, class_filter=None):
         labels = {"all":[255,255,255]}
@@ -881,12 +775,13 @@ class YOLOX(Model):
         from src.yolox.yolox.exp import get_exp
         exp_file, name, self.weight, self.classes = network_config
         self.complexOutput = False
+        self.isCOCO91 = False
         self.exp = get_exp(exp_file, name)
         self.test_size = self.exp.test_size
         self.preproc = ValTransform(legacy=False)
         self.num_classes = self.exp.num_classes
         #self.confthre = self.exp.test_conf
-        self.confthre = 0.5
+        self.conf_thres = 0.5
         self.nmsthre = self.exp.nmsthre
         if torch.cuda.is_available():
             self.device = "gpu"
@@ -907,7 +802,7 @@ class YOLOX(Model):
                 self.model.cuda()
             outputs = self.model(img)
             outputs = postprocess(
-                outputs, self.num_classes, self.confthre,
+                outputs, self.num_classes, self.conf_thres,
                 self.nmsthre, class_agnostic=True
             )
 
@@ -926,6 +821,7 @@ class YOLOX(Model):
             scores = outputs[:, 4] * outputs[:, 5]
             scores = torch.unsqueeze(scores, axis=1)
             outputs = torch.cat((bboxes, scores, cls),axis=-1)
+            outputs = outputs.cpu()
         return outputs
 
     def initialize(self):
@@ -1073,7 +969,7 @@ _registry = {
         os.path.join(currPath, 'obj_detector', 'cfg', 'yolov3.cfg'),
         os.path.join(currPath,'obj_detector', 'weights', 'yolov3.weights')
     ),
-    'EfficientDetV2': EfficientDetV2(
+    'Object Detection (EfficientDetV2)': EfficientDetV2(
         os.path.join(currPath, 'detr', 'cfg', 'coco.names'),
         'efficientdetv2_dt'
     ),

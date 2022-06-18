@@ -85,7 +85,7 @@ class DETRdemo(nn.Module):
         b = b * torch.tensor([img_w, img_h, img_w, img_h], dtype=torch.float32)
         return b
 
-    def detect(self, im, model, transform):
+    def detect(self, im, model, transform, threshold=0.7):
         # mean-std normalize the input image (batch-size: 1)
         img = transform(im).unsqueeze(0)
         if torch.cuda.is_available():
@@ -101,7 +101,7 @@ class DETRdemo(nn.Module):
 
         # keep only predictions with 0.7+ confidence
         probas = (outputs['pred_logits'].softmax(-1)[0, :, :-1]).cpu()
-        keep = probas.max(-1).values > 0.7
+        keep = probas.max(-1).values > threshold
 
         # convert boxes from [0; 1] to image scales
         bboxes_scaled = self.rescale_bboxes(outputs['pred_boxes'][0, keep], im.size)
