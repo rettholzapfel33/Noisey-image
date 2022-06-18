@@ -5,6 +5,7 @@ import json
 import argparse
 import numpy as np
 import xml.etree.ElementTree as ET
+from PyQt5.QtCore import QObject, QThread, pyqtSignal, Qt
 
 # PyQt5
 from PyQt5 import QtWidgets
@@ -20,6 +21,16 @@ from src.evaluators.map_metric.lib.BoundingBox import BoundingBox
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
+'''
+class LoadWorker(QObject):
+    finished = pyqtSignal()
+    progress = pyqtSignal(int)
+    logProgress = pyqtSignal(str)
+
+    def __init__(self) -> None:
+        super(LoadWorker, self).__init__()
+'''        
+    
 def read_yaml(self, filePath):
     filePaths = []
     label_eval = 'voc' # default label type
@@ -123,15 +134,9 @@ def read_yaml(self, filePath):
             # Intialize COCO api for instance annotations
             labels_dic['coco'] = COCO(annFile)
             labels_dic['root'] = os.path.join(root, dataType)
-            #img_ids = labels_content.getImgIds()
-            #print(img_ids)
-            #img = labels_content.loadImgs(img_ids[0])[0]
-            #print(img_ids[0])
-            #print(img['file_name'])
-            #print(img)
-            #exit()
             label_eval = 'coco'
             labels_content = labels_dic
+
         # Parses .txt annotation files
         else:
             for label in labels:
@@ -159,7 +164,6 @@ def read_yaml(self, filePath):
     return filePaths, (labels_content, label_eval)
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--filepath', type=str, required=True, default=None, help='Path to file or folder')
     args = parser.parse_args()

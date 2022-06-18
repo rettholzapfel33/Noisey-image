@@ -1,10 +1,7 @@
 from PyQt5.QtWidgets import QDialog
-from PyQt5.uic.uiparser import QtCore
 from PyQt5 import uic
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, Qt
 from PyQt5.QtGui import QPixmap
-from charset_normalizer import detect
-#from charset_normalizer import detect
 from src.mplwidget import MplWidget
 import matplotlib.pyplot as plt
 
