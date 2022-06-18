@@ -1,6 +1,0 @@
-numpy
-Pillow
-PyYAML
-scikit_image
-torch
-torchvision

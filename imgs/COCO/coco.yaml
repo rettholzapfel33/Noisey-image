@@ -1,4 +1,0 @@
-type: coco
-#root: imgs/COCO
-val: val2017/
-labels: annotations/
