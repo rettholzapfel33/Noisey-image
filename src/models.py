@@ -142,11 +142,9 @@ class MTCNN(Model):
     def report_accuracy(self, pred:list, gt:list, evalType='voc'):
         """Function takes in prediction boxes and ground truth boxes and
         returns the mean average precision (mAP) @ IOU 0.5 under VOC2007 criteria (default).
-
         Args:
             pred (list): A list of BoundingBox objects representing each detection from method
             gt (list): A list of BoundingBox objects representing each object in the ground truth
-
         Returns:
             mAP: a number representing the mAP over all classes for a single image.
         """        
@@ -320,11 +318,9 @@ class YOLOv3(Model):
     def report_accuracy(self, pred:list, gt:list, evalType='voc'):
         """Function takes in prediction boxes and ground truth boxes and
         returns the mean average precision (mAP) @ IOU 0.5 under VOC2007 criteria (default).
-
         Args:
             pred (list): A list of BoundingBox objects representing each detection from method
             gt (list): A list of BoundingBox objects representing each object in the ground truth
-
         Returns:
             mAP: a number representing the mAP over all classes for a single image.
         """        
@@ -462,7 +458,7 @@ class DETR(Model):
     
     def initialize(self, *kwargs):
         self.model = DETRdemo(num_classes=len(self.classes))
-        self.model.load_state_dict(torch.load(self.WEIGHTS))
+        self.model.load_state_dict(torch.load(self.WEIGHTS), map_location=torch.device('cpu'))
         self.model.eval()
         if torch.cuda.is_available():
             self.model.cuda()
@@ -504,11 +500,9 @@ class DETR(Model):
     def report_accuracy(self, pred:list, gt:list, evalType='voc'):
         """Function takes in prediction boxes and ground truth boxes and
         returns the mean average precision (mAP) @ IOU 0.5 under VOC2007 criteria (default).
-
         Args:
             pred (list): A list of BoundingBox objects representing each detection from method
             gt (list): A list of BoundingBox objects representing each object in the ground truth
-
         Returns:
             mAP: a number representing the mAP over all classes for a single image.
         """        

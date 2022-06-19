@@ -79,7 +79,7 @@
           <item>
            <widget class="QLabel" name="label_10">
             <property name="text">
-             <string>Segmentation</string>
+             <string>Uncompressed Detections</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -302,7 +302,7 @@
           <item>
            <widget class="QLabel" name="label_11">
             <property name="text">
-             <string>Overlay</string>
+             <string>Augmented Detections</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -441,7 +441,7 @@
      <x>0</x>
      <y>0</y>
      <width>1195</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

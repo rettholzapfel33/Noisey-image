@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QDialog
 from PyQt5 import uic
-from PyQt5.QtCore import QObject, QThread, pyqtSignal, Qt
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import QObject, QThread, pyqtSignal, QSize
+from PyQt5.QtGui import QPixmap, QIcon, QImage
 from src.mplwidget import MplWidget
 import matplotlib.pyplot as plt
 
@@ -196,10 +196,15 @@ class ExperimentWorker(QObject):
         self.writeMeta(os.path.join(self.savePath, exp_path))
 
         # map compute purposes:
-        #if self.config.model.complexOutput:
-        old_thres = self.config.model.conf_thres
-        
-        self.config.model.conf_thres = 0.0001
+        if type(self.config.labels) == list:
+            if len(self.config.labels) == 0:
+                useLowerThres = False
+            else: useLowerThres = True
+        else: useLowerThres = True
+
+        if useLowerThres:
+            old_thres = self.config.model.conf_thres
+            self.config.model.conf_thres = 0.0001
 
         if len(self.config.mainAug) == 0:
             for i, imgPath in enumerate(self.config.imagePaths):
@@ -279,7 +284,7 @@ class ExperimentWorker(QObject):
                                 _img = aug(_img, request_param=aug.args[j])
                                 dets = self.config.model.run(_img)
                                 
-                                if i > 50:
+                                if i > 20: # run the first 50 images
                                     break
                                 _filter_id.append(imgID)
                                 
@@ -323,7 +328,8 @@ class ExperimentWorker(QObject):
                     counter.append(count_temp)
 
         #if self.config.model.complexOutput:
-        self.config.model.conf_thres = old_thres
+        if useLowerThres:
+            self.config.model.conf_thres = old_thres
         self.writeGraph(counter, os.path.join(self.savePath, exp_path))
 
         # clean up model
@@ -459,15 +465,12 @@ class ExperimentResultWorker(QObject):
 
             _keys = list(graphContent.keys())
             _items = np.array(list(graphContent.values()))
-            print(_items)
             _title = _keys[self.augPosition]
             #_x = [i for i in range(len(_items[self.argPosition]))]
             _x = _items[self.augPosition]
             ax.set_title(_title)
             ax.plot(_x, _g, '-o')
 
-        # plt.show()
-        
         self.finishedGraph.emit([fig, ax])
         self.finished.emit()
 
@@ -492,6 +495,8 @@ class ExperimentDialog(QDialog):
         self.currentIdx = 0
         self.currentArgIdx = 0
         self.currentGraphIdx = 0
+        self.currentImg = None
+
         # total amount of garphs, arguments, augmentations
         self.totalGraphs = 1
         self.totalArgIdx = 0
@@ -511,6 +516,7 @@ class ExperimentDialog(QDialog):
         self.previewForward.clicked.connect( lambda: self.changeOnImageButton(1) ) # increase index by one
         self.previewBack_3.clicked.connect(lambda: self.changeOnImageAugButton(-1) )
         self.previewForward_3.clicked.connect(lambda: self.changeOnImageAugButton(1) )
+        self.previewImage.clicked.connect(lambda: self.showImage())
         #self.forwardGraph.clicked.connect(lambda: self.changeOnGraphButton(1))
         #self.backGraph.clicked.connect(lambda: self.changeOnGraphButton(-1))
 
@@ -592,6 +598,27 @@ class ExperimentDialog(QDialog):
         self.refreshImageResults(0)
         self.refreshGraphResults(0)
 
+    def showImage(self):
+
+        # Convert the image from Pixmap to Image
+        img = QImage(self.currentImg)
+
+        img.save('test.jpg', 'jpg')
+
+        # Read in the image with opencv and show the image
+        img = cv2.imread('test.jpg')
+
+        width = int(img.shape[1] * 5)
+        height = int(img.shape[0] * 5)
+        dim = (width, height)  
+
+        resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
+
+        cv2.imshow('Image', resized)
+
+        # Delete the temp file
+        os.remove('test.jpg') 
+
     def refreshImageResults(self,i):
         augPosition = self.augComboBox.currentIndex()
         if self.config.isCompound:
@@ -616,10 +643,14 @@ class ExperimentDialog(QDialog):
         self.afterExpThread.start()
 
     def updateImage(self, img):
-        self.previewImage.setPixmap(img)
+        self.currentImg = img
+        self.previewImage.setIcon(QIcon(img))
+        self.previewImage.setIconSize(QSize(500,500))
 
     def updateGraph(self, ax_list):
         fig, ax = ax_list
+        self.graphWidget.canvas.axes.clear()
+
         for i in range(len(ax.lines)):
             line = ax.lines[i]
             x_data = line.get_xdata()
@@ -630,7 +661,10 @@ class ExperimentDialog(QDialog):
         # self.graphWidget.canvas.axes.set_xlabel(str(ax.xaxis.get_label()))
         # self.graphWidget.canvas.axes.set_ylabel(str(ax.yaxis.get_label()))
         self.graphWidget.canvas.axes.set_xlabel("Augment Level")
-        self.graphWidget.canvas.axes.set_ylabel("Accuracy")
+        if self.config.labelType == 'coco' or self.config.labelType == 'voc':
+            self.graphWidget.canvas.axes.set_ylabel("mAP")
+        else:
+            self.graphWidget.canvas.axes.set_ylabel("Accuracy")
         # self.graphWidget.canvas.axes.legend()
         self.graphWidget.canvas.draw()
 
