@@ -196,10 +196,15 @@ class ExperimentWorker(QObject):
         self.writeMeta(os.path.join(self.savePath, exp_path))
 
         # map compute purposes:
-        #if self.config.model.complexOutput:
-        old_thres = self.config.model.conf_thres
-        
-        self.config.model.conf_thres = 0.0001
+        if type(self.config.labels) == list:
+            if len(self.config.labels) == 0:
+                useLowerThres = False
+            else: useLowerThres = True
+        else: useLowerThres = True
+
+        if useLowerThres:
+            old_thres = self.config.model.conf_thres
+            self.config.model.conf_thres = 0.0001
 
         if len(self.config.mainAug) == 0:
             for i, imgPath in enumerate(self.config.imagePaths):
@@ -279,7 +284,7 @@ class ExperimentWorker(QObject):
                                 _img = aug(_img, request_param=aug.args[j])
                                 dets = self.config.model.run(_img)
                                 
-                                if i > 50:
+                                if i > 20: # run the first 50 images
                                     break
                                 _filter_id.append(imgID)
                                 
@@ -323,7 +328,8 @@ class ExperimentWorker(QObject):
                     counter.append(count_temp)
 
         #if self.config.model.complexOutput:
-        self.config.model.conf_thres = old_thres
+        if useLowerThres:
+            self.config.model.conf_thres = old_thres
         self.writeGraph(counter, os.path.join(self.savePath, exp_path))
 
         # clean up model
@@ -459,15 +465,12 @@ class ExperimentResultWorker(QObject):
 
             _keys = list(graphContent.keys())
             _items = np.array(list(graphContent.values()))
-            print(_items)
             _title = _keys[self.augPosition]
             #_x = [i for i in range(len(_items[self.argPosition]))]
             _x = _items[self.augPosition]
             ax.set_title(_title)
             ax.plot(_x, _g, '-o')
 
-        # plt.show()
-        
         self.finishedGraph.emit([fig, ax])
         self.finished.emit()
 
@@ -620,6 +623,8 @@ class ExperimentDialog(QDialog):
 
     def updateGraph(self, ax_list):
         fig, ax = ax_list
+        self.graphWidget.canvas.axes.clear()
+
         for i in range(len(ax.lines)):
             line = ax.lines[i]
             x_data = line.get_xdata()
@@ -630,7 +635,11 @@ class ExperimentDialog(QDialog):
         # self.graphWidget.canvas.axes.set_xlabel(str(ax.xaxis.get_label()))
         # self.graphWidget.canvas.axes.set_ylabel(str(ax.yaxis.get_label()))
         self.graphWidget.canvas.axes.set_xlabel("Augment Level")
-        self.graphWidget.canvas.axes.set_ylabel("Accuracy")
+
+        if self.config.labelType == 'coco' or self.config.labelType == 'voc':
+            self.graphWidget.canvas.axes.set_ylabel("mAP")
+        else:
+            self.graphWidget.canvas.axes.set_ylabel("Accuracy")
         # self.graphWidget.canvas.axes.legend()
         self.graphWidget.canvas.draw()
 

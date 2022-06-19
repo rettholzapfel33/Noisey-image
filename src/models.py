@@ -462,7 +462,7 @@ class DETR(Model):
     
     def initialize(self, *kwargs):
         self.model = DETRdemo(num_classes=len(self.classes))
-        self.model.load_state_dict(torch.load(self.WEIGHTS))
+        self.model.load_state_dict(torch.load(self.WEIGHTS), map_location=torch.device('cpu'))
         self.model.eval()
         if torch.cuda.is_available():
             self.model.cuda()

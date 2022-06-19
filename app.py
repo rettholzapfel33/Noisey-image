@@ -118,7 +118,8 @@ class mainWindow(QtWidgets.QMainWindow):
         #self.ui.runOnAug.stateChanged.connect(self.runAugOnImage)
 
         # Menubar buttons
-        self.ui.actionOpen.triggered.connect(lambda: self.open_file())
+        #self.ui.actionOpen.triggered.connect(lambda: self.open_file())
+        self.ui.actionOpen.triggered.connect(self.parseData)
         self.ui.actionIncrease_Size.triggered.connect(self.increaseFont)
         self.ui.actionDecrease_Size.triggered.connect(self.decreaseFont)
 
@@ -141,6 +142,12 @@ class mainWindow(QtWidgets.QMainWindow):
         )
         self.ui.listAugs.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
         self.label_eval = None
+
+        # yaml stuff:
+        self.yamlThread = QThread()
+        self.yamlProgress = ReadYAMLProgressWindow()
+        self.yamlQueue = Queue()
+        self.yamlWorker = yamlWorker(self.yamlQueue)
 
     def listwidgetmenu(self, position):
         """menu for right clicking in the file list widget"""
@@ -210,11 +217,8 @@ class mainWindow(QtWidgets.QMainWindow):
 
         self.changePreviewImage()
 
-    def open_file(self, filePaths = None):
-        if(filePaths == None):
-            filePaths = QtWidgets.QFileDialog.getOpenFileNames(self, "Select image", filter="Image files (*.jpg *.png *.bmp *.yaml)")
-            filePaths = filePaths[0]
-        elif(isinstance(filePaths, list) == 0):
+    def open_file(self, filePaths):
+        if(isinstance(filePaths, list) == 0):
             filePaths = [filePaths]
 
         new_item = None
@@ -224,21 +228,6 @@ class mainWindow(QtWidgets.QMainWindow):
             items = self.ui.fileList.findItems(fileName, QtCore.Qt.MatchExactly)
             if len(items) > 0:
                 self.ui.statusbar.showMessage("File already opened", 3000)
-                continue
-
-            if filePath.endswith(".yaml"):
-                if new_item is None:
-                    self.ui.fileList.clear()
-                # return_value = self.read_yaml(filePath)
-                return_value = self.parseData(filePath)
-                if(len(return_value) > 1 and type(return_value[1]) is dict):
-                    filePaths.extend(return_value[0])
-                    labels = return_value[1]
-                else:
-                    filePaths.extend(return_value)
-                # filePaths.extend(self.read_yaml(filePath))
-                filePaths.extend(self.parseData(filePath))
-                continue
 
             new_item = QtWidgets.QListWidgetItem()
             new_item.setText(fileName)
@@ -253,11 +242,41 @@ class mainWindow(QtWidgets.QMainWindow):
             self.ui.original_2.clear()
             self.ui.preview_2.clear()
             
-    def parseData(self, filePath):
-        if filePath.endswith(".yaml"):
-            filePaths, (self.label, self.label_eval) = read_yaml(self, filePath)
-        return filePaths
+    def parseData(self):
+        filePaths = QtWidgets.QFileDialog.getOpenFileNames(self, "Select image", filter="Image files (*.jpg *.png *.bmp *.yaml)")
+        filePath = filePaths[0][0]
 
+        if filePath.endswith(".yaml"):
+            # create read_yaml progress:
+            self.yamlProgress.show()
+            
+            # disable controls here:
+
+            # run read_yaml on a worker thread:
+            self.yamlWorker.filePath = filePath
+            self.yamlWorker.moveToThread(self.yamlThread)
+            self.yamlThread.started.connect(self.yamlWorker.run)
+            self.yamlWorker.finished.connect(self.postParseData)
+            self.yamlWorker.finished.connect(self.yamlWorker.deleteLater)
+            self.yamlWorker.finished.connect(self.yamlThread.quit)
+            self.yamlWorker.finished.connect(self.yamlThread.wait)
+
+            self.yamlThread.start()
+            #filePaths, (self.label, self.label_eval) = read_yaml(self, filePath)
+
+    def postParseData(self):
+        if self.yamlQueue.qsize() > 0:
+            self.yamlProgress.hide()
+            res = self.yamlQueue.get()
+            filePaths, label = res
+            self.labels, self.label_eval = label
+            self.ui.fileList.clear()
+            self.open_file(filePaths)
+            self.yamlThread = QThread()
+            self.yamlWorker = yamlWorker(self.yamlQueue)
+        else:
+            assert False
+        return 0
 
     def reportProgress2(self, n):
         if(n == 3):
@@ -424,7 +443,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
         if self.label_eval == 'coco':
             # ask coco api:
-            imgPaths = self.label['coco'].getImgIds()
+            imgPaths = self.labels['coco'].getImgIds()
         else:
             for qListItem in items:
                 file_path = qListItem.data(QtCore.Qt.UserRole).get('filePath')
