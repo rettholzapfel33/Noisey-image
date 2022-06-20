@@ -458,7 +458,7 @@ class DETR(Model):
     
     def initialize(self, *kwargs):
         self.model = DETRdemo(num_classes=len(self.classes))
-        self.model.load_state_dict(torch.load(self.WEIGHTS), map_location=torch.device('cpu'))
+        self.model.load_state_dict(torch.load(self.WEIGHTS, map_location=torch.device('cpu')))
         self.model.eval()
         if torch.cuda.is_available():
             self.model.cuda()
@@ -467,7 +467,7 @@ class DETR(Model):
             self.model.cpu()
             self.on_gpu = False
         self.transform = transforms.Compose([
-            transforms.Resize(800),
+            transforms.Resize(800, max_size=1333),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
@@ -800,10 +800,11 @@ class YOLOX(Model):
                 self.nmsthre, class_agnostic=True
             )
 
+            outputs = outputs[0]
+
             if outputs is None:
                 return torch.Tensor([])
 
-            outputs = outputs[0]
             outputs = outputs.cpu()
             bboxes = outputs[:, 0:4]
             # preprocessing: resize
@@ -816,7 +817,7 @@ class YOLOX(Model):
             scores = torch.unsqueeze(scores, axis=1)
             outputs = torch.cat((bboxes, scores, cls),axis=-1)
             outputs = outputs.cpu()
-        return outputs
+            return outputs
 
     def initialize(self):
         self.model = self.exp.get_model()
