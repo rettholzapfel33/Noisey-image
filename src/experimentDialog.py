@@ -1,9 +1,10 @@
-from PyQt5.QtWidgets import QDialog
+from PyQt5.QtWidgets import QDialog, QMessageBox
 from PyQt5 import uic
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, Qt
 from PyQt5.QtGui import QPixmap
 from src.mplwidget import MplWidget
 import matplotlib.pyplot as plt
+from multiprocessing import Value
 
 from makeBetterGraph import makemAPGraph
 from src.transforms import AugmentationPipeline, Augmentation
@@ -60,11 +61,12 @@ class ExperimentWorker(QObject):
     progress = pyqtSignal(int)
     logProgress = pyqtSignal(str)
 
-    def __init__(self, config, savePath) -> None:
+    def __init__(self, config, savePath, threadDone) -> None:
         super(ExperimentWorker, self).__init__()
         self.config = config
         self.savePath = savePath 
         self.cocoJSON = ''
+        self.threadDone = threadDone
 
     def writeDets(self, detections, exp_path, filename, outObject=None):
         # x1, y1, x2, y2, conf, cls
@@ -204,7 +206,7 @@ class ExperimentWorker(QObject):
 
         if useLowerThres:
             old_thres = self.config.model.conf_thres
-            self.config.model.conf_thres = 0.0001
+            self.config.model.conf_thres = 0.001
 
         if len(self.config.mainAug) == 0:
             for i, imgPath in enumerate(self.config.imagePaths):
@@ -283,12 +285,11 @@ class ExperimentWorker(QObject):
                                 _img = cv2.imread(imgPath)
                                 _img = aug(_img, request_param=aug.args[j])
                                 dets = self.config.model.run(_img)
-                                
-                                if i > 20: # run the first 50 images
+
+                                if i > 5000: # run the first 50 images
                                     break
                                 _filter_id.append(imgID)
                                 
-
                                 # convert from xyxy to xywh:
                                 if len(dets) > 0:
                                     dets[:,[2,3]] = dets[:, [2,3]] - dets[:, [0,1]]  
@@ -298,7 +299,7 @@ class ExperimentWorker(QObject):
                                 _img = aug(_img, request_param=aug.args[j])
                                 dets = self.config.model.run(_img)
                                 self.writeDets(dets, new_sub_dir, imgPath)
-                            
+
                             self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
                             self.progress.emit(i)
                             if self.config.labelType != 'coco':
@@ -334,6 +335,8 @@ class ExperimentWorker(QObject):
 
         # clean up model
         self.config.model.deinitialize()
+        with self.threadDone.get_lock():
+            self.threadDone.value = True
         self.finished.emit()
 
 class ExperimentResultWorker(QObject):
@@ -518,6 +521,7 @@ class ExperimentDialog(QDialog):
         #self.backGraph.clicked.connect(lambda: self.changeOnGraphButton(-1))
 
         # multithreading stuff for updates after experiment:
+        self.threadDone = Value('b', 0)
         self.afterExpThread = QThread()
         self.afterGraphExpThread = QThread()
 
@@ -565,7 +569,7 @@ class ExperimentDialog(QDialog):
         self.textProgress.clear()
 
         self.thread = QThread()
-        self.worker = ExperimentWorker(self.config, self.config.savePath)
+        self.worker = ExperimentWorker(self.config, self.config.savePath, self.threadDone)
         if not self.config.isCompound:
             self.totalGraphs = len(self.config.mainAug)
 
@@ -671,3 +675,31 @@ class ExperimentDialog(QDialog):
             self.currentGraphIdx += i
             self.label_4.setText(str(self.currentGraphIdx+1))
             self.refreshGraphResults(self.currentGraphIdx)
+    
+    def closeEvent(self, event):
+        with self.threadDone.get_lock():
+            if not self.threadDone.value:
+                '''
+                reply = QMessageBox.question(self, 'Question',
+                    "Are you sure you want to close the application?",
+                    QMessageBox.Yes,
+                    QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    if self.thread:
+                        self.thread.terminate()
+                        self.thread.quit()
+                    del self.thread
+                    #super(ExperimentDialog, self).closeEvent(event)
+                    self.closeEvent(event)
+                else:
+                    event.ignore()
+                '''
+                self.close()
+            else:
+                self.close()
+
+    def _stop_thread(self):
+        #self.stop_update.setVisible(False)
+        #self.start_update.setVisible(True)
+        self.thread.terminate()         
+        self.thread = None
