@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QDialog, QMessageBox
 from PyQt5 import uic
-from PyQt5.QtCore import QObject, QThread, pyqtSignal, QSize
+from PyQt5.QtCore import QObject, QThread, pyqtSignal, QSize, Qt
 from PyQt5.QtGui import QPixmap, QIcon, QImage
 from src.mplwidget import MplWidget
 import matplotlib.pyplot as plt
@@ -285,7 +285,7 @@ class ExperimentWorker(QObject):
                                 _img = cv2.imread(imgPath)
                                 _img = aug(_img, request_param=aug.args[j])
                                 dets = self.config.model.run(_img)
-                                
+
                                 if i > 5000: # run the first 50 images
                                     break
                                 _filter_id.append(imgID)
@@ -299,7 +299,7 @@ class ExperimentWorker(QObject):
                                 _img = aug(_img, request_param=aug.args[j])
                                 dets = self.config.model.run(_img)
                                 self.writeDets(dets, new_sub_dir, imgPath)
-                            
+                                
                             self.logProgress.emit('\tProgress: (%i/%i)'%(i,len(self.config.imagePaths)))
                             self.progress.emit(i)
                             if self.config.labelType != 'coco':
@@ -665,6 +665,7 @@ class ExperimentDialog(QDialog):
         # self.graphWidget.canvas.axes.set_xlabel(str(ax.xaxis.get_label()))
         # self.graphWidget.canvas.axes.set_ylabel(str(ax.yaxis.get_label()))
         self.graphWidget.canvas.axes.set_xlabel("Augment Level")
+
         if self.config.labelType == 'coco' or self.config.labelType == 'voc':
             self.graphWidget.canvas.axes.set_ylabel("mAP")
         else:
@@ -699,7 +700,6 @@ class ExperimentDialog(QDialog):
         if self.currentGraphIdx+i < self.totalGraphs and self.currentGraphIdx+i >= 0:
             self.currentGraphIdx += i
             self.label_4.setText(str(self.currentGraphIdx+1))
-            self.refreshGraphResults(self.currentGraphIdx)
             self.refreshGraphResults(self.currentGraphIdx)
 
     def closeEvent(self, event):

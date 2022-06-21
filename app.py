@@ -272,15 +272,27 @@ class mainWindow(QtWidgets.QMainWindow):
             new_item = QtWidgets.QListWidgetItem()
             new_item.setText(fileName)
             new_item.setData(QtCore.Qt.UserRole, {'filePath':filePath})
-
             self.ui.fileList.addItem(new_item)
-
 
             if(new_item is not None):
                 self.ui.original.setPixmap(QtGui.QPixmap(filePath))
                 self.ui.fileList.setCurrentItem(new_item)
                 self.ui.original_2.clear()
                 self.ui.preview_2.clear()
+
+    def postParseData(self):
+        if self.yamlQueue.qsize() > 0:
+            self.yamlProgress.hide()
+            res = self.yamlQueue.get()
+            filePaths, label = res
+            self.labels, self.label_eval = label
+            self.ui.fileList.clear()
+            self.open_file(filePaths)
+            self.yamlThread = QThread()
+            self.yamlWorker = yamlWorker(self.yamlQueue)
+        else:
+            assert False
+        return 0
 
     def postParseData(self):
         if self.yamlQueue.qsize() > 0:
@@ -463,6 +475,7 @@ class mainWindow(QtWidgets.QMainWindow):
         lw = self.ui.fileList
         items = [lw.item(x) for x in range(lw.count())]
         imgPaths = []
+
         if self.label_eval == 'coco':
             # ask coco api:
             imgPaths = self.labels['coco'].getImgIds()

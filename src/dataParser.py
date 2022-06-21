@@ -53,27 +53,7 @@ class yamlWorker(QObject):
         trainVT = []        
         if("images" in documents):
             trainVT.append("images")
-
-        '''
-        if(len(trainVT) > 1):
-            dialogUI = Ui_Dialog()
-            dialog = QtWidgets.QDialog()
-            dialogUI.setupUi(dialog)
-            for x in trainVT:
-                item = QtWidgets.QListWidgetItem()
-                item.setText(x)
-                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-                item.setCheckState(Qt.Unchecked)
-                dialogUI.listWidget.addItem(item)
-            dialog.exec_()
-            if(dialog.result() == 0):
-                return []
-            checkedItems = []
-            for index in range(dialogUI.listWidget.count()):
-                if dialogUI.listWidget.item(index).checkState() == Qt.Checked:
-                    checkedItems.append(dialogUI.listWidget.item(index).text())
-        else:
-        '''
+            
         checkedItems = trainVT
 
         # Adds file paths to files within folders specified
